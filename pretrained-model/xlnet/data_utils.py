@@ -913,5 +913,5 @@ if __name__ == "__main__":
     flags.DEFINE_integer("task", 0, help="The Task ID. This value is used when "
                          "using multiple workers to identify each worker.")
 
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.logging.set_verbosity(tf.compat.v1.logging.INFO)
     tf.app.run(create_data)
