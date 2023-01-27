@@ -126,7 +126,7 @@ def get_dataset(
                 'label': tf.compat.v1.TensorShape([None]),
             },
         )
-        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.compat.v1.estimator.data.AUTOTUNE)
         dataset = dataset.padded_batch(
             batch_size,
             padded_shapes = {

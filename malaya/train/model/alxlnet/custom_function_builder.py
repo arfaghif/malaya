@@ -22,23 +22,23 @@ def construct_scalar_host_call(
     def host_call_fn(global_step, *args):
         """actual host call function."""
         step = global_step[0]
-        with tf.contrib.summary.create_file_writer(
+        with tf.compat.v1.estimator.summary.create_file_writer(
             logdir=model_dir, filename_suffix='.host_call'
         ).as_default():
-            with tf.contrib.summary.always_record_summaries():
+            with tf.compat.v1.estimator.summary.always_record_summaries():
                 for i, name in enumerate(metric_names):
                     if reduce_fn is None:
                         scalar = args[i][0]
                     else:
                         scalar = reduce_fn(args[i])
-                    with tf.contrib.summary.record_summaries_every_n_global_steps(
+                    with tf.compat.v1.estimator.summary.record_summaries_every_n_global_steps(
                         100, global_step=step
                     ):
-                        tf.contrib.summary.scalar(
+                        tf.compat.v1.estimator.summary.scalar(
                             prefix + name, scalar, step=step
                         )
 
-                return tf.contrib.summary.all_summary_ops()
+                return tf.compat.v1.estimator.summary.all_summary_ops()
 
     global_step_tensor = tf.reshape(tf.train.get_or_create_global_step(), [1])
     other_tensors = [tf.reshape(monitor_dict[key], [1]) for key in metric_names]
@@ -283,7 +283,7 @@ def get_qa_outputs(FLAGS, features, is_training):
                 activation=tf.tanh,
                 name='dense_0',
             )
-            end_logits = tf.contrib.layers.layer_norm(
+            end_logits = tf.compat.v1.estimator.layers.layer_norm(
                 end_logits, begin_norm_axis=-1
             )
 
@@ -318,7 +318,7 @@ def get_qa_outputs(FLAGS, features, is_training):
                 activation=tf.tanh,
                 name='dense_0',
             )
-            end_logits = tf.contrib.layers.layer_norm(
+            end_logits = tf.compat.v1.estimator.layers.layer_norm(
                 end_logits, begin_norm_axis=-1
             )
             end_logits = tf.layers.dense(

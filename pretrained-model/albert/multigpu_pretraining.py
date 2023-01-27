@@ -663,7 +663,7 @@ def input_fn_builder_gpu(
             # `sloppy` mode means that the interleaving is not exact. This adds
             # even more randomness to the training pipeline.
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
+                tf.compat.v1.estimator.data.parallel_interleave(
                     tf.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -681,7 +681,7 @@ def input_fn_builder_gpu(
         # and we *don't* want to drop the remainder, otherwise we wont cover
         # every sample.
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.estimator.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -732,7 +732,7 @@ def main(_):
 
     tf.compat.v1.logging.info('Use normal RunConfig')
     tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
-    dist_strategy = tf.contrib.distribute.MirroredStrategy(
+    dist_strategy = tf.compat.v1.estimator.distribute.MirroredStrategy(
         num_gpus = FLAGS.num_gpu_cores,
         auto_shard_dataset = True,
         cross_device_ops = AllReduceCrossDeviceOps(

@@ -120,7 +120,7 @@ def positionwise_ffn(
         output = tf.layers.dropout(
             output, dropout, training = is_training, name = 'drop_2'
         )
-        output = tf.contrib.layers.layer_norm(
+        output = tf.compat.v1.estimator.layers.layer_norm(
             output + inp, begin_norm_axis = -1, scope = 'LayerNorm'
         )
     return output
@@ -162,11 +162,11 @@ def post_attention(
 
     attn_out = tf.layers.dropout(attn_out, dropout, training = is_training)
     if residual:
-        output = tf.contrib.layers.layer_norm(
+        output = tf.compat.v1.estimator.layers.layer_norm(
             attn_out + h, begin_norm_axis = -1, scope = 'LayerNorm'
         )
     else:
-        output = tf.contrib.layers.layer_norm(
+        output = tf.compat.v1.estimator.layers.layer_norm(
             attn_out, begin_norm_axis = -1, scope = 'LayerNorm'
         )
 

@@ -2493,7 +2493,7 @@ def create_host_call(model_dir):
         gs = tf.to_int64(kwargs.pop('global_step')[0])
         with contrib.summary().create_file_writer(model_dir).as_default():
             with contrib.summary().always_record_summaries():
-                # We need to use tf.contrib.summary in order to feed the `step`.
+                # We need to use tf.compat.v1.estimator.summary in order to feed the `step`.
                 for name, value in sorted(six.iteritems(kwargs)):
                     if name.startswith('ScalarSummary'):
                         name = name[len('ScalarSummary') :]

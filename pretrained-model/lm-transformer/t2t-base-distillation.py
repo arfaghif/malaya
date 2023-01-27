@@ -208,7 +208,7 @@ def input_fn_builder(
             d = d.shuffle(buffer_size = len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
+                tf.compat.v1.estimator.data.parallel_interleave(
                     tf.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -220,7 +220,7 @@ def input_fn_builder(
             d = d.repeat()
         d = d.map(parse, num_parallel_calls = 32)
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.estimator.data.map_and_batch(
                 lambda record: _decode_record(record, data_fields),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -414,7 +414,7 @@ def run_training(
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if num_gpus > 1 and not use_tpu:
-        dist_strategy = tf.contrib.distribute.MirroredStrategy(
+        dist_strategy = tf.compat.v1.estimator.distribute.MirroredStrategy(
             num_gpus = num_gpus,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(

@@ -176,7 +176,7 @@ def input_fn_builder(
             d = d.shuffle(buffer_size = len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
+                tf.compat.v1.estimator.data.parallel_interleave(
                     tf.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -187,7 +187,7 @@ def input_fn_builder(
             d = tf.data.TFRecordDataset(input_files)
             d = d.repeat()
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.estimator.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -434,7 +434,7 @@ def model_fn_builder(
                 beta1 = 0.0,
             )
             if use_tpu:
-                optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
+                optimizer = tf.compat.v1.estimator.tpu.CrossShardOptimizer(optimizer)
             train_op = optimizer.minimize(loss, global_step = global_step)
 
             # global_step = tf.train.get_global_step()
@@ -448,7 +448,7 @@ def model_fn_builder(
             #     learning_rate = lr, beta1 = 0.0
             # )
             # if use_tpu:
-            #     optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
+            #     optimizer = tf.compat.v1.estimator.tpu.CrossShardOptimizer(optimizer)
 
             # train_op = optimizer.minimize(loss, global_step = global_step)
 
@@ -460,7 +460,7 @@ def model_fn_builder(
                 use_tpu,
             )
 
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.estimator.tpu.TPUEstimatorSpec(
                 mode = mode,
                 loss = total_loss,
                 train_op = train_op,
@@ -509,7 +509,7 @@ def model_fn_builder(
                     masked_lm_weights,
                 ],
             )
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.estimator.tpu.TPUEstimatorSpec(
                 mode = mode,
                 loss = total_loss,
                 eval_metrics = eval_metrics,
@@ -545,17 +545,17 @@ def main(_):
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
-        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+        tpu_cluster_resolver = tf.compat.v1.estimator.cluster_resolver.TPUClusterResolver(
             FLAGS.tpu_name, zone = FLAGS.tpu_zone, project = FLAGS.gcp_project
         )
 
-    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-    run_config = tf.contrib.tpu.RunConfig(
+    is_per_host = tf.compat.v1.estimator.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.compat.v1.estimator.tpu.RunConfig(
         cluster = tpu_cluster_resolver,
         master = FLAGS.master,
         model_dir = FLAGS.output_dir,
         save_checkpoints_steps = FLAGS.save_checkpoints_steps,
-        tpu_config = tf.contrib.tpu.TPUConfig(
+        tpu_config = tf.compat.v1.estimator.tpu.TPUConfig(
             iterations_per_loop = FLAGS.iterations_per_loop,
             num_shards = FLAGS.num_tpu_cores,
             per_host_input_for_training = is_per_host,
@@ -570,7 +570,7 @@ def main(_):
         use_tpu = FLAGS.use_tpu,
     )
 
-    estimator = tf.contrib.tpu.TPUEstimator(
+    estimator = tf.compat.v1.estimator.tpu.TPUEstimator(
         use_tpu = FLAGS.use_tpu,
         model_fn = model_fn,
         config = run_config,

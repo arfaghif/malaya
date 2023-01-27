@@ -146,7 +146,7 @@ class Model:
         # masks = tf.sequence_mask(
         #     self.Y_seq_len, tf.reduce_max(self.Y_seq_len), dtype = tf.float32
         # )
-        # self.cost = tf.contrib.seq2seq.sequence_loss(
+        # self.cost = tf.compat.v1.estimator.seq2seq.sequence_loss(
         #     logits = self.training_logits, targets = self.Y, weights = masks
         # )
         # # self.bleu, _ = bleu_hook.bleu_score(self.training_logits, self.Y)

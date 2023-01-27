@@ -328,7 +328,7 @@ def main(_):
 
     tf.compat.v1.logging.info('Use normal RunConfig')
     tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
-    dist_strategy = tf.contrib.distribute.MirroredStrategy(
+    dist_strategy = tf.compat.v1.estimator.distribute.MirroredStrategy(
         num_gpus = FLAGS.num_gpu_cores,
         auto_shard_dataset = True,
         cross_device_ops = AllReduceCrossDeviceOps(

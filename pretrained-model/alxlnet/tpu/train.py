@@ -243,7 +243,7 @@ def get_model_fn():
         )
 
         #### Constucting training TPUEstimatorSpec with new cache.
-        train_spec = tf.contrib.tpu.TPUEstimatorSpec(
+        train_spec = tf.compat.v1.estimator.tpu.TPUEstimatorSpec(
             mode = mode,
             loss = total_loss,
             train_op = train_op,

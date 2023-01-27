@@ -77,12 +77,12 @@ def create_optimizer(
 
     # REF: https://github.com/tensorflow/tensorflow/issues/25080
     # if fp16:
-    #     loss_scale_manager = tf.contrib.mixed_precision.ExponentialUpdateLossScaleManager(
+    #     loss_scale_manager = tf.compat.v1.estimator.mixed_precision.ExponentialUpdateLossScaleManager(
     #         init_loss_scale=2 ** 32,
     #         incr_every_n_steps=1000,
     #         decr_every_n_nan_or_inf=2,
     #         decr_ratio=0.5)
-    #     optimizer = tf.contrib.mixed_precision.LossScaleOptimizer(optimizer, loss_scale_manager)
+    #     optimizer = tf.compat.v1.estimator.mixed_precision.LossScaleOptimizer(optimizer, loss_scale_manager)
 
     tvars = tf.compat.v1.trainable_variables()
     gvs = optimizer.compute_gradients(loss, tvars)
