@@ -5,7 +5,7 @@ import collections
 import re
 import tensorflow as tf
 
-flags = tf.flags
+flags = tf.compat.v1.flags
 
 FLAGS = flags.FLAGS
 
@@ -40,7 +40,7 @@ flags.DEFINE_string(
 
 flags.DEFINE_string('init_checkpoint', None, 'Initial checkpoint')
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_name',
     None,
     'The Cloud TPU to use for training. This should be either the name '
@@ -48,7 +48,7 @@ tf.flags.DEFINE_string(
     'url.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_zone',
     None,
     '[Optional] GCE zone where the Cloud TPU is located in. If not '
@@ -56,7 +56,7 @@ tf.flags.DEFINE_string(
     'metadata.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'gcp_project',
     None,
     '[Optional] Project name for the Cloud TPU-enabled project. If not '
@@ -69,7 +69,7 @@ flags.DEFINE_integer(
     'Only used if `use_tpu` is True. Total number of TPU cores to use.',
 )
 
-tf.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
+tf.compat.v1.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
 
 flags.DEFINE_bool('do_train', False, 'Whether to run training.')
 
@@ -90,7 +90,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -108,30 +108,30 @@ def model_fn_builder(
     init_checkpoint, learning_rate, num_train_steps, num_warmup_steps, config,
 ):
     hparams = model.default_hparams()
-    with tf.gfile.GFile(config, "r") as reader:
+    with tf.compat.v1.gfile.GFile(config, "r") as reader:
         text = reader.read()
         config = json.loads(text)
         hparams.override_from_dict(config)
 
     def model_fn(features, labels, mode, params):
-        tf.compat.v1.logging.info('*** Features ***')
+        @@#logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
         input_ids = features['input_ids']
 
-        is_training = mode == tf.estimator.ModeKeys.TRAIN
+        is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
         output = model.model(hparams=hparams, X=input_ids)
-        loss = tf.reduce_mean(
-            input_tensor=tf.nn.sparse_softmax_cross_entropy_with_logits(
+        loss = tf.compat.v1.reduce_mean(
+            input_tensor=tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=input_ids[:, 1:], logits=output['logits'][:, :-1]
             )
         )
 
-        tvars = tf.trainable_variables()
+        tvars = tf.compat.v1.trainable_variables()
         initialized_variable_names = {}
         scaffold_fn = None
 
@@ -142,44 +142,44 @@ def model_fn_builder(
             ) = get_assignment_map_from_checkpoint(tvars, init_checkpoint)
 
             def tpu_scaffold():
-                tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-                return tf.train.Scaffold()
+                tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
+                return tf.compat.v1.train.Scaffold()
 
             scaffold_fn = tpu_scaffold
 
-        tf.compat.v1.logging.info('**** Trainable Variables ****')
+        @@#logging.info('**** Trainable Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
         output_spec = None
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
             train_op = optimization.create_optimizer(
                 loss, learning_rate, num_train_steps, num_warmup_steps, True
             )
 
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
                 train_op=train_op,
                 scaffold_fn=scaffold_fn,
             )
-        elif mode == tf.estimator.ModeKeys.EVAL:
+        elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
             def metric_fn(loss, input_ids, output):
-                next_sentence_predictions = tf.argmax(
-                    next_sentence_log_probs, axis=-1, output_type=tf.int32
+                next_sentence_predictions = tf.compat.v1.argmax(
+                    next_sentence_log_probs, axis=-1, output_type=tf.compat.v1.int32
                 )
-                next_sentence_labels = tf.reshape(input_ids, [-1])
-                next_sentence_accuracy = tf.metrics.accuracy(
+                next_sentence_labels = tf.compat.v1.reshape(input_ids, [-1])
+                next_sentence_accuracy = tf.compat.v1.metrics.accuracy(
                     labels=next_sentence_labels,
                     predictions=next_sentence_predictions,
                 )
-                next_sentence_mean_loss = tf.metrics.mean(values=loss)
+                next_sentence_mean_loss = tf.compat.v1.metrics.mean(values=loss)
 
                 return {
                     'next_sentence_accuracy': next_sentence_accuracy,
@@ -187,7 +187,7 @@ def model_fn_builder(
                 }
 
             eval_metrics = (metric_fn, [loss, input_ids, output])
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
                 eval_metrics=eval_metrics,
@@ -209,28 +209,28 @@ def input_fn_builder(
     def input_fn(params):
         batch_size = params['batch_size']
         name_to_features = {
-            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64)
+            'input_ids': tf.compat.v1.io.FixedLenFeature([max_seq_length], tf.compat.v1.int64)
         }
         if is_training:
-            d = tf.data.TFRecordDataset(input_files)
-            d = tf.data.Dataset.from_tensor_slices(tf.constant(input_files))
+            d = tf.compat.v1.data.TFRecordDataset(input_files)
+            d = tf.compat.v1.data.Dataset.from_tensor_slices(tf.compat.v1.constant(input_files))
             d = d.repeat()
             d = d.shuffle(buffer_size=len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
-                    tf.data.TFRecordDataset,
+                tf.compat.v1.contrib.data.parallel_interleave(
+                    tf.compat.v1.data.TFRecordDataset,
                     sloppy=is_training,
                     cycle_length=cycle_length,
                 )
             )
             d = d.shuffle(buffer_size=100)
         else:
-            d = tf.data.TFRecordDataset(input_files)
+            d = tf.compat.v1.data.TFRecordDataset(input_files)
             d = d.repeat(0)
 
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size=batch_size,
                 num_parallel_batches=num_cpu_threads,
@@ -244,41 +244,41 @@ def input_fn_builder(
 
 def _decode_record(record, name_to_features):
     """Decodes a record to a TensorFlow example."""
-    example = tf.io.parse_single_example(record, name_to_features)
+    example = tf.compat.v1.io.parse_single_example(record, name_to_features)
 
-    # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+    # tf.compat.v1.Example only supports tf.compat.v1.int64, but the TPU only supports tf.compat.v1.int32.
     # So cast all int64 to int32.
     for name in list(example.keys()):
         t = example[name]
-        if t.dtype == tf.int64:
-            t = tf.to_int32(t)
+        if t.dtype == tf.compat.v1.int64:
+            t = tf.compat.v1.to_int32(t)
         example[name] = t
 
     return example
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
-    tf.io.gfile.mkdir(FLAGS.output_dir)
+    tf.compat.v1.io.gfile.mkdir(FLAGS.output_dir)
     input_files = []
     for input_pattern in FLAGS.input_file.split(','):
-        input_files.extend(tf.gfile.Glob(input_pattern))
+        input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info('*** Input Files ***')
+    @@#logging.info('*** Input Files ***')
     for input_file in input_files:
-        tf.compat.v1.logging.info('  %s' % input_file)
+        @@#logging.info('  %s' % input_file)
 
-    tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+    tpu_cluster_resolver = tf.compat.v1.contrib.cluster_resolver.TPUClusterResolver(
         FLAGS.tpu_name, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project
     )
-    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-    run_config = tf.contrib.tpu.RunConfig(
+    is_per_host = tf.compat.v1.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.compat.v1.contrib.tpu.RunConfig(
         cluster=tpu_cluster_resolver,
         master=FLAGS.master,
         model_dir=FLAGS.output_dir,
         save_checkpoints_steps=FLAGS.save_checkpoints_steps,
-        tpu_config=tf.contrib.tpu.TPUConfig(
+        tpu_config=tf.compat.v1.contrib.tpu.TPUConfig(
             iterations_per_loop=FLAGS.iterations_per_loop,
             num_shards=FLAGS.num_tpu_cores,
             per_host_input_for_training=is_per_host,
@@ -292,7 +292,7 @@ def main(_):
         num_warmup_steps=FLAGS.num_warmup_steps,
         config=FLAGS.config,
     )
-    estimator = tf.contrib.tpu.TPUEstimator(
+    estimator = tf.compat.v1.contrib.tpu.TPUEstimator(
         use_tpu=FLAGS.use_tpu,
         model_fn=model_fn,
         config=run_config,
@@ -300,8 +300,8 @@ def main(_):
         eval_batch_size=FLAGS.eval_batch_size,
     )
     if FLAGS.do_train:
-        tf.compat.v1.logging.info('***** Running training *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.batch_size)
+        @@#logging.info('***** Running training *****')
+        @@#logging.info('  Batch size = %d', FLAGS.batch_size)
         train_input_fn = input_fn_builder(
             input_files=input_files,
             max_seq_length=FLAGS.max_seq_length,
@@ -312,8 +312,8 @@ def main(_):
         )
 
     if FLAGS.do_eval:
-        tf.compat.v1.logging.info('***** Running evaluation *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.eval_batch_size)
+        @@#logging.info('***** Running evaluation *****')
+        @@#logging.info('  Batch size = %d', FLAGS.eval_batch_size)
         eval_input_fn = input_fn_builder(
             input_files=input_files,
             max_seq_length=FLAGS.max_seq_length,
@@ -323,12 +323,12 @@ def main(_):
             input_fn=eval_input_fn, steps=FLAGS.max_eval_steps
         )
         output_eval_file = os.path.join(FLAGS.output_dir, 'eval_results.txt')
-        with tf.gfile.GFile(output_eval_file, 'w') as writer:
-            tf.compat.v1.logging.info('***** Eval results *****')
+        with tf.compat.v1.gfile.GFile(output_eval_file, 'w') as writer:
+            @@#logging.info('***** Eval results *****')
             for key in sorted(result.keys()):
-                tf.compat.v1.logging.info('  %s = %s', key, str(result[key]))
+                @@#logging.info('  %s = %s', key, str(result[key]))
                 writer.write('%s = %s\n' % (key, str(result[key])))
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

@@ -29,7 +29,7 @@ import collections
 import re
 
 logger = logging.getLogger()
-tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+@@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
 vocab = 'sp10m.cased.t5.model'
 sp = spm.SentencePieceProcessor()
@@ -78,20 +78,20 @@ class Model:
         self.X = X
         self.Y = Y
 
-        self.X_seq_len = tf.count_nonzero(self.X, 1, dtype = tf.int32)
-        maxlen_decode = tf.reduce_max(self.X_seq_len)
+        self.X_seq_len = tf.compat.v1.count_nonzero(self.X, 1, dtype = tf.compat.v1.int32)
+        maxlen_decode = tf.compat.v1.reduce_max(self.X_seq_len)
 
-        x = tf.expand_dims(tf.expand_dims(self.X, -1), -1)
-        y = tf.expand_dims(tf.expand_dims(self.Y, -1), -1)
+        x = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(self.X, -1), -1)
+        y = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(self.Y, -1), -1)
 
         features = {
             'inputs': x,
             'targets': y,
-            'target_space_id': tf.constant(1, dtype = tf.int32),
+            'target_space_id': tf.compat.v1.constant(1, dtype = tf.compat.v1.int32),
         }
         self.features = features
 
-        Modes = tf.estimator.ModeKeys
+        Modes = tf.compat.v1.estimator.ModeKeys
         hparams = trainer_lib.create_hparams(
             HPARAMS, data_dir = DATA_DIR, problem_name = PROBLEM
         )
@@ -121,25 +121,25 @@ class StudentModel:
         self, X, Y, HPARAMS = 'transformer_base', DATA_DIR = 't2t/data'
     ):
 
-        with tf.compat.v1.variable_scope('student') as vs:
+        with @@#variable_scope('student') as vs:
 
             self.X = X
             self.Y = Y
 
-            self.X_seq_len = tf.count_nonzero(self.X, 1, dtype = tf.int32)
-            maxlen_decode = tf.reduce_max(self.X_seq_len)
+            self.X_seq_len = tf.compat.v1.count_nonzero(self.X, 1, dtype = tf.compat.v1.int32)
+            maxlen_decode = tf.compat.v1.reduce_max(self.X_seq_len)
 
-            x = tf.expand_dims(tf.expand_dims(self.X, -1), -1)
-            y = tf.expand_dims(tf.expand_dims(self.Y, -1), -1)
+            x = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(self.X, -1), -1)
+            y = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(self.Y, -1), -1)
 
             features = {
                 'inputs': x,
                 'targets': y,
-                'target_space_id': tf.constant(1, dtype = tf.int32),
+                'target_space_id': tf.compat.v1.constant(1, dtype = tf.compat.v1.int32),
             }
             self.features = features
 
-            Modes = tf.estimator.ModeKeys
+            Modes = tf.compat.v1.estimator.ModeKeys
             hparams = trainer_lib.create_hparams(
                 HPARAMS, data_dir = DATA_DIR, problem_name = PROBLEM
             )
@@ -175,8 +175,8 @@ def input_fn_builder(
 ):
 
     data_fields = {
-        'inputs': tf.VarLenFeature(tf.int64),
-        'targets': tf.VarLenFeature(tf.int64),
+        'inputs': tf.compat.v1.VarLenFeature(tf.compat.v1.int64),
+        'targets': tf.compat.v1.VarLenFeature(tf.compat.v1.int64),
     }
     data_len = {
         'inputs': max_seq_length_encoder,
@@ -185,13 +185,13 @@ def input_fn_builder(
 
     def parse(serialized_example):
 
-        features = tf.io.parse_single_example(
+        features = tf.compat.v1.io.parse_single_example(
             serialized_example, features = data_fields
         )
         for k in features.keys():
             features[k] = features[k].values
-            features[k] = tf.pad(
-                features[k], [[0, data_len[k] - tf.shape(features[k])[0]]]
+            features[k] = tf.compat.v1.pad(
+                features[k], [[0, data_len[k] - tf.compat.v1.shape(features[k])[0]]]
             )
             features[k].set_shape((data_len[k]))
 
@@ -200,24 +200,24 @@ def input_fn_builder(
     def input_fn(batch_size = 6):
 
         if is_training:
-            d = tf.data.Dataset.from_tensor_slices(tf.constant(input_files))
+            d = tf.compat.v1.data.Dataset.from_tensor_slices(tf.compat.v1.constant(input_files))
             d = d.repeat()
             d = d.shuffle(buffer_size = len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
-                    tf.data.TFRecordDataset,
+                tf.compat.v1.contrib.data.parallel_interleave(
+                    tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
                 )
             )
             d = d.shuffle(buffer_size = 100)
         else:
-            d = tf.data.TFRecordDataset(input_files)
+            d = tf.compat.v1.data.TFRecordDataset(input_files)
             d = d.repeat()
         d = d.map(parse, num_parallel_calls = 32)
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, data_fields),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -232,8 +232,8 @@ def input_fn_builder(
 def _decode_record(example, name_to_features):
     for name in list(example.keys()):
         t = example[name]
-        if t.dtype == tf.int64:
-            t = tf.to_int32(t)
+        if t.dtype == tf.compat.v1.int64:
+            t = tf.compat.v1.to_int32(t)
         example[name] = t
 
     return example
@@ -252,7 +252,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -263,12 +263,12 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
         initialized_variable_names[name] = 1
         initialized_variable_names[name + ':0'] = 1
 
-    tf.compat.v1.logging.info('**** Trainable Variables ****')
+    @@#logging.info('**** Trainable Variables ****')
     for var in tvars:
         init_string = ''
         if var.name in initialized_variable_names:
             init_string = ', *INIT_FROM_CKPT*'
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '  name = %s, shape = %s%s', var.name, var.shape, init_string
         )
 
@@ -278,36 +278,36 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
 def padded_cross_entropy_loss(
     logits, labels, smoothing = 0.0, vocab_size = 32128
 ):
-    with tf.name_scope('loss'):
+    with tf.compat.v1.name_scope('loss'):
 
         if labels is not None:
-            with tf.name_scope('smoothing_cross_entropy'):
+            with tf.compat.v1.name_scope('smoothing_cross_entropy'):
                 confidence = 1.0 - smoothing
-                vocab_float = tf.cast(vocab_size - 1, tf.float32)
+                vocab_float = tf.compat.v1.cast(vocab_size - 1, tf.compat.v1.float32)
                 low_confidence = (1.0 - confidence) / vocab_float
-                soft_targets = tf.one_hot(
+                soft_targets = tf.compat.v1.one_hot(
                     labels,
                     depth = vocab_size,
                     on_value = confidence,
                     off_value = low_confidence,
                 )
-                xentropy = tf.nn.softmax_cross_entropy_with_logits(
+                xentropy = tf.compat.v1.nn.softmax_cross_entropy_with_logits(
                     logits = logits, labels = soft_targets
                 )
 
                 normalizing_constant = -(
-                    confidence * tf.math.log(confidence)
+                    confidence * tf.compat.v1.math.log(confidence)
                     + vocab_float
                     * low_confidence
-                    * tf.math.log(low_confidence + 1e-20)
+                    * tf.compat.v1.math.log(low_confidence + 1e-20)
                 )
                 xentropy -= normalizing_constant
 
-            weights = tf.cast(tf.not_equal(labels, 0), tf.float32)
-            return tf.reduce_sum(xentropy * weights), weights
+            weights = tf.compat.v1.cast(tf.compat.v1.not_equal(labels, 0), tf.compat.v1.float32)
+            return tf.compat.v1.reduce_sum(xentropy * weights), weights
 
         else:
-            loss = tf.constant(0.0)
+            loss = tf.compat.v1.constant(0.0)
 
         return loss
 
@@ -324,7 +324,7 @@ def model_fn(features, labels, mode, params):
     X = features['inputs']
     Y = features['targets']
 
-    is_training = mode == tf.estimator.ModeKeys.TRAIN
+    is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
     model = Model(X, Y)
     student = StudentModel(X, Y)
@@ -334,32 +334,32 @@ def model_fn(features, labels, mode, params):
         student_logits, student.Y
     )
 
-    teacher_targets = tf.nn.softmax(
+    teacher_targets = tf.compat.v1.nn.softmax(
         model.logits[:, :, 0, 0] / distill_temperature
     )
-    student_distill_xent = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels = tf.stop_gradient(teacher_targets),
+    student_distill_xent = tf.compat.v1.nn.softmax_cross_entropy_with_logits_v2(
+        labels = tf.compat.v1.stop_gradient(teacher_targets),
         logits = student_logits / distill_temperature,
     )
-    student_distill_xent = tf.reduce_sum(student_distill_xent * weights)
+    student_distill_xent = tf.compat.v1.reduce_sum(student_distill_xent * weights)
     student_distill_xent *= distill_temperature ** 2
 
     phase_loss = task_balance * student_task_xent
     phase_loss += (1 - task_balance) * student_distill_xent
 
-    loss = phase_loss / tf.reduce_sum(weights)
-    task_loss = student_task_xent / tf.reduce_sum(weights)
-    distill_loss = student_distill_xent / tf.reduce_sum(weights)
+    loss = phase_loss / tf.compat.v1.reduce_sum(weights)
+    task_loss = student_task_xent / tf.compat.v1.reduce_sum(weights)
+    distill_loss = student_distill_xent / tf.compat.v1.reduce_sum(weights)
 
-    tf.identity(loss, 'total_loss')
-    tf.identity(task_loss, 'task_loss')
-    tf.identity(distill_loss, 'distill_loss')
+    tf.compat.v1.identity(loss, 'total_loss')
+    tf.compat.v1.identity(task_loss, 'task_loss')
+    tf.compat.v1.identity(distill_loss, 'distill_loss')
 
-    tf.summary.scalar('total_loss', loss)
-    tf.summary.scalar('task_loss', task_loss)
-    tf.summary.scalar('distill_loss', distill_loss)
+    tf.compat.v1.summary.scalar('total_loss', loss)
+    tf.compat.v1.summary.scalar('task_loss', task_loss)
+    tf.compat.v1.summary.scalar('distill_loss', distill_loss)
 
-    tvars = [v for v in tf.trainable_variables() if 'student/' not in v.name]
+    tvars = [v for v in tf.compat.v1.trainable_variables() if 'student/' not in v.name]
 
     initialized_variable_names = {}
     scaffold_fn = None
@@ -368,23 +368,23 @@ def model_fn(features, labels, mode, params):
             assignment_map,
             initialized_variable_names,
         ) = get_assignment_map_from_checkpoint(tvars, init_checkpoint)
-        tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+        tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        global_step = tf.train.get_or_create_global_step()
-        lr = tf.rsqrt(tf.maximum(tf.to_float(global_step), num_warmup_steps))
+    if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
+        global_step = tf.compat.v1.train.get_or_create_global_step()
+        lr = tf.compat.v1.rsqrt(tf.compat.v1.maximum(tf.compat.v1.to_float(global_step), num_warmup_steps))
         optimizer = adafactor.AdafactorOptimizer(
             learning_rate = lr, beta1 = 0.0
         )
         train_op = optimizer.minimize(loss, global_step = global_step)
-        estimator_spec = tf.estimator.EstimatorSpec(
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
             mode = mode, loss = loss, train_op = train_op
         )
 
-    elif mode == tf.estimator.ModeKeys.EVAL:
+    elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
-        estimator_spec = tf.estimator.EstimatorSpec(
-            mode = tf.estimator.ModeKeys.EVAL, loss = loss
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
+            mode = tf.compat.v1.estimator.ModeKeys.EVAL, loss = loss
         )
 
     return estimator_spec
@@ -406,10 +406,10 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     if num_gpus > 1 and not use_tpu:
-        dist_strategy = tf.contrib.distribute.MirroredStrategy(
+        dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
             num_gpus = num_gpus,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(
@@ -419,10 +419,10 @@ def run_training(
     else:
         dist_strategy = None
 
-    gpu_options = tf.GPUOptions(
+    gpu_options = tf.compat.v1.GPUOptions(
         per_process_gpu_memory_fraction = gpu_mem_fraction
     )
-    config = tf.ConfigProto(
+    config = tf.compat.v1.ConfigProto(
         allow_soft_placement = True, gpu_options = gpu_options
     )
     run_config = RunConfig(
@@ -435,19 +435,19 @@ def run_training(
         session_config = config,
     )
 
-    estimator = tf.estimator.Estimator(
+    estimator = tf.compat.v1.estimator.Estimator(
         model_fn = model_fn, params = {}, config = run_config
     )
 
     if eval_fn:
-        train_spec = tf.estimator.TrainSpec(
+        train_spec = tf.compat.v1.estimator.TrainSpec(
             input_fn = train_fn, max_steps = max_steps, hooks = train_hooks
         )
 
-        eval_spec = tf.estimator.EvalSpec(
+        eval_spec = tf.compat.v1.estimator.EvalSpec(
             input_fn = eval_fn, steps = eval_step, throttle_secs = eval_throttle
         )
-        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+        tf.compat.v1.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
     else:
         estimator.train(
@@ -456,12 +456,12 @@ def run_training(
 
 
 train_hooks = [
-    tf.train.LoggingTensorHook(
+    tf.compat.v1.train.LoggingTensorHook(
         ['total_loss', 'task_loss', 'distill_loss'], every_n_iter = 1
     )
 ]
 
-input_files = tf.gfile.Glob('t2t-summarization-1024/data/seq2*')
+input_files = tf.compat.v1.gfile.Glob('t2t-summarization-1024/data/seq2*')
 train_dataset = input_fn_builder(
     input_files = input_files,
     max_seq_length_encoder = 1024,

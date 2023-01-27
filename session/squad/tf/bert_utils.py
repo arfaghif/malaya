@@ -137,7 +137,7 @@ class InputFeatures(object):
 
 def read_squad_examples(input_file, is_training):
     """Read a SQuAD json file into a list of SquadExample."""
-    with tf.gfile.Open(input_file, 'r') as reader:
+    with tf.compat.v1.gfile.Open(input_file, 'r') as reader:
         input_data = json.load(reader)['data']
 
     examples = []
@@ -239,7 +239,7 @@ def convert_examples_to_features(
         example = examples[n]
 
         if example_index % 100 == 0:
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 'Converting {}/{} pos {} neg {}'.format(
                     example_index, len(examples), cnt_pos, cnt_neg
                 )
@@ -354,7 +354,7 @@ def convert_examples_to_features(
             all(v is None for v in orig_to_chartok_index)
             or f[n - 1, m - 1] < 0.8 * n
         ):
-            tf.compat.v1.logging.info('MISMATCH DETECTED!')
+            @@#logging.info('MISMATCH DETECTED!')
             continue
 
         tok_start_to_orig_index = []
@@ -509,19 +509,19 @@ def convert_examples_to_features(
                 end_position = 0
 
             if example_index < 20:
-                tf.compat.v1.logging.info('*** Example ***')
-                tf.compat.v1.logging.info('unique_id: %s' % (unique_id))
-                tf.compat.v1.logging.info('example_index: %s' % (example_index))
-                tf.compat.v1.logging.info('doc_span_index: %s' % (doc_span_index))
-                tf.compat.v1.logging.info(
+                @@#logging.info('*** Example ***')
+                @@#logging.info('unique_id: %s' % (unique_id))
+                @@#logging.info('example_index: %s' % (example_index))
+                @@#logging.info('doc_span_index: %s' % (doc_span_index))
+                @@#logging.info(
                     'tok_start_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_start_to_orig_index])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'tok_end_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_end_to_orig_index])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'token_is_max_context: %s'
                     % ' '.join(
                         [
@@ -530,24 +530,24 @@ def convert_examples_to_features(
                         ]
                     )
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'input_pieces: %s'
                     % ' '.join(
                         [tokenizer.sp_model.IdToPiece(x) for x in tokens]
                     )
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'input_ids: %s' % ' '.join([str(x) for x in input_ids])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'input_mask: %s' % ' '.join([str(x) for x in input_mask])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'segment_ids: %s' % ' '.join([str(x) for x in segment_ids])
                 )
 
                 if is_training and span_is_impossible:
-                    tf.compat.v1.logging.info('impossible example span')
+                    @@#logging.info('impossible example span')
 
                 if is_training and not span_is_impossible:
                     pieces = [
@@ -555,9 +555,9 @@ def convert_examples_to_features(
                         for token in tokens[start_position : (end_position + 1)]
                     ]
                     answer_text = tokenizer.sp_model.DecodePieces(pieces)
-                    tf.compat.v1.logging.info('start_position: %d' % (start_position))
-                    tf.compat.v1.logging.info('end_position: %d' % (end_position))
-                    tf.compat.v1.logging.info(
+                    @@#logging.info('start_position: %d' % (start_position))
+                    @@#logging.info('end_position: %d' % (end_position))
+                    @@#logging.info(
                         'answer: %s'
                         % (tokenization.printable_text(answer_text))
                     )
@@ -597,7 +597,7 @@ def convert_examples_to_features(
             else:
                 cnt_pos += 1
 
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Total number of instances: {} = pos {} neg {}'.format(
             cnt_pos + cnt_neg, cnt_pos, cnt_neg
         )
@@ -688,15 +688,15 @@ class FeatureWriter(object):
         self.filename = filename
         self.is_training = is_training
         self.num_features = 0
-        self._writer = tf.python_io.TFRecordWriter(filename)
+        self._writer = tf.compat.v1.python_io.TFRecordWriter(filename)
 
     def process_feature(self, feature):
-        """Write a InputFeature to the TFRecordWriter as a tf.train.Example."""
+        """Write a InputFeature to the TFRecordWriter as a tf.compat.v1.train.Example."""
         self.num_features += 1
 
         def create_int_feature(values):
-            feature = tf.train.Feature(
-                int64_list = tf.train.Int64List(value = list(values))
+            feature = tf.compat.v1.train.Feature(
+                int64_list = tf.compat.v1.train.Int64List(value = list(values))
             )
             return feature
 
@@ -719,8 +719,8 @@ class FeatureWriter(object):
                 impossible = 1
             features['is_impossible'] = create_int_feature([impossible])
 
-        tf_example = tf.train.Example(
-            features = tf.train.Features(feature = features)
+        tf_example = tf.compat.v1.train.Example(
+            features = tf.compat.v1.train.Features(feature = features)
         )
         self._writer.write(tf_example.SerializeToString())
 
@@ -734,30 +734,30 @@ def input_fn_builder(
     """Creates an `input_fn` closure to be passed to TPUEstimator."""
 
     name_to_features = {
-        'unique_ids': tf.io.FixedLenFeature([], tf.int64),
-        'input_ids': tf.io.FixedLenFeature([seq_length], tf.int64),
-        'input_mask': tf.io.FixedLenFeature([seq_length], tf.int64),
-        'segment_ids': tf.io.FixedLenFeature([seq_length], tf.int64),
+        'unique_ids': tf.compat.v1.io.FixedLenFeature([], tf.compat.v1.int64),
+        'input_ids': tf.compat.v1.io.FixedLenFeature([seq_length], tf.compat.v1.int64),
+        'input_mask': tf.compat.v1.io.FixedLenFeature([seq_length], tf.compat.v1.int64),
+        'segment_ids': tf.compat.v1.io.FixedLenFeature([seq_length], tf.compat.v1.int64),
     }
     # p_mask is not required for SQuAD v1.1
     if is_v2:
-        name_to_features['p_mask'] = tf.io.FixedLenFeature([seq_length], tf.int64)
+        name_to_features['p_mask'] = tf.compat.v1.io.FixedLenFeature([seq_length], tf.compat.v1.int64)
 
     if is_training:
-        name_to_features['start_positions'] = tf.io.FixedLenFeature([], tf.int64)
-        name_to_features['end_positions'] = tf.io.FixedLenFeature([], tf.int64)
-        name_to_features['is_impossible'] = tf.io.FixedLenFeature([], tf.int64)
+        name_to_features['start_positions'] = tf.compat.v1.io.FixedLenFeature([], tf.compat.v1.int64)
+        name_to_features['end_positions'] = tf.compat.v1.io.FixedLenFeature([], tf.compat.v1.int64)
+        name_to_features['is_impossible'] = tf.compat.v1.io.FixedLenFeature([], tf.compat.v1.int64)
 
     def _decode_record(record, name_to_features):
         """Decodes a record to a TensorFlow example."""
-        example = tf.io.parse_single_example(record, name_to_features)
+        example = tf.compat.v1.io.parse_single_example(record, name_to_features)
 
-        # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+        # tf.compat.v1.Example only supports tf.compat.v1.int64, but the TPU only supports tf.compat.v1.int32.
         # So cast all int64 to int32.
         for name in list(example.keys()):
             t = example[name]
-            if t.dtype == tf.int64:
-                t = tf.to_int32(t)
+            if t.dtype == tf.compat.v1.int64:
+                t = tf.compat.v1.to_int32(t)
             example[name] = t
 
         return example
@@ -771,7 +771,7 @@ def input_fn_builder(
 
         # For training, we want a lot of parallel reading and shuffling.
         # For eval, we want no shuffling and parallel reading doesn't matter.
-        d = tf.data.TFRecordDataset(input_file)
+        d = tf.compat.v1.data.TFRecordDataset(input_file)
         if is_training:
             d = d.repeat()
             d = d.shuffle(buffer_size = 100)
@@ -818,26 +818,26 @@ def input_fn_builder(
 #     seq_length = final_hidden_shape[1]
 #     hidden_size = final_hidden_shape[2]
 
-#     output_weights = tf.get_variable(
+#     output_weights = tf.compat.v1.get_variable(
 #         'cls/squad/output_weights',
 #         [2, hidden_size],
-#         initializer = tf.truncated_normal_initializer(stddev = 0.02),
+#         initializer = tf.compat.v1.truncated_normal_initializer(stddev = 0.02),
 #     )
 
-#     output_bias = tf.get_variable(
-#         'cls/squad/output_bias', [2], initializer = tf.zeros_initializer()
+#     output_bias = tf.compat.v1.get_variable(
+#         'cls/squad/output_bias', [2], initializer = tf.compat.v1.zeros_initializer()
 #     )
 
-#     final_hidden_matrix = tf.reshape(
+#     final_hidden_matrix = tf.compat.v1.reshape(
 #         final_hidden, [batch_size * seq_length, hidden_size]
 #     )
-#     logits = tf.matmul(final_hidden_matrix, output_weights, transpose_b = True)
-#     logits = tf.nn.bias_add(logits, output_bias)
+#     logits = tf.compat.v1.matmul(final_hidden_matrix, output_weights, transpose_b = True)
+#     logits = tf.compat.v1.nn.bias_add(logits, output_bias)
 
-#     logits = tf.reshape(logits, [batch_size, seq_length, 2])
-#     logits = tf.transpose(logits, [2, 0, 1])
+#     logits = tf.compat.v1.reshape(logits, [batch_size, seq_length, 2])
+#     logits = tf.compat.v1.transpose(logits, [2, 0, 1])
 
-#     unstacked_logits = tf.unstack(logits, axis = 0)
+#     unstacked_logits = tf.compat.v1.unstack(logits, axis = 0)
 
 #     (start_logits, end_logits) = (unstacked_logits[0], unstacked_logits[1])
 
@@ -862,9 +862,9 @@ def input_fn_builder(
 #     ):  # pylint: disable=unused-argument
 #         """The `model_fn` for TPUEstimator."""
 
-#         tf.compat.v1.logging.info('*** Features ***')
+#         @@#logging.info('*** Features ***')
 #         for name in sorted(features.keys()):
-#             tf.compat.v1.logging.info(
+#             @@#logging.info(
 #                 '  name = %s, shape = %s' % (name, features[name].shape)
 #             )
 
@@ -876,7 +876,7 @@ def input_fn_builder(
 #         input_mask = features['input_mask']
 #         segment_ids = features['segment_ids']
 
-#         is_training = mode == tf.estimator.ModeKeys.TRAIN
+#         is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
 #         (start_logits, end_logits) = create_v1_model(
 #             albert_config = albert_config,
@@ -890,10 +890,10 @@ def input_fn_builder(
 #         )
 
 #         # Assign names to the logits so that we can refer to them as output tensors.
-#         start_logits = tf.identity(start_logits, name = 'start_logits')
-#         end_logits = tf.identity(end_logits, name = 'end_logits')
+#         start_logits = tf.compat.v1.identity(start_logits, name = 'start_logits')
+#         end_logits = tf.compat.v1.identity(end_logits, name = 'end_logits')
 
-#         tvars = tf.trainable_variables()
+#         tvars = tf.compat.v1.trainable_variables()
 
 #         initialized_variable_names = {}
 #         scaffold_fn = None
@@ -907,35 +907,35 @@ def input_fn_builder(
 #             if use_tpu:
 
 #                 def tpu_scaffold():
-#                     tf.train.init_from_checkpoint(
+#                     tf.compat.v1.train.init_from_checkpoint(
 #                         init_checkpoint, assignment_map
 #                     )
-#                     return tf.train.Scaffold()
+#                     return tf.compat.v1.train.Scaffold()
 
 #                 scaffold_fn = tpu_scaffold
 #             else:
-#                 tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+#                 tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-#         tf.compat.v1.logging.info('**** Trainable Variables ****')
+#         @@#logging.info('**** Trainable Variables ****')
 #         for var in tvars:
 #             init_string = ''
 #             if var.name in initialized_variable_names:
 #                 init_string = ', *INIT_FROM_CKPT*'
-#             tf.compat.v1.logging.info(
+#             @@#logging.info(
 #                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
 #             )
 
 #         output_spec = None
-#         if mode == tf.estimator.ModeKeys.TRAIN:
+#         if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
 #             seq_length = modeling.get_shape_list(input_ids)[1]
 
 #             def compute_loss(logits, positions):
-#                 one_hot_positions = tf.one_hot(
-#                     positions, depth = seq_length, dtype = tf.float32
+#                 one_hot_positions = tf.compat.v1.one_hot(
+#                     positions, depth = seq_length, dtype = tf.compat.v1.float32
 #                 )
-#                 log_probs = tf.nn.log_softmax(logits, axis = -1)
-#                 loss = -tf.reduce_mean(
-#                     tf.reduce_sum(one_hot_positions * log_probs, axis = -1)
+#                 log_probs = tf.compat.v1.nn.log_softmax(logits, axis = -1)
+#                 loss = -tf.compat.v1.reduce_mean(
+#                     tf.compat.v1.reduce_sum(one_hot_positions * log_probs, axis = -1)
 #                 )
 #                 return loss
 
@@ -961,7 +961,7 @@ def input_fn_builder(
 #                 train_op = train_op,
 #                 scaffold_fn = scaffold_fn,
 #             )
-#         elif mode == tf.estimator.ModeKeys.PREDICT:
+#         elif mode == tf.compat.v1.estimator.ModeKeys.PREDICT:
 #             predictions = {
 #                 'start_log_prob': start_logits,
 #                 'end_log_prob': end_logits,
@@ -1067,8 +1067,8 @@ def write_predictions_v1(
     output_nbest_file,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
-    tf.compat.v1.logging.info('Writing nbest to: %s' % (output_nbest_file))
+    @@#logging.info('Writing predictions to: %s' % (output_prediction_file))
+    @@#logging.info('Writing nbest to: %s' % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -1183,10 +1183,10 @@ def write_predictions_v1(
         all_predictions[example.qas_id] = nbest_json[0]['text']
         all_nbest_json[example.qas_id] = nbest_json
 
-    with tf.gfile.GFile(output_prediction_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_prediction_file, 'w') as writer:
         writer.write(json.dumps(all_predictions, indent = 4) + '\n')
 
-    with tf.gfile.GFile(output_nbest_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_nbest_file, 'w') as writer:
         writer.write(json.dumps(all_nbest_json, indent = 4) + '\n')
 
     return all_predictions
@@ -1539,8 +1539,8 @@ def write_predictions_v2(
     null_score_diff_threshold,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
-    tf.compat.v1.logging.info('Writing nbest to: %s' % (output_nbest_file))
+    @@#logging.info('Writing predictions to: %s' % (output_prediction_file))
+    @@#logging.info('Writing nbest to: %s' % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -1660,13 +1660,13 @@ def write_predictions_v2(
         all_nbest_json[example.qas_id] = nbest_json
         assert len(nbest_json) >= 1
 
-    with tf.gfile.GFile(output_prediction_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_prediction_file, 'w') as writer:
         writer.write(json.dumps(all_predictions, indent = 4) + '\n')
 
-    with tf.gfile.GFile(output_nbest_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_nbest_file, 'w') as writer:
         writer.write(json.dumps(all_nbest_json, indent = 4) + '\n')
 
-    with tf.gfile.GFile(output_null_log_odds_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_null_log_odds_file, 'w') as writer:
         writer.write(json.dumps(scores_diff_json, indent = 4) + '\n')
     return all_predictions, scores_diff_json
 
@@ -1697,56 +1697,56 @@ def write_predictions_v2(
 #         hub_module = hub_module,
 #     )
 
-#     bsz = tf.shape(output)[0]
+#     bsz = tf.compat.v1.shape(output)[0]
 #     return_dict = {}
-#     output = tf.transpose(output, [1, 0, 2])
+#     output = tf.compat.v1.transpose(output, [1, 0, 2])
 
 #     # invalid position mask such as query and special symbols (PAD, SEP, CLS)
-#     p_mask = tf.cast(features['p_mask'], dtype = tf.float32)
+#     p_mask = tf.compat.v1.cast(features['p_mask'], dtype = tf.compat.v1.float32)
 
 #     # logit of the start position
-#     with tf.compat.v1.variable_scope('start_logits'):
-#         start_logits = tf.layers.dense(
+#     with @@#variable_scope('start_logits'):
+#         start_logits = tf.compat.v1.layers.dense(
 #             output,
 #             1,
 #             kernel_initializer = modeling.create_initializer(
 #                 albert_config.initializer_range
 #             ),
 #         )
-#         start_logits = tf.transpose(tf.squeeze(start_logits, -1), [1, 0])
+#         start_logits = tf.compat.v1.transpose(tf.compat.v1.squeeze(start_logits, -1), [1, 0])
 #         start_logits_masked = start_logits * (1 - p_mask) - 1e30 * p_mask
-#         start_log_probs = tf.nn.log_softmax(start_logits_masked, -1)
+#         start_log_probs = tf.compat.v1.nn.log_softmax(start_logits_masked, -1)
 
 #     # logit of the end position
-#     with tf.compat.v1.variable_scope('end_logits'):
+#     with @@#variable_scope('end_logits'):
 #         if is_training:
 #             # during training, compute the end logits based on the
 #             # ground truth of the start position
-#             start_positions = tf.reshape(features['start_positions'], [-1])
-#             start_index = tf.one_hot(
+#             start_positions = tf.compat.v1.reshape(features['start_positions'], [-1])
+#             start_index = tf.compat.v1.one_hot(
 #                 start_positions,
 #                 depth = max_seq_length,
 #                 axis = -1,
-#                 dtype = tf.float32,
+#                 dtype = tf.compat.v1.float32,
 #             )
-#             start_features = tf.einsum('lbh,bl->bh', output, start_index)
-#             start_features = tf.tile(
+#             start_features = tf.compat.v1.einsum('lbh,bl->bh', output, start_index)
+#             start_features = tf.compat.v1.tile(
 #                 start_features[None], [max_seq_length, 1, 1]
 #             )
-#             end_logits = tf.layers.dense(
-#                 tf.concat([output, start_features], axis = -1),
+#             end_logits = tf.compat.v1.layers.dense(
+#                 tf.compat.v1.concat([output, start_features], axis = -1),
 #                 albert_config.hidden_size,
 #                 kernel_initializer = modeling.create_initializer(
 #                     albert_config.initializer_range
 #                 ),
-#                 activation = tf.tanh,
+#                 activation = tf.compat.v1.tanh,
 #                 name = 'dense_0',
 #             )
 #             end_logits = contrib_layers.layer_norm(
 #                 end_logits, begin_norm_axis = -1
 #             )
 
-#             end_logits = tf.layers.dense(
+#             end_logits = tf.compat.v1.layers.dense(
 #                 end_logits,
 #                 1,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1754,40 +1754,40 @@ def write_predictions_v2(
 #                 ),
 #                 name = 'dense_1',
 #             )
-#             end_logits = tf.transpose(tf.squeeze(end_logits, -1), [1, 0])
+#             end_logits = tf.compat.v1.transpose(tf.compat.v1.squeeze(end_logits, -1), [1, 0])
 #             end_logits_masked = end_logits * (1 - p_mask) - 1e30 * p_mask
-#             end_log_probs = tf.nn.log_softmax(end_logits_masked, -1)
+#             end_log_probs = tf.compat.v1.nn.log_softmax(end_logits_masked, -1)
 #         else:
 #             # during inference, compute the end logits based on beam search
 
-#             start_top_log_probs, start_top_index = tf.nn.top_k(
+#             start_top_log_probs, start_top_index = tf.compat.v1.nn.top_k(
 #                 start_log_probs, k = start_n_top
 #             )
-#             start_index = tf.one_hot(
+#             start_index = tf.compat.v1.one_hot(
 #                 start_top_index,
 #                 depth = max_seq_length,
 #                 axis = -1,
-#                 dtype = tf.float32,
+#                 dtype = tf.compat.v1.float32,
 #             )
-#             start_features = tf.einsum('lbh,bkl->bkh', output, start_index)
-#             end_input = tf.tile(output[:, :, None], [1, 1, start_n_top, 1])
-#             start_features = tf.tile(
+#             start_features = tf.compat.v1.einsum('lbh,bkl->bkh', output, start_index)
+#             end_input = tf.compat.v1.tile(output[:, :, None], [1, 1, start_n_top, 1])
+#             start_features = tf.compat.v1.tile(
 #                 start_features[None], [max_seq_length, 1, 1, 1]
 #             )
-#             end_input = tf.concat([end_input, start_features], axis = -1)
-#             end_logits = tf.layers.dense(
+#             end_input = tf.compat.v1.concat([end_input, start_features], axis = -1)
+#             end_logits = tf.compat.v1.layers.dense(
 #                 end_input,
 #                 albert_config.hidden_size,
 #                 kernel_initializer = modeling.create_initializer(
 #                     albert_config.initializer_range
 #                 ),
-#                 activation = tf.tanh,
+#                 activation = tf.compat.v1.tanh,
 #                 name = 'dense_0',
 #             )
 #             end_logits = contrib_layers.layer_norm(
 #                 end_logits, begin_norm_axis = -1
 #             )
-#             end_logits = tf.layers.dense(
+#             end_logits = tf.compat.v1.layers.dense(
 #                 end_logits,
 #                 1,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1795,21 +1795,21 @@ def write_predictions_v2(
 #                 ),
 #                 name = 'dense_1',
 #             )
-#             end_logits = tf.reshape(
+#             end_logits = tf.compat.v1.reshape(
 #                 end_logits, [max_seq_length, -1, start_n_top]
 #             )
-#             end_logits = tf.transpose(end_logits, [1, 2, 0])
+#             end_logits = tf.compat.v1.transpose(end_logits, [1, 2, 0])
 #             end_logits_masked = (
 #                 end_logits * (1 - p_mask[:, None]) - 1e30 * p_mask[:, None]
 #             )
-#             end_log_probs = tf.nn.log_softmax(end_logits_masked, -1)
-#             end_top_log_probs, end_top_index = tf.nn.top_k(
+#             end_log_probs = tf.compat.v1.nn.log_softmax(end_logits_masked, -1)
+#             end_top_log_probs, end_top_index = tf.compat.v1.nn.top_k(
 #                 end_log_probs, k = end_n_top
 #             )
-#             end_top_log_probs = tf.reshape(
+#             end_top_log_probs = tf.compat.v1.reshape(
 #                 end_top_log_probs, [-1, start_n_top * end_n_top]
 #             )
-#             end_top_index = tf.reshape(
+#             end_top_index = tf.compat.v1.reshape(
 #                 end_top_index, [-1, start_n_top * end_n_top]
 #             )
 
@@ -1823,38 +1823,38 @@ def write_predictions_v2(
 #         return_dict['end_top_index'] = end_top_index
 
 #     # an additional layer to predict answerability
-#     with tf.compat.v1.variable_scope('answer_class'):
+#     with @@#variable_scope('answer_class'):
 #         # get the representation of CLS
-#         cls_index = tf.one_hot(
-#             tf.zeros([bsz], dtype = tf.int32),
+#         cls_index = tf.compat.v1.one_hot(
+#             tf.compat.v1.zeros([bsz], dtype = tf.compat.v1.int32),
 #             max_seq_length,
 #             axis = -1,
-#             dtype = tf.float32,
+#             dtype = tf.compat.v1.float32,
 #         )
-#         cls_feature = tf.einsum('lbh,bl->bh', output, cls_index)
+#         cls_feature = tf.compat.v1.einsum('lbh,bl->bh', output, cls_index)
 
 #         # get the representation of START
-#         start_p = tf.nn.softmax(
+#         start_p = tf.compat.v1.nn.softmax(
 #             start_logits_masked, axis = -1, name = 'softmax_start'
 #         )
-#         start_feature = tf.einsum('lbh,bl->bh', output, start_p)
+#         start_feature = tf.compat.v1.einsum('lbh,bl->bh', output, start_p)
 
 #         # note(zhiliny): no dependency on end_feature so that we can obtain
 #         # one single `cls_logits` for each sample
-#         ans_feature = tf.concat([start_feature, cls_feature], -1)
-#         ans_feature = tf.layers.dense(
+#         ans_feature = tf.compat.v1.concat([start_feature, cls_feature], -1)
+#         ans_feature = tf.compat.v1.layers.dense(
 #             ans_feature,
 #             albert_config.hidden_size,
-#             activation = tf.tanh,
+#             activation = tf.compat.v1.tanh,
 #             kernel_initializer = modeling.create_initializer(
 #                 albert_config.initializer_range
 #             ),
 #             name = 'dense_0',
 #         )
-#         ans_feature = tf.layers.dropout(
+#         ans_feature = tf.compat.v1.layers.dropout(
 #             ans_feature, dropout_prob, training = is_training
 #         )
-#         cls_logits = tf.layers.dense(
+#         cls_logits = tf.compat.v1.layers.dense(
 #             ans_feature,
 #             1,
 #             kernel_initializer = modeling.create_initializer(
@@ -1863,7 +1863,7 @@ def write_predictions_v2(
 #             name = 'dense_1',
 #             use_bias = False,
 #         )
-#         cls_logits = tf.squeeze(cls_logits, -1)
+#         cls_logits = tf.compat.v1.squeeze(cls_logits, -1)
 
 #         return_dict['cls_logits'] = cls_logits
 
@@ -1891,9 +1891,9 @@ def write_predictions_v2(
 #     ):  # pylint: disable=unused-argument
 #         """The `model_fn` for TPUEstimator."""
 
-#         tf.compat.v1.logging.info('*** Features ***')
+#         @@#logging.info('*** Features ***')
 #         for name in sorted(features.keys()):
-#             tf.compat.v1.logging.info(
+#             @@#logging.info(
 #                 '  name = %s, shape = %s' % (name, features[name].shape)
 #             )
 
@@ -1902,7 +1902,7 @@ def write_predictions_v2(
 #         input_mask = features['input_mask']
 #         segment_ids = features['segment_ids']
 
-#         is_training = mode == tf.estimator.ModeKeys.TRAIN
+#         is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
 #         outputs = create_v2_model(
 #             albert_config = albert_config,
@@ -1919,7 +1919,7 @@ def write_predictions_v2(
 #             hub_module = hub_module,
 #         )
 
-#         tvars = tf.trainable_variables()
+#         tvars = tf.compat.v1.trainable_variables()
 
 #         initialized_variable_names = {}
 #         scaffold_fn = None
@@ -1933,35 +1933,35 @@ def write_predictions_v2(
 #             if use_tpu:
 
 #                 def tpu_scaffold():
-#                     tf.train.init_from_checkpoint(
+#                     tf.compat.v1.train.init_from_checkpoint(
 #                         init_checkpoint, assignment_map
 #                     )
-#                     return tf.train.Scaffold()
+#                     return tf.compat.v1.train.Scaffold()
 
 #                 scaffold_fn = tpu_scaffold
 #             else:
-#                 tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+#                 tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-#         tf.compat.v1.logging.info('**** Trainable Variables ****')
+#         @@#logging.info('**** Trainable Variables ****')
 #         for var in tvars:
 #             init_string = ''
 #             if var.name in initialized_variable_names:
 #                 init_string = ', *INIT_FROM_CKPT*'
-#             tf.compat.v1.logging.info(
+#             @@#logging.info(
 #                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
 #             )
 
 #         output_spec = None
-#         if mode == tf.estimator.ModeKeys.TRAIN:
+#         if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
 #             seq_length = modeling.get_shape_list(input_ids)[1]
 
 #             def compute_loss(log_probs, positions):
-#                 one_hot_positions = tf.one_hot(
-#                     positions, depth = seq_length, dtype = tf.float32
+#                 one_hot_positions = tf.compat.v1.one_hot(
+#                     positions, depth = seq_length, dtype = tf.compat.v1.float32
 #                 )
 
-#                 loss = -tf.reduce_sum(one_hot_positions * log_probs, axis = -1)
-#                 loss = tf.reduce_mean(loss)
+#                 loss = -tf.compat.v1.reduce_sum(one_hot_positions * log_probs, axis = -1)
+#                 loss = tf.compat.v1.reduce_mean(loss)
 #                 return loss
 
 #             start_loss = compute_loss(
@@ -1974,12 +1974,12 @@ def write_predictions_v2(
 #             total_loss = (start_loss + end_loss) * 0.5
 
 #             cls_logits = outputs['cls_logits']
-#             is_impossible = tf.reshape(features['is_impossible'], [-1])
-#             regression_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-#                 labels = tf.cast(is_impossible, dtype = tf.float32),
+#             is_impossible = tf.compat.v1.reshape(features['is_impossible'], [-1])
+#             regression_loss = tf.compat.v1.nn.sigmoid_cross_entropy_with_logits(
+#                 labels = tf.compat.v1.cast(is_impossible, dtype = tf.compat.v1.float32),
 #                 logits = cls_logits,
 #             )
-#             regression_loss = tf.reduce_mean(regression_loss)
+#             regression_loss = tf.compat.v1.reduce_mean(regression_loss)
 
 #             # note(zhiliny): by default multiply the loss by 0.5 so that the scale is
 #             # comparable to start_loss and end_loss
@@ -1998,7 +1998,7 @@ def write_predictions_v2(
 #                 train_op = train_op,
 #                 scaffold_fn = scaffold_fn,
 #             )
-#         elif mode == tf.estimator.ModeKeys.PREDICT:
+#         elif mode == tf.compat.v1.estimator.ModeKeys.PREDICT:
 #             predictions = {
 #                 'unique_ids': features['unique_ids'],
 #                 'start_top_index': outputs['start_top_index'],

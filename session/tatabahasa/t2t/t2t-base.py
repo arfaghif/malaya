@@ -20,7 +20,7 @@ sp = spm.SentencePieceProcessor()
 sp.Load(vocab)
 
 logger = logging.getLogger()
-tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+@@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
 
 class Encoder:
@@ -183,7 +183,7 @@ class Grammar(text_problems.Text2TextProblem):
 
     def example_reading_spec(self):
         data_fields, _ = super(Grammar, self).example_reading_spec()
-        data_fields['targets_error_tag'] = tf.VarLenFeature(tf.int64)
+        data_fields['targets_error_tag'] = tf.compat.v1.VarLenFeature(tf.compat.v1.int64)
         return data_fields, None
 
     @property

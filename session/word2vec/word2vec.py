@@ -59,41 +59,41 @@ def build_training_set(word_array):
 class Model:
     def __init__(self, graph_params):
         g_params = graph_params
-        tf.reset_default_graph()
-        self.sess = tf.InteractiveSession()
-        self.X = tf.compat.v1.placeholder(tf.int64, shape = [None, 4])
-        self.Y = tf.compat.v1.placeholder(tf.int64, shape = [None, 1])
-        w_m2, w_m1, w_p1, w_p2 = tf.unstack(self.X, axis = 1)
-        self.embed_weights = tf.Variable(
-            tf.random_uniform(
+        tf.compat.v1.reset_default_graph()
+        self.sess = tf.compat.v1.InteractiveSession()
+        self.X = @@#placeholder(tf.compat.v1.int64, shape = [None, 4])
+        self.Y = @@#placeholder(tf.compat.v1.int64, shape = [None, 1])
+        w_m2, w_m1, w_p1, w_p2 = tf.compat.v1.unstack(self.X, axis = 1)
+        self.embed_weights = tf.compat.v1.Variable(
+            tf.compat.v1.random_uniform(
                 [g_params['vocab_size'], g_params['embed_size']],
                 -g_params['embed_noise'],
                 g_params['embed_noise'],
             )
         )
-        embed_m2 = tf.nn.embedding_lookup(self.embed_weights, w_m2)
-        embed_m1 = tf.nn.embedding_lookup(self.embed_weights, w_m1)
-        embed_p1 = tf.nn.embedding_lookup(self.embed_weights, w_p1)
-        embed_p2 = tf.nn.embedding_lookup(self.embed_weights, w_p2)
-        embed_stack = tf.concat([embed_m2, embed_m1, embed_p1, embed_p2], 1)
-        hid_weights = tf.Variable(
-            tf.random_normal(
+        embed_m2 = tf.compat.v1.nn.embedding_lookup(self.embed_weights, w_m2)
+        embed_m1 = tf.compat.v1.nn.embedding_lookup(self.embed_weights, w_m1)
+        embed_p1 = tf.compat.v1.nn.embedding_lookup(self.embed_weights, w_p1)
+        embed_p2 = tf.compat.v1.nn.embedding_lookup(self.embed_weights, w_p2)
+        embed_stack = tf.compat.v1.concat([embed_m2, embed_m1, embed_p1, embed_p2], 1)
+        hid_weights = tf.compat.v1.Variable(
+            tf.compat.v1.random_normal(
                 [g_params['embed_size'] * 4, g_params['hid_size']],
                 stddev = g_params['hid_noise']
                 / (g_params['embed_size'] * 4) ** 0.5,
             )
         )
-        hid_bias = tf.Variable(tf.zeros([g_params['hid_size']]))
-        hid_out = tf.nn.tanh(tf.matmul(embed_stack, hid_weights) + hid_bias)
-        self.nce_weights = tf.Variable(
-            tf.random_normal(
+        hid_bias = tf.compat.v1.Variable(tf.compat.v1.zeros([g_params['hid_size']]))
+        hid_out = tf.compat.v1.nn.tanh(tf.compat.v1.matmul(embed_stack, hid_weights) + hid_bias)
+        self.nce_weights = tf.compat.v1.Variable(
+            tf.compat.v1.random_normal(
                 [g_params['vocab_size'], g_params['hid_size']],
                 stddev = 1.0 / g_params['hid_size'] ** 0.5,
             )
         )
-        nce_bias = tf.Variable(tf.zeros([g_params['vocab_size']]))
-        self.cost = tf.reduce_mean(
-            tf.nn.nce_loss(
+        nce_bias = tf.compat.v1.Variable(tf.compat.v1.zeros([g_params['vocab_size']]))
+        self.cost = tf.compat.v1.reduce_mean(
+            tf.compat.v1.nn.nce_loss(
                 self.nce_weights,
                 nce_bias,
                 inputs = hid_out,
@@ -104,25 +104,25 @@ class Model:
                 remove_accidental_hits = True,
             )
         )
-        self.logits = tf.argmax(
-            tf.matmul(hid_out, self.nce_weights, transpose_b = True) + nce_bias,
+        self.logits = tf.compat.v1.argmax(
+            tf.compat.v1.matmul(hid_out, self.nce_weights, transpose_b = True) + nce_bias,
             axis = 1,
         )
         if g_params['optimizer'] == 'RMSProp':
-            self.optimizer = tf.train.RMSPropOptimizer(
+            self.optimizer = tf.compat.v1.train.RMSPropOptimizer(
                 g_params['learn_rate']
             ).minimize(self.cost)
         elif g_params['optimizer'] == 'Momentum':
-            self.optimizer = tf.train.MomentumOptimizer(
+            self.optimizer = tf.compat.v1.train.MomentumOptimizer(
                 g_params['learn_rate'], g_params['momentum']
             ).minimize(self.cost)
         elif g_params['optimizer'] == 'Adam':
-            self.optimizer = tf.train.AdamOptimizer(
+            self.optimizer = tf.compat.v1.train.AdamOptimizer(
                 g_params['learn_rate']
             ).minimize(self.cost)
         else:
             print('Optimizer not supported,exit.')
-        self.sess.run(tf.global_variables_initializer())
+        self.sess.run(tf.compat.v1.global_variables_initializer())
 
     def train(self, X, Y, X_val, Y_val, epoch, batch_size):
         for i in range(epoch):

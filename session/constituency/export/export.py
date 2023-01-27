@@ -70,7 +70,7 @@ print("Loaded {:,} test examples.".format(len(test_treebank)))
 
 import tensorflow as tf
 
-sess = tf.InteractiveSession()
+sess = tf.compat.v1.InteractiveSession()
 
 sd = parser.state_dict()
 
@@ -92,34 +92,34 @@ def make_elmo(chars_batched):
     # projection matrix right after
     word_representations_padded = word_representations_padded.op.inputs[0]
 
-    with tf.compat.v1.variable_scope('', reuse=True):
-        elmo_scalar_mix_matrix = tf.get_variable('scalar_mix_ELMo_W')
+    with @@#variable_scope('', reuse=True):
+        elmo_scalar_mix_matrix = tf.compat.v1.get_variable('scalar_mix_ELMo_W')
 
-    tf.global_variables_initializer().run()
-    tf.assign(elmo_scalar_mix_matrix, [
+    tf.compat.v1.global_variables_initializer().run()
+    tf.compat.v1.assign(elmo_scalar_mix_matrix, [
         float(sd['elmo.scalar_mix_0.scalar_parameters.0']),
         float(sd['elmo.scalar_mix_0.scalar_parameters.1']),
         float(sd['elmo.scalar_mix_0.scalar_parameters.2'])]).eval()
 
     # Switch from padded to packed representation
     valid_mask = lm['mask']
-    dim_padded = tf.shape(lm['mask'])[:2]
-    mask_flat = tf.reshape(lm['mask'], (-1,))
-    dim_flat = tf.shape(mask_flat)[:1]
-    nonpad_ids = tf.to_int32(tf.where(mask_flat)[:,0])
-    word_reps_shape = tf.shape(word_representations_padded)
-    word_representations_flat = tf.reshape(word_representations_padded, [-1, int(word_representations_padded.shape[-1])])
-    word_representations = tf.gather(word_representations_flat, nonpad_ids)
+    dim_padded = tf.compat.v1.shape(lm['mask'])[:2]
+    mask_flat = tf.compat.v1.reshape(lm['mask'], (-1,))
+    dim_flat = tf.compat.v1.shape(mask_flat)[:1]
+    nonpad_ids = tf.compat.v1.to_int32(tf.compat.v1.where(mask_flat)[:,0])
+    word_reps_shape = tf.compat.v1.shape(word_representations_padded)
+    word_representations_flat = tf.compat.v1.reshape(word_representations_padded, [-1, int(word_representations_padded.shape[-1])])
+    word_representations = tf.compat.v1.gather(word_representations_flat, nonpad_ids)
 
-    projected_annotations = tf.matmul(
+    projected_annotations = tf.compat.v1.matmul(
         word_representations,
-        tf.constant(sd['project_elmo.weight'].numpy().transpose()))
+        tf.compat.v1.constant(sd['project_elmo.weight'].numpy().transpose()))
 
     return projected_annotations, nonpad_ids, dim_flat, dim_padded, valid_mask, lm['lengths']
 
 #%%
 
-position_table = tf.constant(sd['embedding.position_table'], name="position_table")
+position_table = tf.compat.v1.constant(sd['embedding.position_table'], name="position_table")
 
 # %%
 
@@ -129,31 +129,31 @@ def make_layer_norm(input, torch_name, name):
     # tensorflow code adds eps=1e-6 to the variance.
     # However, the resulting mismatch in floating-point values does not seem to
     # translate to any noticable changes in the parser's tree output
-    mean, variance = tf.nn.moments(input, [1], keep_dims=True)
-    return tf.nn.batch_normalization(
+    mean, variance = tf.compat.v1.nn.moments(input, [1], keep_dims=True)
+    return tf.compat.v1.nn.batch_normalization(
         input,
         mean, variance,
-        offset=tf.constant(sd[f'{torch_name}.b_2'], name=f"{name}/offset"),
-        scale=tf.constant(sd[f'{torch_name}.a_2'], name=f"{name}/scale"),
+        offset=tf.compat.v1.constant(sd[f'{torch_name}.b_2'], name=f"{name}/offset"),
+        scale=tf.compat.v1.constant(sd[f'{torch_name}.a_2'], name=f"{name}/scale"),
         variance_epsilon=1e-6)
 
 
 def make_heads(input, shape_bthf, shape_xtf, torch_name, name):
-    res = tf.matmul(input,
-        tf.constant(sd[torch_name].numpy().transpose((1,0,2)).reshape((512, -1)), name=f"{name}/W"))
-    res = tf.reshape(res, shape_bthf)
-    res = tf.transpose(res, (0,2,1,3)) # batch x num_heads x time x feat
-    res = tf.reshape(res, shape_xtf) # _ x time x feat
+    res = tf.compat.v1.matmul(input,
+        tf.compat.v1.constant(sd[torch_name].numpy().transpose((1,0,2)).reshape((512, -1)), name=f"{name}/W"))
+    res = tf.compat.v1.reshape(res, shape_bthf)
+    res = tf.compat.v1.transpose(res, (0,2,1,3)) # batch x num_heads x time x feat
+    res = tf.compat.v1.reshape(res, shape_xtf) # _ x time x feat
     return res
 
 def make_attention(input, nonpad_ids, dim_flat, dim_padded, valid_mask, torch_name, name):
-    input_flat = tf.scatter_nd(indices=nonpad_ids[:, None], updates=input, shape=tf.concat([dim_flat, tf.shape(input)[1:]], axis=0))
-    input_flat_dat, input_flat_pos = tf.split(input_flat, 2, axis=-1)
+    input_flat = tf.compat.v1.scatter_nd(indices=nonpad_ids[:, None], updates=input, shape=tf.compat.v1.concat([dim_flat, tf.compat.v1.shape(input)[1:]], axis=0))
+    input_flat_dat, input_flat_pos = tf.compat.v1.split(input_flat, 2, axis=-1)
 
-    shape_bthf = tf.concat([dim_padded, [8, -1]], axis=0)
-    shape_bhtf = tf.convert_to_tensor([dim_padded[0], 8, dim_padded[1], -1])
-    shape_xtf = tf.convert_to_tensor([dim_padded[0] * 8, dim_padded[1], -1])
-    shape_xf = tf.concat([dim_flat, [-1]], axis=0)
+    shape_bthf = tf.compat.v1.concat([dim_padded, [8, -1]], axis=0)
+    shape_bhtf = tf.compat.v1.convert_to_tensor([dim_padded[0], 8, dim_padded[1], -1])
+    shape_xtf = tf.compat.v1.convert_to_tensor([dim_padded[0] * 8, dim_padded[1], -1])
+    shape_xf = tf.compat.v1.concat([dim_flat, [-1]], axis=0)
 
     qs1 = make_heads(input_flat_dat, shape_bthf, shape_xtf, f'{torch_name}.w_qs1', f'{name}/q_dat')
     ks1 = make_heads(input_flat_dat, shape_bthf, shape_xtf, f'{torch_name}.w_ks1', f'{name}/k_dat')
@@ -162,44 +162,44 @@ def make_attention(input, nonpad_ids, dim_flat, dim_padded, valid_mask, torch_na
     ks2 = make_heads(input_flat_pos, shape_bthf, shape_xtf, f'{torch_name}.w_ks2', f'{name}/k_pos')
     vs2 = make_heads(input_flat_pos, shape_bthf, shape_xtf, f'{torch_name}.w_vs2', f'{name}/v_pos')
 
-    qs = tf.concat([qs1, qs2], axis=-1)
-    ks = tf.concat([ks1, ks2], axis=-1)
-    attn_logits = tf.matmul(qs, ks, transpose_b=True) / (1024 ** 0.5)
+    qs = tf.compat.v1.concat([qs1, qs2], axis=-1)
+    ks = tf.compat.v1.concat([ks1, ks2], axis=-1)
+    attn_logits = tf.compat.v1.matmul(qs, ks, transpose_b=True) / (1024 ** 0.5)
 
-    attn_mask = tf.reshape(tf.tile(valid_mask, [1,8*dim_padded[1]]), tf.shape(attn_logits))
-    # TODO(nikita): use tf.where and -float('inf') here?
-    attn_logits -= 1e10 * tf.to_float(~attn_mask)
+    attn_mask = tf.compat.v1.reshape(tf.compat.v1.tile(valid_mask, [1,8*dim_padded[1]]), tf.compat.v1.shape(attn_logits))
+    # TODO(nikita): use tf.compat.v1.where and -float('inf') here?
+    attn_logits -= 1e10 * tf.compat.v1.to_float(~attn_mask)
 
-    attn = tf.nn.softmax(attn_logits)
+    attn = tf.compat.v1.nn.softmax(attn_logits)
 
-    attended_dat_raw = tf.matmul(attn, vs1)
-    attended_dat_flat = tf.reshape(tf.transpose(tf.reshape(attended_dat_raw, shape_bhtf), (0,2,1,3)), shape_xf)
-    attended_dat = tf.gather(attended_dat_flat, nonpad_ids)
-    attended_pos_raw = tf.matmul(attn, vs2)
-    attended_pos_flat = tf.reshape(tf.transpose(tf.reshape(attended_pos_raw, shape_bhtf), (0,2,1,3)), shape_xf)
-    attended_pos = tf.gather(attended_pos_flat, nonpad_ids)
+    attended_dat_raw = tf.compat.v1.matmul(attn, vs1)
+    attended_dat_flat = tf.compat.v1.reshape(tf.compat.v1.transpose(tf.compat.v1.reshape(attended_dat_raw, shape_bhtf), (0,2,1,3)), shape_xf)
+    attended_dat = tf.compat.v1.gather(attended_dat_flat, nonpad_ids)
+    attended_pos_raw = tf.compat.v1.matmul(attn, vs2)
+    attended_pos_flat = tf.compat.v1.reshape(tf.compat.v1.transpose(tf.compat.v1.reshape(attended_pos_raw, shape_bhtf), (0,2,1,3)), shape_xf)
+    attended_pos = tf.compat.v1.gather(attended_pos_flat, nonpad_ids)
 
-    out_dat = tf.matmul(attended_dat, tf.constant(sd[f'{torch_name}.proj1.weight'].numpy().transpose()))
-    out_pos = tf.matmul(attended_pos, tf.constant(sd[f'{torch_name}.proj2.weight'].numpy().transpose()))
+    out_dat = tf.compat.v1.matmul(attended_dat, tf.compat.v1.constant(sd[f'{torch_name}.proj1.weight'].numpy().transpose()))
+    out_pos = tf.compat.v1.matmul(attended_pos, tf.compat.v1.constant(sd[f'{torch_name}.proj2.weight'].numpy().transpose()))
 
-    out = tf.concat([out_dat, out_pos], -1)
+    out = tf.compat.v1.concat([out_dat, out_pos], -1)
     return make_layer_norm(input + out, f'{torch_name}.layer_norm', f'{name}/layer_norm')
 
 def make_dense_relu_dense(input, torch_name, torch_type, name):
     # TODO: use name
-    mul1 = tf.matmul(input, tf.constant(sd[f'{torch_name}.w_1{torch_type}.weight'].numpy().transpose()))
-    mul1b = tf.nn.bias_add(mul1, tf.constant(sd[f'{torch_name}.w_1{torch_type}.bias']))
-    mul1b = tf.nn.relu(mul1b)
-    mul2 = tf.matmul(mul1b, tf.constant(sd[f'{torch_name}.w_2{torch_type}.weight'].numpy().transpose()))
-    mul2b = tf.nn.bias_add(mul2, tf.constant(sd[f'{torch_name}.w_2{torch_type}.bias']))
+    mul1 = tf.compat.v1.matmul(input, tf.compat.v1.constant(sd[f'{torch_name}.w_1{torch_type}.weight'].numpy().transpose()))
+    mul1b = tf.compat.v1.nn.bias_add(mul1, tf.compat.v1.constant(sd[f'{torch_name}.w_1{torch_type}.bias']))
+    mul1b = tf.compat.v1.nn.relu(mul1b)
+    mul2 = tf.compat.v1.matmul(mul1b, tf.compat.v1.constant(sd[f'{torch_name}.w_2{torch_type}.weight'].numpy().transpose()))
+    mul2b = tf.compat.v1.nn.bias_add(mul2, tf.compat.v1.constant(sd[f'{torch_name}.w_2{torch_type}.bias']))
     return mul2b
 
 def make_ff(input, torch_name, name):
     # TODO: use name
-    input_dat, input_pos = tf.split(input, 2, axis=-1)
+    input_dat, input_pos = tf.compat.v1.split(input, 2, axis=-1)
     out_dat = make_dense_relu_dense(input_dat, torch_name, 'c', name="TODO_dat")
     out_pos = make_dense_relu_dense(input_pos, torch_name, 'p', name="TODO_pos")
-    out = tf.concat([out_dat, out_pos], -1)
+    out = tf.compat.v1.concat([out_dat, out_pos], -1)
     return make_layer_norm(input + out, f'{torch_name}.layer_norm', f'{name}/layer_norm')
 
 def make_stacks(input, nonpad_ids, dim_flat, dim_padded, valid_mask, num_stacks):
@@ -215,8 +215,8 @@ def make_layer_norm_with_constants(input, constants):
     # tensorflow code adds eps=1e-6 to the variance.
     # However, the resulting mismatch in floating-point values does not seem to
     # translate to any noticable changes in the parser's tree output
-    mean, variance = tf.nn.moments(input, [1], keep_dims=True)
-    return tf.nn.batch_normalization(
+    mean, variance = tf.compat.v1.nn.moments(input, [1], keep_dims=True)
+    return tf.compat.v1.nn.batch_normalization(
         input,
         mean, variance,
         offset=constants[0],
@@ -224,66 +224,66 @@ def make_layer_norm_with_constants(input, constants):
         variance_epsilon=1e-6)
 
 def make_flabel_with_constants(input, constants):
-    mul1 = tf.matmul(input, constants[0])
-    mul1b = tf.nn.bias_add(mul1, constants[1])
+    mul1 = tf.compat.v1.matmul(input, constants[0])
+    mul1b = tf.compat.v1.nn.bias_add(mul1, constants[1])
     mul1b = make_layer_norm_with_constants(mul1b, constants[2:4])
-    mul1b = tf.nn.relu(mul1b)
-    mul2 = tf.matmul(mul1b, constants[4])
-    mul2b = tf.nn.bias_add(mul2, constants[5], name='flabel')
+    mul1b = tf.compat.v1.nn.relu(mul1b)
+    mul2 = tf.compat.v1.matmul(mul1b, constants[4])
+    mul2b = tf.compat.v1.nn.bias_add(mul2, constants[5], name='flabel')
     return mul2b
 
 
 def make_flabel_constants():
     return (
-        tf.constant(sd['f_label.0.weight'].numpy().transpose()),
-        tf.constant(sd['f_label.0.bias']),
-        tf.constant(sd['f_label.1.b_2'], name="label/layer_norm/offset"),
-        tf.constant(sd['f_label.1.a_2'], name="label/layer_norm/scale"),
-        tf.constant(sd['f_label.3.weight'].numpy().transpose()),
-        tf.constant(sd['f_label.3.bias']),
+        tf.compat.v1.constant(sd['f_label.0.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_label.0.bias']),
+        tf.compat.v1.constant(sd['f_label.1.b_2'], name="label/layer_norm/offset"),
+        tf.compat.v1.constant(sd['f_label.1.a_2'], name="label/layer_norm/scale"),
+        tf.compat.v1.constant(sd['f_label.3.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_label.3.bias']),
     )
 
 def make_network():
     # batch x num_words x 50
-    chars = tf.compat.v1.placeholder(shape=(None, None, 50), dtype=tf.int32, name='chars')
+    chars = @@#placeholder(shape=(None, None, 50), dtype=tf.compat.v1.int32, name='chars')
 
     input_dat, nonpad_ids, dim_flat, dim_padded, valid_mask, lengths = make_elmo(chars)
-    chars_shape = tf.shape(chars)
-    input_pos_flat = tf.tile(position_table[:chars_shape[1]], [chars_shape[0], 1])
-    input_pos = tf.gather(input_pos_flat, nonpad_ids)
+    chars_shape = tf.compat.v1.shape(chars)
+    input_pos_flat = tf.compat.v1.tile(position_table[:chars_shape[1]], [chars_shape[0], 1])
+    input_pos = tf.compat.v1.gather(input_pos_flat, nonpad_ids)
 
-    input_joint = tf.concat([input_dat, input_pos], -1)
+    input_joint = tf.compat.v1.concat([input_dat, input_pos], -1)
     input_joint = make_layer_norm(input_joint, 'embedding.layer_norm', 'embedding/layer_norm')
 
     word_out = make_stacks(input_joint, nonpad_ids, dim_flat, dim_padded, valid_mask, num_stacks=4)
-    word_out = tf.concat([word_out[:, 0::2], word_out[:, 1::2]], -1)
+    word_out = tf.compat.v1.concat([word_out[:, 0::2], word_out[:, 1::2]], -1)
 
 
-    fp_out = tf.concat([word_out[:-1,:512], word_out[1:,512:]], -1)
+    fp_out = tf.compat.v1.concat([word_out[:-1,:512], word_out[1:,512:]], -1)
 
-    fp_start_idxs = tf.cumsum(lengths, exclusive=True)
-    fp_end_idxs = tf.cumsum(lengths) - 1 # the number of fenceposts is 1 less than the number of words
+    fp_start_idxs = tf.compat.v1.cumsum(lengths, exclusive=True)
+    fp_end_idxs = tf.compat.v1.cumsum(lengths) - 1 # the number of fenceposts is 1 less than the number of words
 
-    fp_end_idxs_uneven = fp_end_idxs - tf.convert_to_tensor([1, 0])
+    fp_end_idxs_uneven = fp_end_idxs - tf.compat.v1.convert_to_tensor([1, 0])
 
-    # Have to make these outside tf.map_fn for model compression to work
+    # Have to make these outside tf.compat.v1.map_fn for model compression to work
     constants = make_flabel_constants()
 
     def to_map(start_and_end):
         start, end = start_and_end
         fp = fp_out[start:end]
-        # flabel = make_flabel(tf.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)))
-        flabel = make_flabel_with_constants(tf.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)), constants)
+        # flabel = make_flabel(tf.compat.v1.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)))
+        flabel = make_flabel_with_constants(tf.compat.v1.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)), constants)
         actual_chart_size = end-start
-        flabel = tf.reshape(flabel, [actual_chart_size, actual_chart_size, -1])
+        flabel = tf.compat.v1.reshape(flabel, [actual_chart_size, actual_chart_size, -1])
         amount_to_pad = dim_padded[1] - actual_chart_size
         # extra padding on the label dimension is for the not-a-constituent label,
         # which always has a score of 0
-        flabel = tf.pad(flabel, [[0, amount_to_pad], [0, amount_to_pad], [1, 0]])
+        flabel = tf.compat.v1.pad(flabel, [[0, amount_to_pad], [0, amount_to_pad], [1, 0]])
         return flabel
 
-    charts = tf.map_fn(to_map, (fp_start_idxs, fp_end_idxs), dtype=(tf.float32))
-    charts = tf.identity(charts, name="charts")
+    charts = tf.compat.v1.map_fn(to_map, (fp_start_idxs, fp_end_idxs), dtype=(tf.compat.v1.float32))
+    charts = tf.compat.v1.identity(charts, name="charts")
 
     return chars, charts
 
@@ -371,7 +371,7 @@ output_node_names = [the_out.name.split(':')[0]]
 print("Input node names:", input_node_names)
 print("Output node names:", output_node_names)
 
-graph_def = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def, output_node_names)
+graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(sess, sess.graph_def, output_node_names)
 
 #%%
 from tensorflow.tools.graph_transforms import TransformGraph
@@ -390,15 +390,15 @@ with open('batched_elmo128.pb', 'wb') as f:
     f.write(graph_def.SerializeToString())
 
 #%%
-newg = tf.Graph()
+newg = tf.compat.v1.Graph()
 
 with newg.as_default():
-    tf.import_graph_def(graph_def)
+    tf.compat.v1.import_graph_def(graph_def)
 
 new_inp = newg.get_tensor_by_name('import/chars:0')
 new_out = newg.get_tensor_by_name('import/charts:0')
 
-new_sess = tf.InteractiveSession(graph=newg)
+new_sess = tf.compat.v1.InteractiveSession(graph=newg)
 #%%
 
 def tf_parse_batch_new(sentences):

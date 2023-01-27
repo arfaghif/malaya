@@ -4,7 +4,7 @@ import t5
 import functools
 
 vocab = 'gs://mesolitica-tpu-general/t5-data/sp10m.cased.t5.model'
-tpu = tf.distribute.cluster_resolver.TPUClusterResolver(
+tpu = tf.compat.v1.distribute.cluster_resolver.TPUClusterResolver(
     'node-2', zone = 'europe-west4-a', project = 'mesolitica-tpu'
 )
 TPU_ADDRESS = tpu.get_master()
@@ -14,7 +14,7 @@ print(TPU_ADDRESS)
 
 def cnn_dataset(split, shuffle_files = False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/t5-headline-data/headline-generator-0.tsv',
             'gs://mesolitica-tpu-general/t5-headline-data/headline-generator-1.tsv',
@@ -37,12 +37,12 @@ def cnn_dataset(split, shuffle_files = False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults = ['', ''],
             field_delim = '\t',
             use_quote_delim = False,
         ),
-        num_parallel_calls = tf.data.experimental.AUTOTUNE,
+        num_parallel_calls = tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -51,13 +51,13 @@ def cnn_dataset(split, shuffle_files = False):
 def cnn_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['tajuk: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['tajuk: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls = tf.data.experimental.AUTOTUNE,
+        num_parallel_calls = tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -78,7 +78,7 @@ t5.data.MixtureRegistry.add(
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+    @@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
     model_parallelism, train_batch_size, keep_checkpoint_max = {
         'small': (1, 256, 16),
@@ -113,4 +113,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

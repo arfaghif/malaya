@@ -45,18 +45,18 @@ with open('models/345M/hparams.json') as f:
 
 hparams.__dict__
 
-context_none = tf.compat.v1.placeholder(tf.int32, [None, None])
+context_none = @@#placeholder(tf.compat.v1.int32, [None, None])
 gpus = []
 gpus = get_available_gpus()
 
 output = model.model(hparams = hparams, X = context_none, gpus = gpus)
-loss = tf.reduce_mean(
-    input_tensor = tf.nn.sparse_softmax_cross_entropy_with_logits(
+loss = tf.compat.v1.reduce_mean(
+    input_tensor = tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
         labels = context_none[:, 1:], logits = output['logits'][:, :-1]
     )
 )
 
-context = tf.compat.v1.placeholder(tf.int32, [1, None])
+context = @@#placeholder(tf.compat.v1.int32, [1, None])
 
 tf_sample = sample.sample_sequence(
     hparams = hparams,
@@ -67,13 +67,13 @@ tf_sample = sample.sample_sequence(
     top_k = 40,
 )
 
-all_vars = [v for v in tf.compat.v1.trainable_variables() if 'model' in v.name]
+all_vars = [v for v in @@#trainable_variables() if 'model' in v.name]
 train_vars = (
     [v for v in all_vars if '/h' in v.name]
     if only_train_transformer_layers
     else all_vars
 )
-opt = tf.compat.v1.train.AdamOptimizer(learning_rate = learning_rate)
+opt = @@#train.AdamOptimizer(learning_rate = learning_rate)
 
 if accumulate_gradients > 1:
     if use_memory_saving_gradients:
@@ -84,21 +84,21 @@ if accumulate_gradients > 1:
     opt_reset = opt.reset()
     opt_compute = opt.compute_gradients(loss)
     opt_apply = opt.apply_gradients()
-    summary_loss = tf.compat.v1.summary.scalar('loss', opt_apply)
+    summary_loss = @@#summary.scalar('loss', opt_apply)
 
 else:
     if use_memory_saving_gradients:
         opt_grads = memory_saving_gradients.gradients(loss, train_vars)
     else:
-        opt_grads = tf.gradients(ys = loss, xs = train_vars)
+        opt_grads = tf.compat.v1.gradients(ys = loss, xs = train_vars)
     opt_grads = list(zip(opt_grads, train_vars))
     opt_apply = opt.apply_gradients(opt_grads)
-    summary_loss = tf.compat.v1.summary.scalar('loss', loss)
+    summary_loss = @@#summary.scalar('loss', loss)
 
 # opt = custom_optimization.create_optimizer(
 #     loss, learning_rate, num_train_steps, num_warmup_steps
 # )
-# summary_loss = tf.compat.v1.summary.scalar('loss', loss)
+# summary_loss = @@#summary.scalar('loss', loss)
 
 
 def maketree(path):
@@ -114,13 +114,13 @@ checkpoint_path = os.path.join(checkpoint_dir, run_name)
 maketree(checkpoint_path)
 checkpoint_path
 
-summary_log = tf.compat.v1.summary.FileWriter(checkpoint_path)
-saver = tf.compat.v1.train.Saver(var_list = all_vars, max_to_keep = 5)
-sess.run(tf.compat.v1.global_variables_initializer())
+summary_log = @@#summary.FileWriter(checkpoint_path)
+saver = @@#train.Saver(var_list = all_vars, max_to_keep = 5)
+sess.run(@@#global_variables_initializer())
 
-ckpt = tf.train.latest_checkpoint(checkpoint_path)
+ckpt = tf.compat.v1.train.latest_checkpoint(checkpoint_path)
 if ckpt is None:
-    ckpt = tf.train.latest_checkpoint('models/345M/')
+    ckpt = tf.compat.v1.train.latest_checkpoint('models/345M/')
 
 print('Loading checkpoint', ckpt)
 saver.restore(sess, ckpt)

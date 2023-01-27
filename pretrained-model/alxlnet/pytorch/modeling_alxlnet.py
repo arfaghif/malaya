@@ -166,11 +166,11 @@ def load_tf_weights_in_xlnet(model, config, tf_path):
         )
         raise
     # Load weights from TF model
-    init_vars = tf.train.list_variables(tf_path)
+    init_vars = tf.compat.v1.train.list_variables(tf_path)
     tf_weights = {}
     for name, shape in init_vars:
         logger.info('Loading TF weight {} with shape {}'.format(name, shape))
-        array = tf.train.load_variable(tf_path, name)
+        array = tf.compat.v1.train.load_variable(tf_path, name)
         tf_weights[name] = array
 
     # Build TF to PyTorch weights loading map

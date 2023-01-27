@@ -100,7 +100,7 @@ _RESERVED_PARAMS_KEYS = [_BATCH_SIZE_KEY, _CTX_KEY]
 # TODO(b/65703635): Flip the value and remove all dead code. Currently, this is
 # only used for per-core based deployments. For per-host based pipelines, if a
 # user returns a Dataset instance it will be automatically wrapped in a
-# tf.while_loop (This can be disabled by returning features and labels
+# tf.compat.v1.while_loop (This can be disabled by returning features and labels
 # explicitly).
 _WRAP_INPUT_FN_INTO_WHILE_LOOP = False
 
@@ -140,7 +140,7 @@ def _create_or_get_iterations_per_loop():
   """Creates or gets the iterations_per_loop variable.
 
   In TPUEstimator, the user provided computation, the model_fn, is wrapped
-  inside a tf.while_loop for peak performance. The iterations of the loop are
+  inside a tf.compat.v1.while_loop for peak performance. The iterations of the loop are
   specified by this variable, which adjusts its value on the CPU after each TPU
   program execution and before the next TPU execution.
 
@@ -254,7 +254,7 @@ class TPUEstimatorSpec(model_fn_lib._TPUEstimatorSpec):  # pylint: disable=prote
   `metric_fn` runs on CPU to generate metrics and `tensors` represents the
   `Tensor`s transferred from TPU system to CPU host and passed to `metric_fn`.
   To be precise, TPU evaluation expects a slightly different signature from the
-  `tf.estimator.Estimator`. While `EstimatorSpec.eval_metric_ops` expects a
+  `tf.compat.v1.estimator.Estimator`. While `EstimatorSpec.eval_metric_ops` expects a
   dict, `TPUEstimatorSpec.eval_metrics` is a tuple of `metric_fn` and `tensors`.
   The `tensors` could be a list of `Tensor`s or dict of names to `Tensor`s. The
   `tensors` usually specify the model logits, which are transferred back from
@@ -277,7 +277,7 @@ class TPUEstimatorSpec(model_fn_lib._TPUEstimatorSpec):  # pylint: disable=prote
   sending tensors from TPU to CPU. To reduce the overhead, try reducing the
   size of the tensors. The `tensors` are concatenated along their major (batch)
   dimension, and so must be >= rank 1. The `host_call` is useful for writing
-  summaries with `tf.contrib.summary.create_file_writer`.
+  summaries with `tf.compat.v1.contrib.summary.create_file_writer`.
   """
 
   def __new__(cls,
@@ -776,7 +776,7 @@ def generate_per_host_enqueue_ops_fn_for_host(
   def enqueue_ops_fn():
     """A Fn returning the TPU infeed enqueue ops.
 
-    By providing as a Fn, it can be invoked inside the tf.while_loop such that
+    By providing as a Fn, it can be invoked inside the tf.compat.v1.while_loop such that
     the input pipeline for multiple iterations can be executed by one
     Session.run call.
 
@@ -1160,7 +1160,7 @@ class _InputPipeline(object):
 
   def generate_infeed_enqueue_ops_and_dequeue_fn(self):
     """Generates infeed enqueue ops and dequeue_fn."""
-    # While tf.while_loop is called, the body function, which invokes
+    # While tf.compat.v1.while_loop is called, the body function, which invokes
     # `enqueue_fn` passed in, is called to construct the graph. So, input_fn
     # structure is recorded.
     enqueue_ops, all_hooks, run_infeed_loop_on_coordinator = (
@@ -1252,11 +1252,11 @@ class _InputPipeline(object):
             # users `input_fn`.
             #
             # 1. If input_fn returns a Dataset instance, we initialize the
-            # iterator outside of tf.while_loop, and call the iterator.get_next
-            # inside tf.while_loop.  This should be always safe.
+            # iterator outside of tf.compat.v1.while_loop, and call the iterator.get_next
+            # inside tf.compat.v1.while_loop.  This should be always safe.
             #
             # 2. If input_fn returns (features, labels), it is too late to wrap
-            # them inside tf.while_loop, as resource initialization cannot be
+            # them inside tf.compat.v1.while_loop, as resource initialization cannot be
             # handled in TF control flow properly. In this case, we will use
             # python loop to enqueue the data into TPU system.  This may be
             # slow compared to the previous case.
@@ -1294,7 +1294,7 @@ class _InputPipeline(object):
     if ops.get_default_graph().get_collection(ops.GraphKeys.QUEUE_RUNNERS):
       err_msg = ('Input pipeline contains one or more QueueRunners. '
                  'It could be slow and not scalable. Please consider '
-                 'converting your input pipeline to use `tf.data` instead (see '
+                 'converting your input pipeline to use `tf.compat.v1.data` instead (see '
                  'https://www.tensorflow.org/guide/datasets for '
                  'instructions.')
       if _WRAP_INPUT_FN_INTO_WHILE_LOOP:
@@ -1332,7 +1332,7 @@ class _ModelFnWrapper(object):
     train `mode`. This usually represents a single train computation on CPU.
 
     For TPU training, a train (computation) step is first wrapped in a
-    tf.while_loop control flow to repeat for many times and then replicated to
+    tf.compat.v1.while_loop control flow to repeat for many times and then replicated to
     all TPU shards. Besides the input should be taken from TPU infeed rather
     than input pipeline (input_fn) directly. To fit TPU loop and replicate
     pattern, the original train computation should be reformed, which is the
@@ -1403,7 +1403,7 @@ class _ModelFnWrapper(object):
     eval `mode`. This usually represents a single evaluation computation on CPU.
 
     For TPU evaluation, a eval (computation) step is first wrapped in a
-    tf.while_loop control flow to repeat for many times and then replicated to
+    tf.compat.v1.while_loop control flow to repeat for many times and then replicated to
     all TPU shards. Besides the input and output are slightly different. Input,
     features and labels, should be taken from TPU infeed rather than input
     pipeline (input_fn) directly. Output is managed in two stages.  First, the
@@ -1896,7 +1896,7 @@ class TPUEstimator(estimator_lib.Estimator):
   """Estimator with TPU support.
 
   TPUEstimator also supports training on CPU and GPU. You don't need to define
-  a separate `tf.estimator.Estimator`.
+  a separate `tf.compat.v1.estimator.Estimator`.
 
   TPUEstimator handles many of the details of running on TPU devices, such as
   replicating inputs and models for each core, and returning to host
@@ -1948,9 +1948,9 @@ class TPUEstimator(estimator_lib.Estimator):
   ```
   # The metric Fn which runs on CPU.
   def metric_fn(labels, logits):
-    predictions = tf.argmax(logits, 1)
+    predictions = tf.compat.v1.argmax(logits, 1)
     return {
-      'accuracy': tf.metrics.precision(
+      'accuracy': tf.compat.v1.metrics.precision(
           labels=labels, predictions=predictions),
     }
 
@@ -1959,7 +1959,7 @@ class TPUEstimator(estimator_lib.Estimator):
     ...
     logits = ...
 
-    if mode = tf.estimator.ModeKeys.EVAL:
+    if mode = tf.compat.v1.estimator.ModeKeys.EVAL:
       return tpu_estimator.TPUEstimatorSpec(
           mode=mode,
           loss=loss,
@@ -1970,7 +1970,7 @@ class TPUEstimator(estimator_lib.Estimator):
     ...
     final_layer_output = ...
 
-    if mode = tf.estimator.ModeKeys.EVAL:
+    if mode = tf.compat.v1.estimator.ModeKeys.EVAL:
       return tpu_estimator.TPUEstimatorSpec(
           mode=mode,
           loss=loss,
@@ -1996,7 +1996,7 @@ class TPUEstimator(estimator_lib.Estimator):
   The `predict()` API processes one batch at a time. When reaching the end of
   the data source, an end-of-input exception should be raised by one of these
   operations. The user usually does not need to do this manually. As long as the
-  dataset is not repeated forever, the `tf.data` API will raise an end-of-input
+  dataset is not repeated forever, the `tf.compat.v1.data` API will raise an end-of-input
   exception automatically after the last batch has been produced.
 
   Note: Estimator.predict returns a Python generator. Please consume all the
@@ -2020,10 +2020,10 @@ class TPUEstimator(estimator_lib.Estimator):
   def predict_input_fn(params):
     batch_size = params['batch_size']
 
-    images = tf.random_uniform(
+    images = tf.compat.v1.random_uniform(
         [total_examples, height, width, 3], minval=-1, maxval=1)
 
-    dataset = tf.data.Dataset.from_tensor_slices(images)
+    dataset = tf.compat.v1.data.Dataset.from_tensor_slices(images)
     dataset = dataset.map(lambda images: {'image': images})
 
     dataset = dataset.batch(batch_size)
@@ -2032,8 +2032,8 @@ class TPUEstimator(estimator_lib.Estimator):
   def model_fn(features, labels, params, mode):
      # Generate predictions, called 'output', from features['image']
 
-    if mode == tf.estimator.ModeKeys.PREDICT:
-      return tf.contrib.tpu.TPUEstimatorSpec(
+    if mode == tf.compat.v1.estimator.ModeKeys.PREDICT:
+      return tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
           mode=mode,
           predictions={
               'predictions': output,
@@ -2150,7 +2150,7 @@ class TPUEstimator(estimator_lib.Estimator):
       export_to_tpu: If True, `export_savedmodel()` exports a metagraph for
         serving on TPU besides the one on CPU.
       warm_start_from: Optional string filepath to a checkpoint or SavedModel to
-        warm-start from, or a `tf.estimator.WarmStartSettings` object to fully
+        warm-start from, or a `tf.compat.v1.estimator.WarmStartSettings` object to fully
         configure warm-starting.  If the string filepath is provided instead of
         a `WarmStartSettings`, then all variables are warm-started, and it is
         assumed that vocabularies and Tensor names are unchanged.
@@ -2430,14 +2430,14 @@ class TPUEstimator(estimator_lib.Estimator):
         with ops.device('/device:CPU:0'):
           return input_fn(**kwargs)
 
-      # For TPU computation, input_fn should be invoked in a tf.while_loop for
-      # performance. While constructing the tf.while_loop, the structure of
+      # For TPU computation, input_fn should be invoked in a tf.compat.v1.while_loop for
+      # performance. While constructing the tf.compat.v1.while_loop, the structure of
       # inputs returned by the `input_fn` needs to be recorded. The structure
       # includes whether features or labels is dict or single Tensor, dict keys,
       # tensor shapes, and dtypes. The recorded structure is used to create the
       # infeed dequeue ops, which must be wrapped and passed as a Fn, called
       # inside the TPU computation, as the TPU computation is wrapped inside a
-      # tf.while_loop also. So, we either pass input_fn to model_fn or pass
+      # tf.compat.v1.while_loop also. So, we either pass input_fn to model_fn or pass
       # dequeue_fn to model_fn. Here, `input_fn` is passed directly as
       # `features` in `model_fn` signature.
       def _input_fn(ctx):
@@ -2967,7 +2967,7 @@ def _predict_on_tpu_system(ctx, model_fn_wrapper, dequeue_fn):
 
 
 def _wrap_computation_in_while_loop(device, op_fn):
-  """Wraps the ops generated by `op_fn` in tf.while_loop."""
+  """Wraps the ops generated by `op_fn` in tf.compat.v1.while_loop."""
 
   def computation(i):
     with ops.control_dependencies(op_fn()):
@@ -2985,7 +2985,7 @@ def _wrap_computation_in_while_loop(device, op_fn):
 
 
 def _wrap_computation_in_while_loop_with_stopping_signals(device, op_fn):
-  """Wraps the ops generated by `op_fn` in tf.while_loop."""
+  """Wraps the ops generated by `op_fn` in tf.compat.v1.while_loop."""
 
   def cond(scalar_stopping_signal):
     return math_ops.logical_not(

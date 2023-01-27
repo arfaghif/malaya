@@ -33,7 +33,7 @@ ph = problem_hparams.TestProblem(vocab_size, vocab_size).get_hparams(
 
 model_t2t = t2t_model.T2TModel(model_hparams, problem_hparams = ph)
 
-flags = tf.flags
+flags = tf.compat.v1.flags
 
 FLAGS = flags.FLAGS
 
@@ -91,7 +91,7 @@ flags.DEFINE_string(
     'The output directory where the model checkpoints will be written.',
 )
 flags.DEFINE_bool('use_tpu', False, 'Whether to use TPU or GPU/CPU.')
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_name',
     None,
     'The Cloud TPU to use for training. This should be either the name '
@@ -99,7 +99,7 @@ tf.flags.DEFINE_string(
     'url.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_zone',
     None,
     '[Optional] GCE zone where the Cloud TPU is located in. If not '
@@ -107,7 +107,7 @@ tf.flags.DEFINE_string(
     'metadata.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'gcp_project',
     None,
     '[Optional] Project name for the Cloud TPU-enabled project. If not '
@@ -115,7 +115,7 @@ tf.flags.DEFINE_string(
     'metadata.',
 )
 
-tf.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
+tf.compat.v1.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
 
 flags.DEFINE_integer(
     'num_tpu_cores',
@@ -175,7 +175,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -207,9 +207,9 @@ def model_fn_builder(
     ):  # pylint: disable=unused-argument
         """The `model_fn` for TPUEstimator."""
 
-        tf.compat.v1.logging.info('*** Features ***')
+        @@#logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
@@ -218,7 +218,7 @@ def model_fn_builder(
         segment_ids = features['segment_ids']
         y = features['y']
 
-        is_training = mode == tf.estimator.ModeKeys.TRAIN
+        is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
         model = multilanguagebert_transformer.Model(
             is_training = is_training,
@@ -228,27 +228,27 @@ def model_fn_builder(
             Y = y,
         )
         o = model.get_sequence_output()
-        Y_seq_len = tf.count_nonzero(y, 1, dtype = tf.int32)
-        masks = tf.sequence_mask(Y_seq_len, tf.shape(y)[1], dtype = tf.float32)
-        logits = tf.expand_dims(tf.expand_dims(o, axis = 2), axis = 2)
-        feature = tf.expand_dims(tf.expand_dims(y, axis = 2), axis = 2)
+        Y_seq_len = tf.compat.v1.count_nonzero(y, 1, dtype = tf.compat.v1.int32)
+        masks = tf.compat.v1.sequence_mask(Y_seq_len, tf.compat.v1.shape(y)[1], dtype = tf.compat.v1.float32)
+        logits = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(o, axis = 2), axis = 2)
+        feature = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(y, axis = 2), axis = 2)
         loss_num, loss_denom = model_t2t._loss_single(
             logits, 'targets', feature, weights = masks
         )
         total_loss = loss_num / loss_denom
 
-        #         total_loss = tf.contrib.seq2seq.sequence_loss(
+        #         total_loss = tf.compat.v1.contrib.seq2seq.sequence_loss(
         #             logits = o, targets = y, weights = masks
         #         )
-        y_t = tf.argmax(o, axis = 2)
-        y_t = tf.cast(y_t, tf.int32)
-        prediction = tf.boolean_mask(y_t, masks)
-        mask_label = tf.boolean_mask(y, masks)
-        correct_pred = tf.equal(prediction, mask_label)
-        correct_index = tf.cast(correct_pred, tf.float32)
-        total_accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        y_t = tf.compat.v1.argmax(o, axis = 2)
+        y_t = tf.compat.v1.cast(y_t, tf.compat.v1.int32)
+        prediction = tf.compat.v1.boolean_mask(y_t, masks)
+        mask_label = tf.compat.v1.boolean_mask(y, masks)
+        correct_pred = tf.compat.v1.equal(prediction, mask_label)
+        correct_index = tf.compat.v1.cast(correct_pred, tf.compat.v1.float32)
+        total_accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(correct_pred, tf.compat.v1.float32))
 
-        tvars = tf.trainable_variables()
+        tvars = tf.compat.v1.trainable_variables()
         initialized_variable_names = {}
         scaffold_fn = None
         if init_checkpoint:
@@ -260,26 +260,26 @@ def model_fn_builder(
             if use_tpu:
 
                 def tpu_scaffold():
-                    tf.train.init_from_checkpoint(
+                    tf.compat.v1.train.init_from_checkpoint(
                         init_checkpoint, assignment_map
                     )
-                    return tf.train.Scaffold()
+                    return tf.compat.v1.train.Scaffold()
 
                 scaffold_fn = tpu_scaffold
             else:
-                tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+                tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-        tf.compat.v1.logging.info('**** Trainable Variables ****')
+        @@#logging.info('**** Trainable Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
         output_spec = None
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
             if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
                 train_op = custom_optimization.create_optimizer(
                     total_loss, learning_rate, num_train_steps, num_warmup_steps
@@ -293,34 +293,34 @@ def model_fn_builder(
                     use_tpu,
                 )
             if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
-                output_spec = tf.estimator.EstimatorSpec(
+                output_spec = tf.compat.v1.estimator.EstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     train_op = train_op,
                     scaffold = scaffold_fn,
                 )
             else:
-                output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+                output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     train_op = train_op,
                     scaffold_fn = scaffold_fn,
                 )
-        elif mode == tf.estimator.ModeKeys.EVAL:
+        elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
             def metric_fn(loss, accuracy):
                 return {'total_loss': loss, 'total_accuracy': accuracy}
 
             eval_metrics = (metric_fn, [total_loss, total_accuracy])
             if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
-                output_spec = tf.estimator.EstimatorSpec(
+                output_spec = tf.compat.v1.estimator.EstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     eval_metrics = eval_metrics,
                     scaffold = scaffold_fn,
                 )
             else:
-                output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+                output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     eval_metrics = eval_metrics,
@@ -345,33 +345,33 @@ def input_fn_builder(
         """The actual input function."""
 
         name_to_features = {
-            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-            'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-            'segment_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
-            'y': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_ids': tf.compat.v1.io.FixedLenFeature([max_seq_length], tf.compat.v1.int64),
+            'input_mask': tf.compat.v1.io.FixedLenFeature([max_seq_length], tf.compat.v1.int64),
+            'segment_ids': tf.compat.v1.io.FixedLenFeature([max_seq_length], tf.compat.v1.int64),
+            'y': tf.compat.v1.io.FixedLenFeature([max_seq_length], tf.compat.v1.int64),
         }
 
         if is_training:
-            d = tf.data.Dataset.from_tensor_slices(tf.constant(input_files))
+            d = tf.compat.v1.data.Dataset.from_tensor_slices(tf.compat.v1.constant(input_files))
             d = d.repeat()
             d = d.shuffle(buffer_size = len(input_files))
 
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
-                    tf.data.TFRecordDataset,
+                tf.compat.v1.contrib.data.parallel_interleave(
+                    tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
                 )
             )
             d = d.shuffle(buffer_size = 100)
         else:
-            d = tf.data.TFRecordDataset(input_files)
+            d = tf.compat.v1.data.TFRecordDataset(input_files)
             # Since we evaluate for a fixed number of steps we don't want to encounter
             # out-of-range exceptions.
             d = d.repeat()
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -385,57 +385,57 @@ def input_fn_builder(
 
 def _decode_record(record, name_to_features):
     """Decodes a record to a TensorFlow example."""
-    example = tf.io.parse_single_example(record, name_to_features)
+    example = tf.compat.v1.io.parse_single_example(record, name_to_features)
 
-    # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+    # tf.compat.v1.Example only supports tf.compat.v1.int64, but the TPU only supports tf.compat.v1.int32.
     # So cast all int64 to int32.
     for name in list(example.keys()):
         t = example[name]
-        if t.dtype == tf.int64:
-            t = tf.to_int32(t)
+        if t.dtype == tf.compat.v1.int64:
+            t = tf.compat.v1.to_int32(t)
         example[name] = t
 
     return example
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError(
             'At least one of `do_train` or `do_eval` must be True.'
         )
 
-    tf.io.gfile.mkdir(FLAGS.output_dir)
+    tf.compat.v1.io.gfile.mkdir(FLAGS.output_dir)
 
     input_files = []
     for input_pattern in FLAGS.input_file.split(','):
-        input_files.extend(tf.gfile.Glob(input_pattern))
+        input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
     test_files = []
     for input_pattern in FLAGS.test_file.split(','):
-        test_files.extend(tf.gfile.Glob(input_pattern))
+        test_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info('*** Input Files ***')
+    @@#logging.info('*** Input Files ***')
     for input_file in input_files:
-        tf.compat.v1.logging.info('  %s' % input_file)
+        @@#logging.info('  %s' % input_file)
 
-    tf.compat.v1.logging.info('*** Test Files ***')
+    @@#logging.info('*** Test Files ***')
     for input_file in test_files:
-        tf.compat.v1.logging.info('  %s' % input_file)
+        @@#logging.info('  %s' % input_file)
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
-        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+        tpu_cluster_resolver = tf.compat.v1.contrib.cluster_resolver.TPUClusterResolver(
             FLAGS.tpu_name, zone = FLAGS.tpu_zone, project = FLAGS.gcp_project
         )
 
-    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    is_per_host = tf.compat.v1.contrib.tpu.InputPipelineConfig.PER_HOST_V2
 
     if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
-        tf.compat.v1.logging.info('Use normal RunConfig')
-        tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
-        dist_strategy = tf.contrib.distribute.MirroredStrategy(
+        @@#logging.info('Use normal RunConfig')
+        @@#logging.info(FLAGS.num_gpu_cores)
+        dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
             num_gpus = FLAGS.num_gpu_cores,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(
@@ -454,12 +454,12 @@ def main(_):
         )
 
     else:
-        run_config = tf.contrib.tpu.RunConfig(
+        run_config = tf.compat.v1.contrib.tpu.RunConfig(
             cluster = tpu_cluster_resolver,
             master = FLAGS.master,
             model_dir = FLAGS.output_dir,
             save_checkpoints_steps = FLAGS.save_checkpoints_steps,
-            tpu_config = tf.contrib.tpu.TPUConfig(
+            tpu_config = tf.compat.v1.contrib.tpu.TPUConfig(
                 iterations_per_loop = FLAGS.iterations_per_loop,
                 num_shards = FLAGS.num_tpu_cores,
                 per_host_input_for_training = is_per_host,
@@ -476,13 +476,13 @@ def main(_):
     )
 
     if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
-        tf.compat.v1.logging.info('Use normal Estimator')
+        @@#logging.info('Use normal Estimator')
         estimator = Estimator(
             model_fn = model_fn, params = {}, config = run_config
         )
 
     else:
-        estimator = tf.contrib.tpu.TPUEstimator(
+        estimator = tf.compat.v1.contrib.tpu.TPUEstimator(
             use_tpu = FLAGS.use_tpu,
             model_fn = model_fn,
             config = run_config,
@@ -491,8 +491,8 @@ def main(_):
         )
 
     if FLAGS.do_train:
-        tf.compat.v1.logging.info('***** Running training *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
+        @@#logging.info('***** Running training *****')
+        @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
 
         if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
             train_input_fn = input_fn_builder(
@@ -514,8 +514,8 @@ def main(_):
         )
 
     if FLAGS.do_eval:
-        tf.compat.v1.logging.info('***** Running evaluation *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.eval_batch_size)
+        @@#logging.info('***** Running evaluation *****')
+        @@#logging.info('  Batch size = %d', FLAGS.eval_batch_size)
 
         if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
             train_input_fn = input_fn_builder_gpu(
@@ -536,12 +536,12 @@ def main(_):
         )
 
         output_eval_file = os.path.join(FLAGS.output_dir, 'eval_results.txt')
-        with tf.gfile.GFile(output_eval_file, 'w') as writer:
-            tf.compat.v1.logging.info('***** Eval results *****')
+        with tf.compat.v1.gfile.GFile(output_eval_file, 'w') as writer:
+            @@#logging.info('***** Eval results *****')
             for key in sorted(result.keys()):
-                tf.compat.v1.logging.info('  %s = %s', key, str(result[key]))
+                @@#logging.info('  %s = %s', key, str(result[key]))
                 writer.write('%s = %s\n' % (key, str(result[key])))
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

@@ -269,14 +269,14 @@ def write_instance_to_example_files(instances, tokenizer, output_files):
         total_written += 1
 
         if inst_index < 5:
-            tf.compat.v1.logging.info('*** Example ***')
-            tf.compat.v1.logging.info(
+            @@#logging.info('*** Example ***')
+            @@#logging.info(
                 'tokens_1: %s'
                 % ' '.join(
                     [tokenization.printable_text(x) for x in instance.tokens_1]
                 )
             )
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 'tokens_2: %s'
                 % ' '.join(
                     [tokenization.printable_text(x) for x in instance.tokens_2]
@@ -292,7 +292,7 @@ def write_instance_to_example_files(instances, tokenizer, output_files):
                     values = feature.float_list.value
                 elif feature.bytes_list.value:
                     values = feature.bytes_list.value
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     '%s: %s'
                     % (feature_name, ' '.join([str(x) for x in values]))
                 )
@@ -300,7 +300,7 @@ def write_instance_to_example_files(instances, tokenizer, output_files):
     for writer in writers:
         writer.close()
 
-    tf.compat.v1.logging.info('Wrote %d total instances', total_written)
+    @@#logging.info('Wrote %d total instances', total_written)
 
 
 def get_smith_model_tokens(input_text, tokenizer, sent_token_counter):
@@ -643,7 +643,7 @@ def get_token_masks_paddings(
 
 
 # def main(_):
-#     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+#     @@#logging.set_verbosity(@@#logging.info)
 
 #     tokenizer = tokenization.FullTokenizer(
 #         vocab_file = FLAGS.vocab_file, do_lower_case = FLAGS.do_lower_case
@@ -653,9 +653,9 @@ def get_token_masks_paddings(
 #     for input_pattern in FLAGS.input_file.split(','):
 #         input_files.extend(tf.gfile.Glob(input_pattern))
 
-#     tf.compat.v1.logging.info('*** Reading from input files ***')
+#     @@#logging.info('*** Reading from input files ***')
 #     for input_file in input_files:
-#         tf.compat.v1.logging.info('  %s', input_file)
+#         @@#logging.info('  %s', input_file)
 #     rng = random.Random(FLAGS.random_seed)
 #     # Creates training instances.
 #     max_predictions_per_seq = (
@@ -673,15 +673,15 @@ def get_token_masks_paddings(
 #     )
 
 #     output_files = FLAGS.output_file.split(',')
-#     tf.compat.v1.logging.info('*** Writing to output files ***')
+#     @@#logging.info('*** Writing to output files ***')
 #     for output_file in output_files:
-#         tf.compat.v1.logging.info('  %s', output_file)
+#         @@#logging.info('  %s', output_file)
 
 #     # Transfers training instances into tensorflow examples and write the results.
 #     write_instance_to_example_files(instances, tokenizer, output_files)
 
 #     # Finally outputs some data statistics.
-#     tf.compat.v1.logging.info(
+#     @@#logging.info(
 #         'sent_count, token_count, doc_pair_count: %d %d %d',
 #         sent_token_counter[0],
 #         sent_token_counter[1],

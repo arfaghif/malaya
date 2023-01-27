@@ -190,7 +190,7 @@ class BertModel(object):
 
         if input_reprs is None:
             if input_embeddings is None:
-                with tf.compat.v1.variable_scope(
+                with @@#variable_scope(
                     (scope if untied_embeddings else 'electra') + '/embeddings',
                     reuse=tf.AUTO_REUSE,
                 ):
@@ -211,7 +211,7 @@ class BertModel(object):
             else:
                 self.token_embeddings = input_embeddings
 
-            with tf.compat.v1.variable_scope(
+            with @@#variable_scope(
                 (scope if untied_embeddings else 'electra') + '/embeddings',
                 reuse=tf.AUTO_REUSE,
             ):
@@ -234,7 +234,7 @@ class BertModel(object):
         if not update_embeddings:
             self.embedding_output = tf.stop_gradient(self.embedding_output)
 
-        with tf.compat.v1.variable_scope(scope, default_name='electra'):
+        with @@#variable_scope(scope, default_name='electra'):
             if self.embedding_output.shape[-1] != bert_config.hidden_size:
                 self.embedding_output = tf.layers.dense(
                     self.embedding_output,
@@ -242,7 +242,7 @@ class BertModel(object):
                     name='embeddings_project',
                 )
 
-            with tf.compat.v1.variable_scope('encoder'):
+            with @@#variable_scope('encoder'):
                 # This converts a 2D mask of shape [batch_size, seq_length] to a 3D
                 # mask of shape [batch_size, seq_length, seq_length] which is used
                 # for the attention scores.
@@ -931,10 +931,10 @@ def transformer_model(
     attn_maps = []
     all_layer_outputs = []
     for layer_idx in range(num_hidden_layers):
-        with tf.compat.v1.variable_scope('layer_%d' % layer_idx):
-            with tf.compat.v1.variable_scope('attention'):
+        with @@#variable_scope('layer_%d' % layer_idx):
+            with @@#variable_scope('attention'):
                 attention_heads = []
-                with tf.compat.v1.variable_scope('self'):
+                with @@#variable_scope('self'):
                     attention_head, probs = attention_layer(
                         from_tensor=prev_output,
                         to_tensor=prev_output,
@@ -961,7 +961,7 @@ def transformer_model(
 
                 # Run a linear projection of `hidden_size` then add a residual
                 # with `layer_input`.
-                with tf.compat.v1.variable_scope('output'):
+                with @@#variable_scope('output'):
                     attention_output = tf.layers.dense(
                         attention_output,
                         hidden_size,
@@ -977,7 +977,7 @@ def transformer_model(
                     )
 
             # The activation is only applied to the "intermediate" hidden layer.
-            with tf.compat.v1.variable_scope('intermediate'):
+            with @@#variable_scope('intermediate'):
                 intermediate_output = tf.layers.dense(
                     attention_output,
                     intermediate_size,
@@ -986,7 +986,7 @@ def transformer_model(
                 )
 
             # Down-project back to `hidden_size` then add the residual.
-            with tf.compat.v1.variable_scope('output'):
+            with @@#variable_scope('output'):
                 prev_output = tf.layers.dense(
                     intermediate_output,
                     hidden_size,
@@ -1109,7 +1109,7 @@ def assert_rank(tensor, expected_rank, name=None):
 
     actual_rank = tensor.shape.ndims
     if actual_rank not in expected_rank_dict:
-        scope_name = tf.compat.v1.get_variable_scope().name
+        scope_name = @@#get_variable_scope().name
         raise ValueError(
             'For the tensor `%s` in scope `%s`, the actual rank '
             '`%d` (shape = %s) is not equal to the expected rank `%s`'

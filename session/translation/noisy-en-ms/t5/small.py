@@ -24,16 +24,16 @@ def get_default_vocabulary():
 
 def translation_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(glob('t5-noisy-ms-en/*.tsv'))
+    ds = tf.compat.v1.data.TextLineDataset(glob('t5-noisy-ms-en/*.tsv'))
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -42,13 +42,13 @@ def translation_dataset(split, shuffle_files=False):
 def translation_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['terjemah Inggeris ke Melayu: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['terjemah Inggeris ke Melayu: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 

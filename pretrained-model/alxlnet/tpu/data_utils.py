@@ -41,11 +41,11 @@ EOD_ID = special_symbols['<eod>']
 
 
 def _int64_feature(values):
-    return tf.train.Feature(int64_list = tf.train.Int64List(value = values))
+    return tf.compat.v1.train.Feature(int64_list = tf.compat.v1.train.Int64List(value = values))
 
 
 def _float_feature(values):
-    return tf.train.Feature(float_list = tf.train.FloatList(value = values))
+    return tf.compat.v1.train.Feature(float_list = tf.compat.v1.train.FloatList(value = values))
 
 
 def format_filename(
@@ -104,10 +104,10 @@ def _create_data(idx, input_paths):
     for input_path in input_paths:
         input_data, sent_ids = [], []
         sent_id, line_cnt = True, 0
-        tf.compat.v1.logging.info('Processing %s', input_path)
-        for line in tf.gfile.Open(input_path):
+        @@#logging.info('Processing %s', input_path)
+        for line in tf.compat.v1.gfile.Open(input_path):
             if line_cnt % 100000 == 0:
-                tf.compat.v1.logging.info('Loading line %d', line_cnt)
+                @@#logging.info('Loading line %d', line_cnt)
             line_cnt += 1
 
             if not line.strip():
@@ -129,7 +129,7 @@ def _create_data(idx, input_paths):
             sent_ids.extend([sent_id] * len(cur_sent))
             sent_id = not sent_id
 
-        tf.compat.v1.logging.info('Finish with line %d', line_cnt)
+        @@#logging.info('Finish with line %d', line_cnt)
         if line_cnt == 0:
             continue
 
@@ -139,7 +139,7 @@ def _create_data(idx, input_paths):
         total_line_cnt += line_cnt
         input_shards.append((input_data, sent_ids))
 
-    tf.compat.v1.logging.info('[Task %d] Total number line: %d', idx, total_line_cnt)
+    @@#logging.info('[Task %d] Total number line: %d', idx, total_line_cnt)
 
     tfrecord_dir = os.path.join(FLAGS.save_dir, 'tfrecords')
 
@@ -149,7 +149,7 @@ def _create_data(idx, input_paths):
     np.random.seed(100 * FLAGS.task + FLAGS.pass_id)
 
     perm_indices = np.random.permutation(len(input_shards))
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Using perm indices %s for pass %d',
         perm_indices.tolist(),
         FLAGS.pass_id,
@@ -198,12 +198,12 @@ def create_data(_):
         FLAGS.num_core_per_host = 1  # forced to be one
 
     # Make workdirs
-    if not tf.io.gfile.exists(FLAGS.save_dir):
-        tf.io.gfile.mkdir(FLAGS.save_dir)
+    if not tf.compat.v1.io.gfile.exists(FLAGS.save_dir):
+        tf.compat.v1.io.gfile.mkdir(FLAGS.save_dir)
 
     tfrecord_dir = os.path.join(FLAGS.save_dir, 'tfrecords')
-    if not tf.io.gfile.exists(tfrecord_dir):
-        tf.io.gfile.mkdir(tfrecord_dir)
+    if not tf.compat.v1.io.gfile.exists(tfrecord_dir):
+        tf.compat.v1.io.gfile.mkdir(tfrecord_dir)
 
     # Create and dump corpus_info from task 0
     if FLAGS.task == 0:
@@ -223,20 +223,20 @@ def create_data(_):
             'input_glob': FLAGS.input_glob,
         }
         corpus_info_path = os.path.join(FLAGS.save_dir, 'corpus_info.json')
-        with tf.gfile.Open(corpus_info_path, 'w') as fp:
+        with tf.compat.v1.gfile.Open(corpus_info_path, 'w') as fp:
             json.dump(corpus_info, fp)
 
     # Interleavely split the work into FLAGS.num_task splits
-    file_paths = sorted(tf.gfile.Glob(FLAGS.input_glob))
-    tf.compat.v1.logging.info('Use glob: %s', FLAGS.input_glob)
-    tf.compat.v1.logging.info('Find %d files: %s', len(file_paths), file_paths)
+    file_paths = sorted(tf.compat.v1.gfile.Glob(FLAGS.input_glob))
+    @@#logging.info('Use glob: %s', FLAGS.input_glob)
+    @@#logging.info('Find %d files: %s', len(file_paths), file_paths)
 
     task_file_paths = file_paths[FLAGS.task :: FLAGS.num_task]
     if not task_file_paths:
-        tf.compat.v1.logging.info('Exit: task %d has no file to process.', FLAGS.task)
+        @@#logging.info('Exit: task %d has no file to process.', FLAGS.task)
         return
 
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Task %d process %d files: %s',
         FLAGS.task,
         len(task_file_paths),
@@ -261,7 +261,7 @@ def create_data(_):
     )
     record_info_path = os.path.join(tfrecord_dir, record_name)
 
-    with tf.gfile.Open(record_info_path, 'w') as fp:
+    with tf.compat.v1.gfile.Open(record_info_path, 'w') as fp:
         json.dump(record_info, fp)
 
 
@@ -283,7 +283,7 @@ def _split_a_and_b(data, sent_ids, begin_idx, tot_len, extend_target = False):
 
     data_len = data.shape[0]
     if begin_idx + tot_len >= data_len:
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[_split_a_and_b] returns None: '
             'begin_idx %d + tot_len %d >= data_len %d',
             begin_idx,
@@ -339,7 +339,7 @@ def _split_a_and_b(data, sent_ids, begin_idx, tot_len, extend_target = False):
 
     if extend_target:
         if a_end >= data_len or b_end >= data_len:
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '[_split_a_and_b] returns None: '
                 'a_end %d or b_end %d >= data_len %d',
                 a_end,
@@ -460,7 +460,7 @@ def create_tfrecords(
     else:
         data, sent_ids = batchify(data, bsz_per_host, sent_ids)
 
-    tf.compat.v1.logging.info('Raw data shape %s.', data.shape)
+    @@#logging.info('Raw data shape %s.', data.shape)
 
     file_name = format_filename(
         prefix = basename,
@@ -475,8 +475,8 @@ def create_tfrecords(
         fixed_num_predict = FLAGS.num_predict,
     )
     save_path = os.path.join(save_dir, file_name)
-    record_writer = tf.python_io.TFRecordWriter(save_path)
-    tf.compat.v1.logging.info('Start writing %s.', save_path)
+    record_writer = tf.compat.v1.python_io.TFRecordWriter(save_path)
+    @@#logging.info('Start writing %s.', save_path)
 
     num_batch = 0
     reuse_len = FLAGS.reuse_len
@@ -491,7 +491,7 @@ def create_tfrecords(
     i = 0
     while i + seq_len <= data_len:
         if num_batch % 500 == 0:
-            tf.compat.v1.logging.info('Processing batch %d', num_batch)
+            @@#logging.info('Processing batch %d', num_batch)
 
         all_ok = True
         features = []
@@ -507,7 +507,7 @@ def create_tfrecords(
                 extend_target = True,
             )
             if results is None:
-                tf.compat.v1.logging.info('Break out with seq idx %d', i)
+                @@#logging.info('Break out with seq idx %d', i)
                 all_ok = False
                 break
 
@@ -570,8 +570,8 @@ def create_tfrecords(
         if all_ok:
             assert len(features) == bsz_per_host
             for feature in features:
-                example = tf.train.Example(
-                    features = tf.train.Features(feature = feature)
+                example = tf.compat.v1.train.Example(
+                    features = tf.compat.v1.train.Features(feature = feature)
                 )
                 record_writer.write(example.SerializeToString())
             num_batch += 1
@@ -581,7 +581,7 @@ def create_tfrecords(
         i += reuse_len
 
     record_writer.close()
-    tf.compat.v1.logging.info('Done writing %s. Num of batches: %d', save_path, num_batch)
+    @@#logging.info('Done writing %s. Num of batches: %d', save_path, num_batch)
 
     return save_path, num_batch
 
@@ -593,12 +593,12 @@ def _convert_example(example, use_bfloat16):
     """Cast int64 into int32 and float32 to bfloat16 if use_bfloat16."""
     for key in list(example.keys()):
         val = example[key]
-        if tf.keras.backend.is_sparse(val):
-            val = tf.sparse.to_dense(val)
-        if val.dtype == tf.int64:
-            val = tf.cast(val, tf.int32)
-        if use_bfloat16 and val.dtype == tf.float32:
-            val = tf.cast(val, tf.bfloat16)
+        if tf.compat.v1.keras.backend.is_sparse(val):
+            val = tf.compat.v1.sparse.to_dense(val)
+        if val.dtype == tf.compat.v1.int64:
+            val = tf.compat.v1.cast(val, tf.compat.v1.int32)
+        if use_bfloat16 and val.dtype == tf.compat.v1.float32:
+            val = tf.compat.v1.cast(val, tf.compat.v1.bfloat16)
 
         example[key] = val
 
@@ -621,10 +621,10 @@ def parse_files_to_dataset(
     if host_id == num_hosts - 1:
         my_end_file_id = num_files
     file_paths = file_names[my_start_file_id:my_end_file_id]
-    tf.compat.v1.logging.info('Host %d handles %d files', host_id, len(file_paths))
+    @@#logging.info('Host %d handles %d files', host_id, len(file_paths))
 
     assert split == 'train'
-    dataset = tf.data.Dataset.from_tensor_slices(file_paths)
+    dataset = tf.compat.v1.data.Dataset.from_tensor_slices(file_paths)
 
     # file-level shuffle
     if len(file_paths) > 1:
@@ -632,7 +632,7 @@ def parse_files_to_dataset(
 
     # Note: we cannot perform sample-level shuffle here because this will violate
     # the consecutive requirement of data stream.
-    dataset = tf.data.TFRecordDataset(dataset)
+    dataset = tf.compat.v1.data.TFRecordDataset(dataset)
 
     # (zihang): since we are doing online preprocessing, the parsed result of
     # the same input at each time will be different. Thus, cache processed data
@@ -661,46 +661,46 @@ def _local_perm(inputs, targets, is_masked, perm_size, seq_len):
   """
 
     # Generate permutation indices
-    index = tf.range(seq_len, dtype = tf.int64)
-    index = tf.transpose(tf.reshape(index, [-1, perm_size]))
-    index = tf.random.shuffle(index)
-    index = tf.reshape(tf.transpose(index), [-1])
+    index = tf.compat.v1.range(seq_len, dtype = tf.compat.v1.int64)
+    index = tf.compat.v1.transpose(tf.compat.v1.reshape(index, [-1, perm_size]))
+    index = tf.compat.v1.random.shuffle(index)
+    index = tf.compat.v1.reshape(tf.compat.v1.transpose(index), [-1])
 
     # `perm_mask` and `target_mask`
     # non-functional tokens
-    non_func_tokens = tf.logical_not(
-        tf.logical_or(tf.equal(inputs, SEP_ID), tf.equal(inputs, CLS_ID))
+    non_func_tokens = tf.compat.v1.logical_not(
+        tf.compat.v1.logical_or(tf.compat.v1.equal(inputs, SEP_ID), tf.compat.v1.equal(inputs, CLS_ID))
     )
 
-    non_mask_tokens = tf.logical_and(tf.logical_not(is_masked), non_func_tokens)
-    masked_or_func_tokens = tf.logical_not(non_mask_tokens)
+    non_mask_tokens = tf.compat.v1.logical_and(tf.compat.v1.logical_not(is_masked), non_func_tokens)
+    masked_or_func_tokens = tf.compat.v1.logical_not(non_mask_tokens)
 
     # Set the permutation indices of non-masked (& non-funcional) tokens to the
     # smallest index (-1):
     # (1) they can be seen by all other positions
     # (2) they cannot see masked positions, so there won"t be information leak
-    smallest_index = -tf.ones([seq_len], dtype = tf.int64)
-    rev_index = tf.where(non_mask_tokens, smallest_index, index)
+    smallest_index = -tf.compat.v1.ones([seq_len], dtype = tf.compat.v1.int64)
+    rev_index = tf.compat.v1.where(non_mask_tokens, smallest_index, index)
 
     # Create `target_mask`: non-funcional and maksed tokens
     # 1: use mask as input and have loss
     # 0: use token (or [SEP], [CLS]) as input and do not have loss
-    target_tokens = tf.logical_and(masked_or_func_tokens, non_func_tokens)
-    target_mask = tf.cast(target_tokens, tf.float32)
+    target_tokens = tf.compat.v1.logical_and(masked_or_func_tokens, non_func_tokens)
+    target_mask = tf.compat.v1.cast(target_tokens, tf.compat.v1.float32)
 
     # Create `perm_mask`
     # `target_tokens` cannot see themselves
-    self_rev_index = tf.where(target_tokens, rev_index, rev_index + 1)
+    self_rev_index = tf.compat.v1.where(target_tokens, rev_index, rev_index + 1)
 
     # 1: cannot attend if i <= j and j is not non-masked (masked_or_func_tokens)
     # 0: can attend if i > j or j is non-masked
-    perm_mask = tf.logical_and(
+    perm_mask = tf.compat.v1.logical_and(
         self_rev_index[:, None] <= rev_index[None, :], masked_or_func_tokens
     )
-    perm_mask = tf.cast(perm_mask, tf.float32)
+    perm_mask = tf.compat.v1.cast(perm_mask, tf.compat.v1.float32)
 
     # new target: [next token] for LM and [curr token] (self) for PLM
-    new_targets = tf.concat([inputs[0:1], targets[:-1]], axis = 0)
+    new_targets = tf.compat.v1.concat([inputs[0:1], targets[:-1]], axis = 0)
 
     # construct inputs_k
     inputs_k = inputs
@@ -739,21 +739,21 @@ def get_dataset(
         """function used to parse tfrecord."""
 
         record_spec = {
-            'input': tf.io.FixedLenFeature([seq_len], tf.int64),
-            'target': tf.io.FixedLenFeature([seq_len], tf.int64),
-            'seg_id': tf.io.FixedLenFeature([seq_len], tf.int64),
-            'label': tf.io.FixedLenFeature([1], tf.int64),
-            'is_masked': tf.io.FixedLenFeature([seq_len], tf.int64),
+            'input': tf.compat.v1.io.FixedLenFeature([seq_len], tf.compat.v1.int64),
+            'target': tf.compat.v1.io.FixedLenFeature([seq_len], tf.compat.v1.int64),
+            'seg_id': tf.compat.v1.io.FixedLenFeature([seq_len], tf.compat.v1.int64),
+            'label': tf.compat.v1.io.FixedLenFeature([1], tf.compat.v1.int64),
+            'is_masked': tf.compat.v1.io.FixedLenFeature([seq_len], tf.compat.v1.int64),
         }
 
         # retrieve serialized example
-        example = tf.io.parse_single_example(
+        example = tf.compat.v1.io.parse_single_example(
             serialized = record, features = record_spec
         )
 
         inputs = example.pop('input')
         target = example.pop('target')
-        is_masked = tf.cast(example.pop('is_masked'), tf.bool)
+        is_masked = tf.compat.v1.cast(example.pop('is_masked'), tf.compat.v1.bool)
 
         non_reuse_len = seq_len - reuse_len
         assert perm_size <= reuse_len and perm_size <= non_reuse_len
@@ -774,65 +774,65 @@ def get_dataset(
             non_reuse_len,
         )
 
-        perm_mask_0 = tf.concat(
-            [perm_mask_0, tf.ones([reuse_len, non_reuse_len])], axis = 1
+        perm_mask_0 = tf.compat.v1.concat(
+            [perm_mask_0, tf.compat.v1.ones([reuse_len, non_reuse_len])], axis = 1
         )
-        perm_mask_1 = tf.concat(
-            [tf.zeros([non_reuse_len, reuse_len]), perm_mask_1], axis = 1
+        perm_mask_1 = tf.compat.v1.concat(
+            [tf.compat.v1.zeros([non_reuse_len, reuse_len]), perm_mask_1], axis = 1
         )
-        perm_mask = tf.concat([perm_mask_0, perm_mask_1], axis = 0)
-        target = tf.concat([target_0, target_1], axis = 0)
-        target_mask = tf.concat([target_mask_0, target_mask_1], axis = 0)
-        input_k = tf.concat([input_k_0, input_k_1], axis = 0)
-        input_q = tf.concat([input_q_0, input_q_1], axis = 0)
+        perm_mask = tf.compat.v1.concat([perm_mask_0, perm_mask_1], axis = 0)
+        target = tf.compat.v1.concat([target_0, target_1], axis = 0)
+        target_mask = tf.compat.v1.concat([target_mask_0, target_mask_1], axis = 0)
+        input_k = tf.compat.v1.concat([input_k_0, input_k_1], axis = 0)
+        input_q = tf.compat.v1.concat([input_q_0, input_q_1], axis = 0)
 
         if num_predict is not None:
-            indices = tf.range(seq_len, dtype = tf.int64)
-            bool_target_mask = tf.cast(target_mask, tf.bool)
-            indices = tf.boolean_mask(indices, bool_target_mask)
+            indices = tf.compat.v1.range(seq_len, dtype = tf.compat.v1.int64)
+            bool_target_mask = tf.compat.v1.cast(target_mask, tf.compat.v1.bool)
+            indices = tf.compat.v1.boolean_mask(indices, bool_target_mask)
 
             ##### extra padding due to CLS/SEP introduced after prepro
-            actual_num_predict = tf.shape(indices)[0]
+            actual_num_predict = tf.compat.v1.shape(indices)[0]
             pad_len = num_predict - actual_num_predict
 
             ##### target_mapping
-            target_mapping = tf.one_hot(indices, seq_len, dtype = tf.float32)
-            paddings = tf.zeros(
+            target_mapping = tf.compat.v1.one_hot(indices, seq_len, dtype = tf.compat.v1.float32)
+            paddings = tf.compat.v1.zeros(
                 [pad_len, seq_len], dtype = target_mapping.dtype
             )
-            target_mapping = tf.concat([target_mapping, paddings], axis = 0)
-            example['target_mapping'] = tf.reshape(
+            target_mapping = tf.compat.v1.concat([target_mapping, paddings], axis = 0)
+            example['target_mapping'] = tf.compat.v1.reshape(
                 target_mapping, [num_predict, seq_len]
             )
 
             ##### target
-            target = tf.boolean_mask(target, bool_target_mask)
-            paddings = tf.zeros([pad_len], dtype = target.dtype)
-            target = tf.concat([target, paddings], axis = 0)
-            example['target'] = tf.reshape(target, [num_predict])
+            target = tf.compat.v1.boolean_mask(target, bool_target_mask)
+            paddings = tf.compat.v1.zeros([pad_len], dtype = target.dtype)
+            target = tf.compat.v1.concat([target, paddings], axis = 0)
+            example['target'] = tf.compat.v1.reshape(target, [num_predict])
 
             ##### target mask
-            target_mask = tf.concat(
+            target_mask = tf.compat.v1.concat(
                 [
-                    tf.ones([actual_num_predict], dtype = tf.float32),
-                    tf.zeros([pad_len], dtype = tf.float32),
+                    tf.compat.v1.ones([actual_num_predict], dtype = tf.compat.v1.float32),
+                    tf.compat.v1.zeros([pad_len], dtype = tf.compat.v1.float32),
                 ],
                 axis = 0,
             )
-            example['target_mask'] = tf.reshape(target_mask, [num_predict])
+            example['target_mask'] = tf.compat.v1.reshape(target_mask, [num_predict])
         else:
-            example['target'] = tf.reshape(target, [seq_len])
-            example['target_mask'] = tf.reshape(target_mask, [seq_len])
+            example['target'] = tf.compat.v1.reshape(target, [seq_len])
+            example['target_mask'] = tf.compat.v1.reshape(target_mask, [seq_len])
 
         # reshape back to fixed shape
-        example['perm_mask'] = tf.reshape(perm_mask, [seq_len, seq_len])
-        example['input_k'] = tf.reshape(input_k, [seq_len])
-        example['input_q'] = tf.reshape(input_q, [seq_len])
+        example['perm_mask'] = tf.compat.v1.reshape(perm_mask, [seq_len, seq_len])
+        example['input_k'] = tf.compat.v1.reshape(input_k, [seq_len])
+        example['input_q'] = tf.compat.v1.reshape(input_q, [seq_len])
 
         _convert_example(example, use_bfloat16)
 
         for k, v in example.items():
-            tf.compat.v1.logging.info('%s: %s', k, v)
+            @@#logging.info('%s: %s', k, v)
 
         return example
 
@@ -886,14 +886,14 @@ def get_input_fn(
     record_info = {'num_batch': 0, 'filenames': []}
 
     tfrecord_dirs = tfrecord_dir.split(',')
-    tf.compat.v1.logging.info('Use the following tfrecord dirs: %s', tfrecord_dirs)
+    @@#logging.info('Use the following tfrecord dirs: %s', tfrecord_dirs)
 
     for idx, record_dir in enumerate(tfrecord_dirs):
         record_glob = os.path.join(record_dir, record_glob_base)
-        tf.compat.v1.logging.info('[%d] Record glob: %s', idx, record_glob)
+        @@#logging.info('[%d] Record glob: %s', idx, record_glob)
 
-        record_paths = sorted(tf.gfile.Glob(record_glob))
-        tf.compat.v1.logging.info(
+        record_paths = sorted(tf.compat.v1.gfile.Glob(record_glob))
+        @@#logging.info(
             '[%d] Num of record info path: %d', idx, len(record_paths)
         )
 
@@ -905,12 +905,12 @@ def get_input_fn(
                 fields = record_info_name.split('.')[0].split('-')
                 pass_id = int(fields[-1])
                 if len(fields) == 5 and pass_id >= num_passes:
-                    tf.compat.v1.logging.info(
+                    @@#logging.info(
                         'Skip pass %d: %s', pass_id, record_info_name
                     )
                     continue
 
-            with tf.gfile.Open(record_info_path, 'r') as fp:
+            with tf.compat.v1.gfile.Open(record_info_path, 'r') as fp:
                 info = json.load(fp)
                 if num_passes is not None:
                     eff_num_passes = min(num_passes, len(info['filenames']))
@@ -933,25 +933,25 @@ def get_input_fn(
             new_filenames.append(new_filename)
         cur_record_info['filenames'] = new_filenames
 
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[Dir %d] Number of chosen batches: %s',
             idx,
             cur_record_info['num_batch'],
         )
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[Dir %d] Number of chosen files: %s',
             idx,
             len(cur_record_info['filenames']),
         )
-        tf.compat.v1.logging.info(cur_record_info['filenames'])
+        @@#logging.info(cur_record_info['filenames'])
 
         # add `cur_record_info` to global `record_info`
         record_info['num_batch'] += cur_record_info['num_batch']
         record_info['filenames'] += cur_record_info['filenames']
 
-    tf.compat.v1.logging.info('Total number of batches: %d', record_info['num_batch'])
-    tf.compat.v1.logging.info('Total number of files: %d', len(record_info['filenames']))
-    tf.compat.v1.logging.info(record_info['filenames'])
+    @@#logging.info('Total number of batches: %d', record_info['num_batch'])
+    @@#logging.info('Total number of files: %d', len(record_info['filenames']))
+    @@#logging.info(record_info['filenames'])
 
     def input_fn(params):
         """docs."""
@@ -1049,5 +1049,5 @@ if __name__ == '__main__':
         'using multiple workers to identify each worker.',
     )
 
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
-    tf.compat.v1.app.run(create_data)
+    @@#logging.set_verbosity(@@#logging.info)
+    @@#app.run(create_data)

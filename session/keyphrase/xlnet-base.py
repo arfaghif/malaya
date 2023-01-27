@@ -105,47 +105,47 @@ def get_dataset(
     batch_size = 60, shuffle_size = 20, thread_count = 24, maxlen_feature = 1800
 ):
     def get():
-        dataset = tf.data.Dataset.from_generator(
+        dataset = tf.compat.v1.data.Dataset.from_generator(
             generate,
             {
-                'X': tf.int32,
-                'segment': tf.int32,
-                'mask': tf.int32,
-                'X_b': tf.int32,
-                'segment_b': tf.int32,
-                'mask_b': tf.int32,
-                'label': tf.int32,
+                'X': tf.compat.v1.int32,
+                'segment': tf.compat.v1.int32,
+                'mask': tf.compat.v1.int32,
+                'X_b': tf.compat.v1.int32,
+                'segment_b': tf.compat.v1.int32,
+                'mask_b': tf.compat.v1.int32,
+                'label': tf.compat.v1.int32,
             },
             output_shapes = {
-                'X': tf.TensorShape([None]),
-                'segment': tf.TensorShape([None]),
-                'mask': tf.TensorShape([None]),
-                'X_b': tf.TensorShape([None]),
-                'segment_b': tf.TensorShape([None]),
-                'mask_b': tf.TensorShape([None]),
-                'label': tf.TensorShape([None]),
+                'X': tf.compat.v1.TensorShape([None]),
+                'segment': tf.compat.v1.TensorShape([None]),
+                'mask': tf.compat.v1.TensorShape([None]),
+                'X_b': tf.compat.v1.TensorShape([None]),
+                'segment_b': tf.compat.v1.TensorShape([None]),
+                'mask_b': tf.compat.v1.TensorShape([None]),
+                'label': tf.compat.v1.TensorShape([None]),
             },
         )
-        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.compat.v1.contrib.data.AUTOTUNE)
         dataset = dataset.padded_batch(
             batch_size,
             padded_shapes = {
-                'X': tf.TensorShape([None]),
-                'segment': tf.TensorShape([None]),
-                'mask': tf.TensorShape([None]),
-                'X_b': tf.TensorShape([None]),
-                'segment_b': tf.TensorShape([None]),
-                'mask_b': tf.TensorShape([None]),
-                'label': tf.TensorShape([None]),
+                'X': tf.compat.v1.TensorShape([None]),
+                'segment': tf.compat.v1.TensorShape([None]),
+                'mask': tf.compat.v1.TensorShape([None]),
+                'X_b': tf.compat.v1.TensorShape([None]),
+                'segment_b': tf.compat.v1.TensorShape([None]),
+                'mask_b': tf.compat.v1.TensorShape([None]),
+                'label': tf.compat.v1.TensorShape([None]),
             },
             padding_values = {
-                'X': tf.constant(0, dtype = tf.int32),
-                'segment': tf.constant(1, dtype = tf.int32),
-                'mask': tf.constant(4, dtype = tf.int32),
-                'X_b': tf.constant(0, dtype = tf.int32),
-                'segment_b': tf.constant(1, dtype = tf.int32),
-                'mask_b': tf.constant(4, dtype = tf.int32),
-                'label': tf.constant(0, dtype = tf.int32),
+                'X': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'segment': tf.compat.v1.constant(1, dtype = tf.compat.v1.int32),
+                'mask': tf.compat.v1.constant(4, dtype = tf.compat.v1.int32),
+                'X_b': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'segment_b': tf.compat.v1.constant(1, dtype = tf.compat.v1.int32),
+                'mask_b': tf.compat.v1.constant(4, dtype = tf.compat.v1.int32),
+                'label': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
             },
         )
         return dataset
@@ -195,7 +195,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -256,70 +256,70 @@ def model_fn(features, labels, mode, params):
 
     X = features['X']
     segment_ids = features['segment']
-    input_masks = tf.cast(features['mask'], tf.float32)
+    input_masks = tf.compat.v1.cast(features['mask'], tf.compat.v1.float32)
 
     X_b = features['X_b']
     segment_ids_b = features['segment_b']
-    input_masks_b = tf.cast(features['mask_b'], tf.float32)
+    input_masks_b = tf.compat.v1.cast(features['mask_b'], tf.compat.v1.float32)
 
     Y = features['label'][:, 0]
 
-    with tf.compat.v1.variable_scope('xlnet', reuse = False):
+    with @@#variable_scope('xlnet', reuse = False):
         xlnet_model = xlnet.XLNetModel(
             xlnet_config = xlnet_config,
             run_config = xlnet_parameters,
-            input_ids = tf.transpose(X, [1, 0]),
-            seg_ids = tf.transpose(segment_ids, [1, 0]),
-            input_mask = tf.transpose(input_masks, [1, 0]),
+            input_ids = tf.compat.v1.transpose(X, [1, 0]),
+            seg_ids = tf.compat.v1.transpose(segment_ids, [1, 0]),
+            input_mask = tf.compat.v1.transpose(input_masks, [1, 0]),
         )
 
         summary = xlnet_model.get_pooled_out('last', True)
 
-    with tf.compat.v1.variable_scope('xlnet', reuse = True):
+    with @@#variable_scope('xlnet', reuse = True):
         xlnet_model = xlnet.XLNetModel(
             xlnet_config = xlnet_config,
             run_config = xlnet_parameters,
-            input_ids = tf.transpose(X_b, [1, 0]),
-            seg_ids = tf.transpose(segment_ids_b, [1, 0]),
-            input_mask = tf.transpose(input_masks_b, [1, 0]),
+            input_ids = tf.compat.v1.transpose(X_b, [1, 0]),
+            seg_ids = tf.compat.v1.transpose(segment_ids_b, [1, 0]),
+            input_mask = tf.compat.v1.transpose(input_masks_b, [1, 0]),
         )
         summary_b = xlnet_model.get_pooled_out('last', True)
 
-    vectors_concat = [summary, summary_b, tf.abs(summary - summary_b)]
-    vectors_concat = tf.concat(vectors_concat, axis = 1)
-    logits = tf.layers.dense(vectors_concat, 2)
+    vectors_concat = [summary, summary_b, tf.compat.v1.abs(summary - summary_b)]
+    vectors_concat = tf.compat.v1.concat(vectors_concat, axis = 1)
+    logits = tf.compat.v1.layers.dense(vectors_concat, 2)
 
-    loss = tf.reduce_mean(
-        tf.nn.sparse_softmax_cross_entropy_with_logits(
+    loss = tf.compat.v1.reduce_mean(
+        tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
             logits = logits, labels = Y
         )
     )
-    tf.identity(loss, 'train_loss')
+    tf.compat.v1.identity(loss, 'train_loss')
 
-    accuracy = tf.metrics.accuracy(
-        labels = Y, predictions = tf.argmax(logits, axis = 1)
+    accuracy = tf.compat.v1.metrics.accuracy(
+        labels = Y, predictions = tf.compat.v1.argmax(logits, axis = 1)
     )
-    tf.identity(accuracy[1], name = 'train_accuracy')
+    tf.compat.v1.identity(accuracy[1], name = 'train_accuracy')
 
-    tvars = tf.trainable_variables()
+    tvars = tf.compat.v1.trainable_variables()
     init_checkpoint = 'xlnet-base-29-03-2020/model.ckpt-300000'
     assignment_map, initialized_variable_names = get_assignment_map_from_checkpoint(
         tvars, init_checkpoint
     )
-    tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-    if mode == tf.estimator.ModeKeys.TRAIN:
+    tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
+    if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
         train_op, learning_rate, _ = model_utils.get_train_op(
             training_parameters, loss
         )
-        tf.summary.scalar('learning_rate', learning_rate)
-        estimator_spec = tf.estimator.EstimatorSpec(
+        tf.compat.v1.summary.scalar('learning_rate', learning_rate)
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
             mode = mode, loss = loss, train_op = train_op
         )
 
-    elif mode == tf.estimator.ModeKeys.EVAL:
+    elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
-        estimator_spec = tf.estimator.EstimatorSpec(
-            mode = tf.estimator.ModeKeys.EVAL,
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
+            mode = tf.compat.v1.estimator.ModeKeys.EVAL,
             loss = loss,
             eval_metric_ops = {'accuracy': accuracy},
         )
@@ -342,13 +342,13 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
     dist_strategy = None
 
-    gpu_options = tf.GPUOptions(
+    gpu_options = tf.compat.v1.GPUOptions(
         per_process_gpu_memory_fraction = gpu_mem_fraction
     )
-    config = tf.ConfigProto(
+    config = tf.compat.v1.ConfigProto(
         allow_soft_placement = True, gpu_options = gpu_options
     )
     run_config = RunConfig(
@@ -361,19 +361,19 @@ def run_training(
         session_config = config,
     )
 
-    estimator = tf.estimator.Estimator(
+    estimator = tf.compat.v1.estimator.Estimator(
         model_fn = model_fn, params = {}, config = run_config
     )
 
     if eval_fn:
-        train_spec = tf.estimator.TrainSpec(
+        train_spec = tf.compat.v1.estimator.TrainSpec(
             input_fn = train_fn, max_steps = max_steps, hooks = train_hooks
         )
 
-        eval_spec = tf.estimator.EvalSpec(
+        eval_spec = tf.compat.v1.estimator.EvalSpec(
             input_fn = eval_fn, steps = eval_step, throttle_secs = eval_throttle
         )
-        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+        tf.compat.v1.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
     else:
         estimator.train(
@@ -382,7 +382,7 @@ def run_training(
 
 
 train_hooks = [
-    tf.train.LoggingTensorHook(
+    tf.compat.v1.train.LoggingTensorHook(
         ['train_accuracy', 'train_loss'], every_n_iter = 1
     )
 ]

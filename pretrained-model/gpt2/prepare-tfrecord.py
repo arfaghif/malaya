@@ -138,19 +138,19 @@ class Encoder:
 
 
 def create_int_feature(values):
-    feature = tf.train.Feature(
-        int64_list=tf.train.Int64List(value=list(values))
+    feature = tf.compat.v1.train.Feature(
+        int64_list=tf.compat.v1.train.Int64List(value=list(values))
     )
     return feature
 
 
 def write_tfrecord(s, file):
-    r = tf.python_io.TFRecordWriter(file)
+    r = tf.compat.v1.python_io.TFRecordWriter(file)
     for i in tqdm(range(len(s))):
         features = collections.OrderedDict()
         features['input_ids'] = create_int_feature(s[i])
-        tf_example = tf.train.Example(
-            features=tf.train.Features(feature=features)
+        tf_example = tf.compat.v1.train.Example(
+            features=tf.compat.v1.train.Features(feature=features)
         )
         r.write(tf_example.SerializeToString())
 

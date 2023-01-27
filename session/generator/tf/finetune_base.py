@@ -9,7 +9,7 @@ gcloud compute tpus create node-1 --zone=us-central1-f --accelerator-type='v2-8'
 """
 
 vocab = 'gs://mesolitica-tpu-general/sp10m.cased.t5.model'
-tpu = tf.distribute.cluster_resolver.TPUClusterResolver(
+tpu = tf.compat.v1.distribute.cluster_resolver.TPUClusterResolver(
     'node-3', zone='us-central1-f', project='mesolitica-tpu'
 )
 TPU_ADDRESS = tpu.get_master()
@@ -19,7 +19,7 @@ print(TPU_ADDRESS)
 
 def artikel_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/generator/generator-artikel.tsv'
         ]
@@ -27,12 +27,12 @@ def artikel_dataset(split, shuffle_files=False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -41,13 +41,13 @@ def artikel_dataset(split, shuffle_files=False):
 def artikel_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['artikel: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['artikel: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -64,7 +64,7 @@ t5.data.TaskRegistry.add(
 
 def karangan_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/generator/generator-karangan.tsv'
         ]
@@ -72,12 +72,12 @@ def karangan_dataset(split, shuffle_files=False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -86,13 +86,13 @@ def karangan_dataset(split, shuffle_files=False):
 def karangan_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['karangan: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['karangan: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -109,7 +109,7 @@ t5.data.TaskRegistry.add(
 
 def penerangan_produk_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/generator/generator-penerangan-produk.tsv'
         ]
@@ -117,12 +117,12 @@ def penerangan_produk_dataset(split, shuffle_files=False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -131,13 +131,13 @@ def penerangan_produk_dataset(split, shuffle_files=False):
 def penerangan_produk_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['penerangan-produk: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['penerangan-produk: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -154,7 +154,7 @@ t5.data.TaskRegistry.add(
 
 def surat_khabar_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/generator/generator-surat-khabar.tsv'
         ]
@@ -162,12 +162,12 @@ def surat_khabar_dataset(split, shuffle_files=False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -176,13 +176,13 @@ def surat_khabar_dataset(split, shuffle_files=False):
 def surat_khabar_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['surat-khabar: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['surat-khabar: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -199,7 +199,7 @@ t5.data.TaskRegistry.add(
 
 def tajuk_surat_khabar_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         [
             'gs://mesolitica-tpu-general/generator/generator-tajuk-surat-khabar.tsv'
         ]
@@ -207,12 +207,12 @@ def tajuk_surat_khabar_dataset(split, shuffle_files=False):
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -221,13 +221,13 @@ def tajuk_surat_khabar_dataset(split, shuffle_files=False):
 def tajuk_surat_khabar_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['tajuk-surat-khabar: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['tajuk-surat-khabar: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -254,7 +254,7 @@ t5.data.MixtureRegistry.add(
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+    @@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
     model_parallelism, train_batch_size, keep_checkpoint_max = {
         'small': (1, 256, 16),
@@ -289,4 +289,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

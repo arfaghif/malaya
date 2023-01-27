@@ -32,12 +32,12 @@ def create_optimizer(
     loss, init_lr, num_train_steps, num_warmup_steps, fp16 = False
 ):
     """Creates an optimizer training op."""
-    global_step = tf.train.get_or_create_global_step()
+    global_step = tf.compat.v1.train.get_or_create_global_step()
 
-    learning_rate = tf.constant(value = init_lr, shape = [], dtype = tf.float32)
+    learning_rate = tf.compat.v1.constant(value = init_lr, shape = [], dtype = tf.compat.v1.float32)
 
     # Implements linear decay of the learning rate.
-    learning_rate = tf.train.polynomial_decay(
+    learning_rate = tf.compat.v1.train.polynomial_decay(
         learning_rate,
         global_step,
         num_train_steps,
@@ -49,16 +49,16 @@ def create_optimizer(
     # Implements linear warmup. I.e., if global_step < num_warmup_steps, the
     # learning rate will be `global_step/num_warmup_steps * init_lr`.
     if num_warmup_steps:
-        global_steps_int = tf.cast(global_step, tf.int32)
-        warmup_steps_int = tf.constant(num_warmup_steps, dtype = tf.int32)
+        global_steps_int = tf.compat.v1.cast(global_step, tf.compat.v1.int32)
+        warmup_steps_int = tf.compat.v1.constant(num_warmup_steps, dtype = tf.compat.v1.int32)
 
-        global_steps_float = tf.cast(global_steps_int, tf.float32)
-        warmup_steps_float = tf.cast(warmup_steps_int, tf.float32)
+        global_steps_float = tf.compat.v1.cast(global_steps_int, tf.compat.v1.float32)
+        warmup_steps_float = tf.compat.v1.cast(warmup_steps_int, tf.compat.v1.float32)
 
         warmup_percent_done = global_steps_float / warmup_steps_float
         warmup_learning_rate = init_lr * warmup_percent_done
 
-        is_warmup = tf.cast(global_steps_int < warmup_steps_int, tf.float32)
+        is_warmup = tf.compat.v1.cast(global_steps_int < warmup_steps_int, tf.compat.v1.float32)
         learning_rate = (
             1.0 - is_warmup
         ) * learning_rate + is_warmup * warmup_learning_rate
@@ -77,30 +77,30 @@ def create_optimizer(
 
     # REF: https://github.com/tensorflow/tensorflow/issues/25080
     # if fp16:
-    #     loss_scale_manager = tf.contrib.mixed_precision.ExponentialUpdateLossScaleManager(
+    #     loss_scale_manager = tf.compat.v1.contrib.mixed_precision.ExponentialUpdateLossScaleManager(
     #         init_loss_scale=2 ** 32,
     #         incr_every_n_steps=1000,
     #         decr_every_n_nan_or_inf=2,
     #         decr_ratio=0.5)
-    #     optimizer = tf.contrib.mixed_precision.LossScaleOptimizer(optimizer, loss_scale_manager)
+    #     optimizer = tf.compat.v1.contrib.mixed_precision.LossScaleOptimizer(optimizer, loss_scale_manager)
 
-    tvars = tf.trainable_variables()
+    tvars = tf.compat.v1.trainable_variables()
     gvs = optimizer.compute_gradients(loss, tvars)
     gvs = [(g, v) for g, v in gvs if g is not None]
     grads, tvars = list(zip(*gvs))
     if fp16:
-        all_finite = tf.reduce_all(
-            [tf.reduce_all(tf.is_finite(g)) for g in grads]
+        all_finite = tf.compat.v1.reduce_all(
+            [tf.compat.v1.reduce_all(tf.compat.v1.is_finite(g)) for g in grads]
         )
     else:
-        all_finite = tf.constant(True, dtype = tf.bool)
+        all_finite = tf.compat.v1.constant(True, dtype = tf.compat.v1.bool)
 
     # This is how the model was pre-trained.
-    (grads, _) = tf.clip_by_global_norm(
+    (grads, _) = tf.compat.v1.clip_by_global_norm(
         grads,
         clip_norm = 1.0,
-        use_norm = tf.cond(
-            all_finite, lambda: tf.global_norm(grads), lambda: tf.constant(1.0)
+        use_norm = tf.compat.v1.cond(
+            all_finite, lambda: tf.compat.v1.global_norm(grads), lambda: tf.compat.v1.constant(1.0)
         ),
     )
 
@@ -111,11 +111,11 @@ def create_optimizer(
     # Normally the global step update is done inside of `apply_gradients`.
     # However, `AdamWeightDecayOptimizer` doesn't do this. But if you use
     # a different optimizer, you should probably take this line out.
-    new_global_step = tf.cond(
+    new_global_step = tf.compat.v1.cond(
         all_finite, lambda: global_step + 1, lambda: global_step
     )
-    new_global_step = tf.identity(new_global_step, name = 'update_step')
-    train_op = tf.group(train_op, [global_step.assign(new_global_step)])
+    new_global_step = tf.compat.v1.identity(new_global_step, name = 'update_step')
+    train_op = tf.compat.v1.group(train_op, [global_step.assign(new_global_step)])
     return train_op
 
 
@@ -135,7 +135,7 @@ class AdamWeightDecayOptimizer(Optimizer):
         """Constructs a AdamWeightDecayOptimizer."""
         super(AdamWeightDecayOptimizer, self).__init__(False, name)
 
-        self.learning_rate = tf.identity(learning_rate, name = 'learning_rate')
+        self.learning_rate = tf.compat.v1.identity(learning_rate, name = 'learning_rate')
         self.weight_decay_rate = weight_decay_rate
         self.beta_1 = beta_1
         self.beta_2 = beta_2
@@ -173,12 +173,12 @@ class AdamWeightDecayOptimizer(Optimizer):
         v = self.get_slot(var, 'v')
 
         # Standard Adam update.
-        next_m = tf.multiply(beta_1_t, m) + tf.multiply(1.0 - beta_1_t, grad)
-        next_v = tf.multiply(beta_2_t, v) + tf.multiply(
-            1.0 - beta_2_t, tf.square(grad)
+        next_m = tf.compat.v1.multiply(beta_1_t, m) + tf.compat.v1.multiply(1.0 - beta_1_t, grad)
+        next_v = tf.compat.v1.multiply(beta_2_t, v) + tf.compat.v1.multiply(
+            1.0 - beta_2_t, tf.compat.v1.square(grad)
         )
 
-        update = next_m / (tf.sqrt(next_v) + epsilon_t)
+        update = next_m / (tf.compat.v1.sqrt(next_v) + epsilon_t)
 
         if self._do_use_weight_decay(var.name):
             update += weight_decay_rate_t * var
@@ -206,12 +206,12 @@ class AdamWeightDecayOptimizer(Optimizer):
         v = self.get_slot(var, 'v')
 
         # Standard Adam update.
-        next_m = tf.multiply(beta_1_t, m) + tf.multiply(1.0 - beta_1_t, grad)
-        next_v = tf.multiply(beta_2_t, v) + tf.multiply(
-            1.0 - beta_2_t, tf.square(grad)
+        next_m = tf.compat.v1.multiply(beta_1_t, m) + tf.compat.v1.multiply(1.0 - beta_1_t, grad)
+        next_v = tf.compat.v1.multiply(beta_2_t, v) + tf.compat.v1.multiply(
+            1.0 - beta_2_t, tf.compat.v1.square(grad)
         )
 
-        update = next_m / (tf.sqrt(next_v) + epsilon_t)
+        update = next_m / (tf.compat.v1.sqrt(next_v) + epsilon_t)
 
         if self._do_use_weight_decay(var.name):
             update += weight_decay_rate_t * var

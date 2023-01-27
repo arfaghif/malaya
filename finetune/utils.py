@@ -20,7 +20,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -33,12 +33,12 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
         initialized_variable_names[name] = 1
         initialized_variable_names[name + ':0'] = 1
 
-    tf.compat.v1.logging.info('**** Trainable Variables ****')
+    @@#logging.info('**** Trainable Variables ****')
     for var in tvars:
         init_string = ''
         if var.name in initialized_variable_names:
             init_string = ', *INIT_FROM_CKPT*'
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '  name = %s, shape = %s%s', var.name, var.shape, init_string
         )
 
@@ -59,10 +59,10 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     if num_gpus > 1 and not use_tpu:
-        dist_strategy = tf.contrib.distribute.MirroredStrategy(
+        dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
             num_gpus = num_gpus,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(
@@ -81,19 +81,19 @@ def run_training(
         save_summary_steps = summary_step,
     )
 
-    estimator = tf.estimator.Estimator(
+    estimator = tf.compat.v1.estimator.Estimator(
         model_fn = model_fn, params = {}, config = run_config
     )
 
     if eval_fn:
-        train_spec = tf.estimator.TrainSpec(
+        train_spec = tf.compat.v1.estimator.TrainSpec(
             input_fn = train_fn, max_steps = max_steps, hooks = train_hooks
         )
 
-        eval_spec = tf.estimator.EvalSpec(
+        eval_spec = tf.compat.v1.estimator.EvalSpec(
             input_fn = eval_fn, steps = eval_step, throttle_secs = eval_throttle
         )
-        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+        tf.compat.v1.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
     else:
         estimator.train(

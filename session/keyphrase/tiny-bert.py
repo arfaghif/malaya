@@ -97,39 +97,39 @@ def get_dataset(
     batch_size = 60, shuffle_size = 20, thread_count = 24, maxlen_feature = 1800
 ):
     def get():
-        dataset = tf.data.Dataset.from_generator(
+        dataset = tf.compat.v1.data.Dataset.from_generator(
             generate,
             {
-                'X': tf.int32,
-                'mask': tf.int32,
-                'X_b': tf.int32,
-                'mask_b': tf.int32,
-                'label': tf.int32,
+                'X': tf.compat.v1.int32,
+                'mask': tf.compat.v1.int32,
+                'X_b': tf.compat.v1.int32,
+                'mask_b': tf.compat.v1.int32,
+                'label': tf.compat.v1.int32,
             },
             output_shapes = {
-                'X': tf.TensorShape([None]),
-                'mask': tf.TensorShape([None]),
-                'X_b': tf.TensorShape([None]),
-                'mask_b': tf.TensorShape([None]),
-                'label': tf.TensorShape([None]),
+                'X': tf.compat.v1.TensorShape([None]),
+                'mask': tf.compat.v1.TensorShape([None]),
+                'X_b': tf.compat.v1.TensorShape([None]),
+                'mask_b': tf.compat.v1.TensorShape([None]),
+                'label': tf.compat.v1.TensorShape([None]),
             },
         )
-        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        dataset = dataset.prefetch(tf.compat.v1.contrib.data.AUTOTUNE)
         dataset = dataset.padded_batch(
             batch_size,
             padded_shapes = {
-                'X': tf.TensorShape([None]),
-                'mask': tf.TensorShape([None]),
-                'X_b': tf.TensorShape([None]),
-                'mask_b': tf.TensorShape([None]),
-                'label': tf.TensorShape([None]),
+                'X': tf.compat.v1.TensorShape([None]),
+                'mask': tf.compat.v1.TensorShape([None]),
+                'X_b': tf.compat.v1.TensorShape([None]),
+                'mask_b': tf.compat.v1.TensorShape([None]),
+                'label': tf.compat.v1.TensorShape([None]),
             },
             padding_values = {
-                'X': tf.constant(0, dtype = tf.int32),
-                'mask': tf.constant(0, dtype = tf.int32),
-                'X_b': tf.constant(0, dtype = tf.int32),
-                'mask_b': tf.constant(0, dtype = tf.int32),
-                'label': tf.constant(0, dtype = tf.int32),
+                'X': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'mask': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'X_b': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'mask_b': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'label': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
             },
         )
         return dataset
@@ -138,7 +138,7 @@ def get_dataset(
 
 
 def create_initializer(initializer_range = 0.02):
-    return tf.truncated_normal_initializer(stddev = initializer_range)
+    return tf.compat.v1.truncated_normal_initializer(stddev = initializer_range)
 
 
 def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
@@ -154,7 +154,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -186,7 +186,7 @@ def model_fn(features, labels, mode, params):
 
     Y = features['label'][:, 0]
 
-    with tf.compat.v1.variable_scope('bert', reuse = False):
+    with @@#variable_scope('bert', reuse = False):
         model = modeling.BertModel(
             config = bert_config,
             is_training = True,
@@ -197,7 +197,7 @@ def model_fn(features, labels, mode, params):
 
         summary = model.get_pooled_output()
 
-    with tf.compat.v1.variable_scope('bert', reuse = True):
+    with @@#variable_scope('bert', reuse = True):
         model = modeling.BertModel(
             config = bert_config,
             is_training = True,
@@ -208,40 +208,40 @@ def model_fn(features, labels, mode, params):
 
         summary_b = model.get_pooled_output()
 
-    vectors_concat = [summary, summary_b, tf.abs(summary - summary_b)]
-    vectors_concat = tf.concat(vectors_concat, axis = 1)
-    logits = tf.layers.dense(vectors_concat, 2)
+    vectors_concat = [summary, summary_b, tf.compat.v1.abs(summary - summary_b)]
+    vectors_concat = tf.compat.v1.concat(vectors_concat, axis = 1)
+    logits = tf.compat.v1.layers.dense(vectors_concat, 2)
 
-    loss = tf.reduce_mean(
-        tf.nn.sparse_softmax_cross_entropy_with_logits(
+    loss = tf.compat.v1.reduce_mean(
+        tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
             logits = logits, labels = Y
         )
     )
-    tf.identity(loss, 'train_loss')
+    tf.compat.v1.identity(loss, 'train_loss')
 
-    accuracy = tf.metrics.accuracy(
-        labels = Y, predictions = tf.argmax(logits, axis = 1)
+    accuracy = tf.compat.v1.metrics.accuracy(
+        labels = Y, predictions = tf.compat.v1.argmax(logits, axis = 1)
     )
-    tf.identity(accuracy[1], name = 'train_accuracy')
+    tf.compat.v1.identity(accuracy[1], name = 'train_accuracy')
 
-    tvars = tf.trainable_variables()
+    tvars = tf.compat.v1.trainable_variables()
     init_checkpoint = 'tiny-bert-v1/model.ckpt'
     assignment_map, initialized_variable_names = get_assignment_map_from_checkpoint(
         tvars, init_checkpoint
     )
-    tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-    if mode == tf.estimator.ModeKeys.TRAIN:
+    tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
+    if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
         train_op = optimization.create_optimizer(
             loss, learning_rate, num_train_steps, num_warmup_steps, False
         )
-        estimator_spec = tf.estimator.EstimatorSpec(
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
             mode = mode, loss = loss, train_op = train_op
         )
 
-    elif mode == tf.estimator.ModeKeys.EVAL:
+    elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
-        estimator_spec = tf.estimator.EstimatorSpec(
-            mode = tf.estimator.ModeKeys.EVAL,
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
+            mode = tf.compat.v1.estimator.ModeKeys.EVAL,
             loss = loss,
             eval_metric_ops = {'accuracy': accuracy},
         )
@@ -264,13 +264,13 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
     dist_strategy = None
 
-    gpu_options = tf.GPUOptions(
+    gpu_options = tf.compat.v1.GPUOptions(
         per_process_gpu_memory_fraction = gpu_mem_fraction
     )
-    config = tf.ConfigProto(
+    config = tf.compat.v1.ConfigProto(
         allow_soft_placement = True, gpu_options = gpu_options
     )
     run_config = RunConfig(
@@ -283,19 +283,19 @@ def run_training(
         session_config = config,
     )
 
-    estimator = tf.estimator.Estimator(
+    estimator = tf.compat.v1.estimator.Estimator(
         model_fn = model_fn, params = {}, config = run_config
     )
 
     if eval_fn:
-        train_spec = tf.estimator.TrainSpec(
+        train_spec = tf.compat.v1.estimator.TrainSpec(
             input_fn = train_fn, max_steps = max_steps, hooks = train_hooks
         )
 
-        eval_spec = tf.estimator.EvalSpec(
+        eval_spec = tf.compat.v1.estimator.EvalSpec(
             input_fn = eval_fn, steps = eval_step, throttle_secs = eval_throttle
         )
-        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+        tf.compat.v1.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
     else:
         estimator.train(
@@ -304,7 +304,7 @@ def run_training(
 
 
 train_hooks = [
-    tf.train.LoggingTensorHook(
+    tf.compat.v1.train.LoggingTensorHook(
         ['train_accuracy', 'train_loss'], every_n_iter = 1
     )
 ]

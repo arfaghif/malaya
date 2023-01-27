@@ -76,9 +76,9 @@ class Model:
         self.segment_ids = token_type_ids
         self.input_masks = input_mask
         self.Y = Y
-        self.X_seq_len = tf.count_nonzero(self.X, 1, dtype = tf.int32)
-        self.Y_seq_len = tf.count_nonzero(self.Y, 1, dtype = tf.int32)
-        batch_size = tf.shape(self.X)[0]
+        self.X_seq_len = tf.compat.v1.count_nonzero(self.X, 1, dtype = tf.compat.v1.int32)
+        self.Y_seq_len = tf.compat.v1.count_nonzero(self.Y, 1, dtype = tf.compat.v1.int32)
+        batch_size = tf.compat.v1.shape(self.X)[0]
 
         model = modeling.BertModel(
             config = bert_config,
@@ -96,21 +96,21 @@ class Model:
         pooled_output = model.get_pooled_output()
         embedding = model.get_embedding_table()
 
-        with tf.name_scope('decode'):
-            mask = tf.to_float(tf.not_equal(self.Y, 0))
-            decoder_inputs = tf.gather(embedding, self.Y)
-            decoder_inputs *= tf.expand_dims(mask, -1)
-            with tf.name_scope('shift_targets'):
-                decoder_inputs = tf.pad(
+        with tf.compat.v1.name_scope('decode'):
+            mask = tf.compat.v1.to_float(tf.compat.v1.not_equal(self.Y, 0))
+            decoder_inputs = tf.compat.v1.gather(embedding, self.Y)
+            decoder_inputs *= tf.compat.v1.expand_dims(mask, -1)
+            with tf.compat.v1.name_scope('shift_targets'):
+                decoder_inputs = tf.compat.v1.pad(
                     decoder_inputs, [[0, 0], [1, 0], [0, 0]]
                 )[:, :-1, :]
-            with tf.name_scope('add_pos_encoding'):
-                length = tf.shape(decoder_inputs)[1]
+            with tf.compat.v1.name_scope('add_pos_encoding'):
+                length = tf.compat.v1.shape(decoder_inputs)[1]
                 decoder_inputs += model_utils.get_position_encoding(
                     length, BASE_PARAMS['hidden_size']
                 )
             if is_training:
-                decoder_inputs = tf.nn.dropout(
+                decoder_inputs = tf.compat.v1.nn.dropout(
                     decoder_inputs, 1 - BASE_PARAMS['layer_postprocess_dropout']
                 )
             decoder_self_attention_bias = model_utils.get_decoder_self_attention_bias(
@@ -123,9 +123,9 @@ class Model:
                 attention_bias,
             )
 
-        with tf.compat.v1.variable_scope('cls/predictions'):
-            with tf.compat.v1.variable_scope('transform'):
-                input_tensor = tf.layers.dense(
+        with @@#variable_scope('cls/predictions'):
+            with @@#variable_scope('transform'):
+                input_tensor = tf.compat.v1.layers.dense(
                     outputs,
                     units = bert_config.hidden_size,
                     activation = modeling.get_activation(
@@ -137,12 +137,12 @@ class Model:
                 )
             input_tensor = modeling.layer_norm(input_tensor)
 
-            output_bias = tf.get_variable(
+            output_bias = tf.compat.v1.get_variable(
                 'output_bias',
                 shape = [bert_config.vocab_size],
-                initializer = tf.zeros_initializer(),
+                initializer = tf.compat.v1.zeros_initializer(),
             )
-            self.training_logits = tf.matmul(
+            self.training_logits = tf.compat.v1.matmul(
                 input_tensor, embedding, transpose_b = True
             )
 
@@ -151,20 +151,20 @@ class Model:
     def get_sequence_output(self):
         return self.training_logits
 
-        # masks = tf.sequence_mask(
-        #     self.Y_seq_len, tf.reduce_max(self.Y_seq_len), dtype = tf.float32
+        # masks = tf.compat.v1.sequence_mask(
+        #     self.Y_seq_len, tf.compat.v1.reduce_max(self.Y_seq_len), dtype = tf.compat.v1.float32
         # )
-        # self.cost = tf.contrib.seq2seq.sequence_loss(
+        # self.cost = tf.compat.v1.contrib.seq2seq.sequence_loss(
         #     logits = self.training_logits, targets = self.Y, weights = masks
         # )
         # # self.bleu, _ = bleu_hook.bleu_score(self.training_logits, self.Y)
-        # y_t = tf.argmax(self.training_logits, axis = 2)
-        # y_t = tf.cast(y_t, tf.int32)
-        # self.prediction = tf.boolean_mask(y_t, masks)
-        # mask_label = tf.boolean_mask(self.Y, masks)
-        # correct_pred = tf.equal(self.prediction, mask_label)
-        # correct_index = tf.cast(correct_pred, tf.float32)
-        # self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        # y_t = tf.compat.v1.argmax(self.training_logits, axis = 2)
+        # y_t = tf.compat.v1.cast(y_t, tf.compat.v1.int32)
+        # self.prediction = tf.compat.v1.boolean_mask(y_t, masks)
+        # mask_label = tf.compat.v1.boolean_mask(self.Y, masks)
+        # correct_pred = tf.compat.v1.equal(self.prediction, mask_label)
+        # correct_index = tf.compat.v1.cast(correct_pred, tf.compat.v1.float32)
+        # self.accuracy = tf.compat.v1.reduce_mean(tf.compat.v1.cast(correct_pred, tf.compat.v1.float32))
 
         # def _get_symbols_to_logits_fn(max_decode_length):
         #     timing_signal = model_utils.get_position_encoding(
@@ -176,9 +176,9 @@ class Model:
 
         #     def symbols_to_logits_fn(ids, i, cache):
         #         decoder_input = ids[:, -1:]
-        #         mask = tf.to_float(tf.not_equal(decoder_input, 0))
-        #         decoder_input = tf.gather(embedding, decoder_input)
-        #         decoder_input *= tf.expand_dims(mask, -1)
+        #         mask = tf.compat.v1.to_float(tf.compat.v1.not_equal(decoder_input, 0))
+        #         decoder_input = tf.compat.v1.gather(embedding, decoder_input)
+        #         decoder_input *= tf.compat.v1.expand_dims(mask, -1)
         #         decoder_input += timing_signal[i : i + 1]
         #         self_attention_bias = decoder_self_attention_bias[
         #             :, :, i : i + 1, : i + 1
@@ -191,9 +191,9 @@ class Model:
         #             cache,
         #         )
 
-        #         with tf.compat.v1.variable_scope('cls/predictions', reuse = True):
-        #             with tf.compat.v1.variable_scope('transform'):
-        #                 input_tensor = tf.layers.dense(
+        #         with @@#variable_scope('cls/predictions', reuse = True):
+        #             with @@#variable_scope('transform'):
+        #                 input_tensor = tf.compat.v1.layers.dense(
         #                     decoder_outputs,
         #                     units = bert_config.hidden_size,
         #                     activation = modeling.get_activation(
@@ -205,29 +205,29 @@ class Model:
         #                 )
         #             input_tensor = modeling.layer_norm(input_tensor)
 
-        #             output_bias = tf.get_variable(
+        #             output_bias = tf.compat.v1.get_variable(
         #                 'output_bias',
         #                 shape = [bert_config.vocab_size],
-        #                 initializer = tf.zeros_initializer(),
+        #                 initializer = tf.compat.v1.zeros_initializer(),
         #             )
-        #             logits = tf.matmul(
+        #             logits = tf.compat.v1.matmul(
         #                 input_tensor, embedding, transpose_b = True
         #             )
-        #         logits = tf.squeeze(logits, axis = [1])
+        #         logits = tf.compat.v1.squeeze(logits, axis = [1])
         #         return logits, cache
 
         #     return symbols_to_logits_fn
 
-        # batch_size = tf.shape(output_layer)[0]
-        # input_length = tf.shape(output_layer)[1]
+        # batch_size = tf.compat.v1.shape(output_layer)[0]
+        # input_length = tf.compat.v1.shape(output_layer)[1]
         # max_decode_length = input_length + BASE_PARAMS['extra_decode_length']
         # symbols_to_logits_fn = _get_symbols_to_logits_fn(max_decode_length)
-        # initial_ids = tf.zeros([batch_size], dtype = tf.int32)
+        # initial_ids = tf.compat.v1.zeros([batch_size], dtype = tf.compat.v1.int32)
         # cache = {
         #     'layer_%d'
         #     % layer: {
-        #         'k': tf.zeros([batch_size, 0, BASE_PARAMS['hidden_size']]),
-        #         'v': tf.zeros([batch_size, 0, BASE_PARAMS['hidden_size']]),
+        #         'k': tf.compat.v1.zeros([batch_size, 0, BASE_PARAMS['hidden_size']]),
+        #         'v': tf.compat.v1.zeros([batch_size, 0, BASE_PARAMS['hidden_size']]),
         #     }
         #     for layer in range(BASE_PARAMS['num_hidden_layers'])
         # }

@@ -24,14 +24,14 @@ class LDA2Vec:
         _graph = tf.Graph()
 
         with _graph.as_default():
-            with tf.compat.v1.device(device):
+            with @@#device(device):
                 moving_avgs = tf.train.ExponentialMovingAverage(0.9)
                 self.batch_size = batch_size
                 self.freqs = freqs
 
-                self.X = tf.compat.v1.placeholder(tf.int32, shape=[None])
-                self.Y = tf.compat.v1.placeholder(tf.int64, shape=[None])
-                self.DOC = tf.compat.v1.placeholder(tf.int32, shape=[None])
+                self.X = @@#placeholder(tf.int32, shape=[None])
+                self.Y = @@#placeholder(tf.int64, shape=[None])
+                self.DOC = @@#placeholder(tf.int32, shape=[None])
                 self.switch_loss = tf.Variable(0, trainable=False)
                 train_labels = tf.reshape(self.Y, [-1, 1])
                 sampler = tf.nn.fixed_unigram_candidate_sampler(

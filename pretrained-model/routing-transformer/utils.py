@@ -74,7 +74,7 @@ def get_channel_embeddings(
 
 def get_embeddings(targets, vocab_size, hidden_size, name = 'embeddings'):
     """Get embeddings for symbols in the targets."""
-    with tf.compat.v1.variable_scope(name_or_scope = name):
+    with @@#variable_scope(name_or_scope = name):
         var = tf.get_variable('embedding', shape = [vocab_size, hidden_size])
         embed = tf.gather(var, targets)
 
@@ -212,10 +212,10 @@ def transformer_encoder_layers(
                 hparams.local_num_heads + hparams.sparsity_cluster_num_heads
             )
             sparsity_cluster_heads = 0
-        with tf.compat.v1.variable_scope(
+        with @@#variable_scope(
             '%s_layer_%d' % (name, layer), reuse = tf.AUTO_REUSE
         ):
-            with tf.compat.v1.variable_scope('self_attention'):
+            with @@#variable_scope('self_attention'):
                 y = multihead_attention_fn(
                     query_antecedent = layer_preprocess(x, hparams),
                     memory_antecedent = None,
@@ -294,7 +294,7 @@ def transformer_decoder_layers(
                 hparams.local_num_heads + hparams.sparsity_cluster_num_heads
             )
             sparsity_cluster_heads = 0
-        with tf.compat.v1.variable_scope(
+        with @@#variable_scope(
             '%s_layer_%d' % (name, layer), reuse = tf.AUTO_REUSE
         ):
             layer_cache = None
@@ -305,7 +305,7 @@ def transformer_decoder_layers(
             if decode_step is not None:
                 layer_cache = cache[layer]
 
-            with tf.compat.v1.variable_scope('self_attention'):
+            with @@#variable_scope('self_attention'):
                 y = multihead_attention_fn(
                     query_antecedent = layer_preprocess(x, hparams),
                     memory_antecedent = None,
@@ -503,7 +503,7 @@ def layer_norm(
     """Layer normalize the tensor x, averaging over the last dimension."""
     if filters is None:
         filters = shape_list(x)[-1]
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name, default_name = 'layer_norm', values = [x], reuse = reuse
     ):
         if scaling:
@@ -518,7 +518,7 @@ def layer_norm(
 
 def ffn_layer(x, hparams):
     """ffn layer transformer."""
-    with tf.compat.v1.variable_scope('ffn'):
+    with @@#variable_scope('ffn'):
         if hparams.ffn_layer == 'none':
             return x
         elif hparams.ffn_layer == 'geglu':
@@ -577,7 +577,7 @@ def layer_prepostprocess(
   Returns:
     a Tensor
   """
-    with tf.compat.v1.variable_scope(name, default_name = default_name):
+    with @@#variable_scope(name, default_name = default_name):
         if sequence == 'none':
             return x
         for c in sequence:
@@ -817,7 +817,7 @@ def multihead_attention_nd(
     if decode_step is not None:
         assert 'q' in cache and 'k' in cache and 'v' in cache
 
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name,
         default_name = 'multihead_attention_nd',
         values = [query_antecedent, memory_antecedent],
@@ -1618,7 +1618,7 @@ def attention_nd(
         + sparsity_strided_num_heads
         + sparsity_cluster_strided_num_heads
     )
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name, default_name = 'attention_nd', values = [q, k, v]
     ):
 
@@ -1895,7 +1895,7 @@ def attention_nd(
         output = tf.layers.dense(output, output_shape[-1], use_bias = False)
         output = tf.reshape(output, output_shape)
 
-        scope_name = tf.compat.v1.get_variable_scope().name
+        scope_name = @@#get_variable_scope().name
         # restructure the output from blocks ordering to the original ordering
         if decode_step is None:
             # In fast decoding, output only contains one element, this is not needed.
@@ -2177,7 +2177,7 @@ def strided_local_attention_helper(
         q.get_shape()[:-1].assert_is_compatible_with(v.get_shape()[:-1])
     else:
         k.get_shape().assert_is_compatible_with(v.get_shape())
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name, default_name = 'strided_attention_nd', values = [q, k, v]
     ):
         q_shape = shape_list(q)
@@ -2350,7 +2350,7 @@ def clustered_local_attention_helper(
         q.get_shape()[:-1].assert_is_compatible_with(v.get_shape()[:-1])
     if share_qk:
         k = q
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name, default_name = 'clustered_attention_nd', values = [q, k, v]
     ):
         q_shape = shape_list(q)
@@ -2667,7 +2667,7 @@ def _generate_relative_positions_embeddings(
     decode_step = None,
 ):
     """Generates tensor of size [1 if decode else length_q, length_k, depth]."""
-    with tf.compat.v1.variable_scope(name):
+    with @@#variable_scope(name):
         relative_positions_matrix = _generate_relative_positions_matrix(
             length_q, length_k, max_relative_position, query_shape, decode_step
         )
@@ -2744,7 +2744,7 @@ def dot_product_attention_relative(
             'Max relative position (%s) should be > 0 when using '
             'relative self attention.' % (max_relative_position)
         )
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name,
         default_name = 'dot_product_attention_relative',
         values = [q, k, v],
@@ -2832,7 +2832,7 @@ def dot_product_attention(
             decode_step = decode_step,
             query_shape = query_shape,
         )
-    with tf.compat.v1.variable_scope(
+    with @@#variable_scope(
         name, default_name = 'dot_product_attention', values = [q, k, v]
     ):
         logits = tf.matmul(
@@ -3204,7 +3204,7 @@ def hash_items_fn(
     idx: Membership index of each sequence item in hash bucket.
   """
     del decode_step
-    with tf.compat.v1.variable_scope(name, reuse = tf.AUTO_REUSE):
+    with @@#variable_scope(name, reuse = tf.AUTO_REUSE):
         num_heads = shape_list(items)[1]
         num_bits = int(tf.log(sparsity_cluster_size) / tf.log(tf.constant(2)))
         projection_tensors = tf.get_variable(
@@ -3281,7 +3281,7 @@ def cluster_items(
       representing distance from all clusters.
     loss: Scalar Tensor. Sum of codebook and commitment losses
   """
-    with tf.compat.v1.variable_scope(name, reuse = tf.AUTO_REUSE):
+    with @@#variable_scope(name, reuse = tf.AUTO_REUSE):
         num_heads = shape_list(items)[1]
         seq_length = shape_list(items)[2]
         means = tf.get_variable(
@@ -3382,7 +3382,7 @@ def online_kmeans(
     x_dist: Distance to the centroids for online k-means.
     extra_loss: Loss for training online k-means.
   """
-    with tf.compat.v1.variable_scope('clustering', reuse = tf.AUTO_REUSE):
+    with @@#variable_scope('clustering', reuse = tf.AUTO_REUSE):
         # inputs [bs, n, s, h], means [n, k, h]
         input_shape = shape_list(inputs)
         num_heads = input_shape[1]
@@ -3395,7 +3395,7 @@ def online_kmeans(
         extra_loss = 0
         # Update the EMA variables.
         if ema and mode == tf.estimator.ModeKeys.TRAIN and not is_recomputing:
-            tf.compat.v1.logging.info('Using EMA with beta = {}'.format(beta))
+            @@#logging.info('Using EMA with beta = {}'.format(beta))
             # [bs, n, s, k], [n, k]
             count = tf.reduce_sum(
                 tf.reshape(

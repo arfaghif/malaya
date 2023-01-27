@@ -199,7 +199,7 @@ def get_model_fn():
     def model_fn(features, labels, mode, params):
         """doc."""
         #### Training or Evaluation
-        is_training = mode == tf.estimator.ModeKeys.TRAIN
+        is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
         assert is_training
 
         #### Retrieve `mems` from `params["cache"]`
@@ -219,8 +219,8 @@ def get_model_fn():
             new_cache += new_mems['mems']
 
         #### Check model parameters
-        num_params = sum([np.prod(v.shape) for v in tf.trainable_variables()])
-        tf.compat.v1.logging.info('#params: {}'.format(num_params))
+        num_params = sum([np.prod(v.shape) for v in tf.compat.v1.trainable_variables()])
+        @@#logging.info('#params: {}'.format(num_params))
 
         #### Configuring the optimizer
         train_op, learning_rate, gnorm = model_utils.get_train_op(
@@ -239,11 +239,11 @@ def get_model_fn():
             monitor_dict = monitor_dict,
             model_dir = FLAGS.model_dir,
             prefix = 'train/',
-            reduce_fn = tf.reduce_mean,
+            reduce_fn = tf.compat.v1.reduce_mean,
         )
 
         #### Constucting training TPUEstimatorSpec with new cache.
-        train_spec = tf.contrib.tpu.TPUEstimatorSpec(
+        train_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
             mode = mode,
             loss = total_loss,
             train_op = train_op,
@@ -260,13 +260,13 @@ def get_model_fn():
 
 def get_cache_fn(mem_len):
     """doc."""
-    tf_float = tf.bfloat16 if FLAGS.use_bfloat16 else tf.float32
+    tf_float = tf.compat.v1.bfloat16 if FLAGS.use_bfloat16 else tf.compat.v1.float32
 
     def cache_fn(batch_size):
         mems = []
         if FLAGS.mem_len > 0:
             for _ in range(FLAGS.n_layer):
-                zeros = tf.zeros(
+                zeros = tf.compat.v1.zeros(
                     [mem_len, batch_size, FLAGS.d_model], dtype = tf_float
                 )
                 mems.append(zeros)
@@ -308,21 +308,21 @@ def get_input_fn(split):
 def main(unused_argv):
     del unused_argv  # Unused
 
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     assert FLAGS.seq_len > 0
     assert FLAGS.perm_size > 0
 
     FLAGS.n_token = data_utils.VOCAB_SIZE
-    tf.compat.v1.logging.info('n_token {}'.format(FLAGS.n_token))
+    @@#logging.info('n_token {}'.format(FLAGS.n_token))
 
-    if not tf.io.gfile.exists(FLAGS.model_dir):
-        tf.io.gfile.mkdir(FLAGS.model_dir)
+    if not tf.compat.v1.io.gfile.exists(FLAGS.model_dir):
+        tf.compat.v1.io.gfile.mkdir(FLAGS.model_dir)
 
     # Get train input function
     train_input_fn, train_record_info_dict = get_input_fn('train')
 
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'num of batches {}'.format(train_record_info_dict['num_batch'])
     )
 

@@ -17,34 +17,34 @@ def gelu(x):
     Returns:
       `x` with the GELU activation applied.
     """
-    cdf = 0.5 * (1.0 + tf.tanh(
-        (np.sqrt(2 / np.pi) * (x + 0.044715 * tf.pow(x, 3)))))
+    cdf = 0.5 * (1.0 + tf.compat.v1.tanh(
+        (np.sqrt(2 / np.pi) * (x + 0.044715 * tf.compat.v1.pow(x, 3)))))
     return x * cdf
 
 
 def embedding_lookup(x, n_token, d_embed, initializer, use_tpu=True,
-                     scope='embedding', reuse=None, dtype=tf.float32):
+                     scope='embedding', reuse=None, dtype=tf.compat.v1.float32):
     """TPU and GPU embedding_lookup function."""
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        lookup_table = tf.get_variable('lookup_table', [n_token, d_embed],
+    with @@#variable_scope(scope, reuse=reuse):
+        lookup_table = tf.compat.v1.get_variable('lookup_table', [n_token, d_embed],
                                        dtype=dtype, initializer=initializer)
         if use_tpu:
-            one_hot_idx = tf.one_hot(x, n_token, dtype=dtype)
+            one_hot_idx = tf.compat.v1.one_hot(x, n_token, dtype=dtype)
             if one_hot_idx.shape.ndims == 2:
-                return tf.einsum('in,nd->id', one_hot_idx, lookup_table), lookup_table
+                return tf.compat.v1.einsum('in,nd->id', one_hot_idx, lookup_table), lookup_table
             else:
-                return tf.einsum('ibn,nd->ibd', one_hot_idx, lookup_table), lookup_table
+                return tf.compat.v1.einsum('ibn,nd->ibd', one_hot_idx, lookup_table), lookup_table
         else:
-            return tf.nn.embedding_lookup(lookup_table, x), lookup_table
+            return tf.compat.v1.nn.embedding_lookup(lookup_table, x), lookup_table
 
 
 def positional_embedding(pos_seq, inv_freq, bsz=None):
-    sinusoid_inp = tf.einsum('i,d->id', pos_seq, inv_freq)
-    pos_emb = tf.concat([tf.sin(sinusoid_inp), tf.cos(sinusoid_inp)], -1)
+    sinusoid_inp = tf.compat.v1.einsum('i,d->id', pos_seq, inv_freq)
+    pos_emb = tf.compat.v1.concat([tf.compat.v1.sin(sinusoid_inp), tf.compat.v1.cos(sinusoid_inp)], -1)
     pos_emb = pos_emb[:, None, :]
 
     if bsz is not None:
-        pos_emb = tf.tile(pos_emb, [1, bsz, 1])
+        pos_emb = tf.compat.v1.tile(pos_emb, [1, bsz, 1])
 
     return pos_emb
 
@@ -54,35 +54,35 @@ def positionwise_ffn(inp, d_model, d_inner, dropout, kernel_initializer,
                      reuse=None):
     """Position-wise Feed-forward Network."""
     if activation_type == 'relu':
-        activation = tf.nn.relu
+        activation = tf.compat.v1.nn.relu
     elif activation_type == 'gelu':
         activation = gelu
     else:
         raise ValueError('Unsupported activation type {}'.format(activation_type))
 
     output = inp
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        output = tf.layers.dense(output, d_inner, activation=activation,
+    with @@#variable_scope(scope, reuse=reuse):
+        output = tf.compat.v1.layers.dense(output, d_inner, activation=activation,
                                  kernel_initializer=kernel_initializer,
                                  name='layer_1')
-        output = tf.layers.dropout(output, dropout, training=is_training,
+        output = tf.compat.v1.layers.dropout(output, dropout, training=is_training,
                                    name='drop_1')
-        output = tf.layers.dense(output, d_model,
+        output = tf.compat.v1.layers.dense(output, d_model,
                                  kernel_initializer=kernel_initializer,
                                  name='layer_2')
-        output = tf.layers.dropout(output, dropout, training=is_training,
+        output = tf.compat.v1.layers.dropout(output, dropout, training=is_training,
                                    name='drop_2')
-        output = tf.contrib.layers.layer_norm(output + inp, begin_norm_axis=-1,
+        output = tf.compat.v1.contrib.layers.layer_norm(output + inp, begin_norm_axis=-1,
                                               scope='LayerNorm')
     return output
 
 
 def head_projection(h, d_model, n_head, d_head, kernel_initializer, name):
     """Project hidden states to a specific head with a 4D-shape."""
-    proj_weight = tf.get_variable('{}/kernel'.format(name),
+    proj_weight = tf.compat.v1.get_variable('{}/kernel'.format(name),
                                   [d_model, n_head, d_head], dtype=h.dtype,
                                   initializer=kernel_initializer)
-    head = tf.einsum('ibh,hnd->ibnd', h, proj_weight)
+    head = tf.compat.v1.einsum('ibh,hnd->ibnd', h, proj_weight)
 
     return head
 
@@ -91,16 +91,16 @@ def post_attention(h, attn_vec, d_model, n_head, d_head, dropout, is_training,
                    kernel_initializer, residual=True):
     """Post-attention processing."""
     # post-attention projection (back to `d_model`)
-    proj_o = tf.get_variable('o/kernel', [d_model, n_head, d_head],
+    proj_o = tf.compat.v1.get_variable('o/kernel', [d_model, n_head, d_head],
                              dtype=h.dtype, initializer=kernel_initializer)
-    attn_out = tf.einsum('ibnd,hnd->ibh', attn_vec, proj_o)
+    attn_out = tf.compat.v1.einsum('ibnd,hnd->ibh', attn_vec, proj_o)
 
-    attn_out = tf.layers.dropout(attn_out, dropout, training=is_training)
+    attn_out = tf.compat.v1.layers.dropout(attn_out, dropout, training=is_training)
     if residual:
-        output = tf.contrib.layers.layer_norm(attn_out + h, begin_norm_axis=-1,
+        output = tf.compat.v1.contrib.layers.layer_norm(attn_out + h, begin_norm_axis=-1,
                                               scope='LayerNorm')
     else:
-        output = tf.contrib.layers.layer_norm(attn_out, begin_norm_axis=-1,
+        output = tf.compat.v1.contrib.layers.layer_norm(attn_out, begin_norm_axis=-1,
                                               scope='LayerNorm')
 
     return output
@@ -110,17 +110,17 @@ def abs_attn_core(q_head, k_head, v_head, attn_mask, dropatt, is_training,
                   scale):
     """Core absolute positional attention operations."""
 
-    attn_score = tf.einsum('ibnd,jbnd->ijbn', q_head, k_head)
+    attn_score = tf.compat.v1.einsum('ibnd,jbnd->ijbn', q_head, k_head)
     attn_score *= scale
     if attn_mask is not None:
         attn_score = attn_score - 1e30 * attn_mask
 
     # attention probability
-    attn_prob = tf.nn.softmax(attn_score, 1)
-    attn_prob = tf.layers.dropout(attn_prob, dropatt, training=is_training)
+    attn_prob = tf.compat.v1.nn.softmax(attn_score, 1)
+    attn_prob = tf.compat.v1.layers.dropout(attn_prob, dropatt, training=is_training)
 
     # attention output
-    attn_vec = tf.einsum('ijbn,jbnd->ibnd', attn_prob, v_head)
+    attn_vec = tf.compat.v1.einsum('ijbn,jbnd->ibnd', attn_prob, v_head)
 
     return attn_vec
 
@@ -131,18 +131,18 @@ def rel_attn_core(q_head, k_head_h, v_head_h, k_head_r, seg_embed, seg_mat,
     """Core relative positional attention operations."""
 
     # content based attention score
-    ac = tf.einsum('ibnd,jbnd->ijbn', q_head + r_w_bias, k_head_h)
+    ac = tf.compat.v1.einsum('ibnd,jbnd->ijbn', q_head + r_w_bias, k_head_h)
 
     # position based attention score
-    bd = tf.einsum('ibnd,jbnd->ijbn', q_head + r_r_bias, k_head_r)
-    bd = rel_shift(bd, klen=tf.shape(ac)[1])
+    bd = tf.compat.v1.einsum('ibnd,jbnd->ijbn', q_head + r_r_bias, k_head_r)
+    bd = rel_shift(bd, klen=tf.compat.v1.shape(ac)[1])
 
     # segment based attention score
     if seg_mat is None:
         ef = 0
     else:
-        ef = tf.einsum('ibnd,snd->ibns', q_head + r_s_bias, seg_embed)
-        ef = tf.einsum('ijbs,ibns->ijbn', seg_mat, ef)
+        ef = tf.compat.v1.einsum('ibnd,snd->ibns', q_head + r_s_bias, seg_embed)
+        ef = tf.compat.v1.einsum('ijbs,ibns->ijbn', seg_mat, ef)
 
     # merge attention scores and perform masking
     attn_score = (ac + bd + ef) * scale
@@ -151,37 +151,37 @@ def rel_attn_core(q_head, k_head_h, v_head_h, k_head_r, seg_embed, seg_mat,
         attn_score = attn_score - 1e30 * attn_mask
 
     # attention probability
-    attn_prob = tf.nn.softmax(attn_score, 1)
-    attn_prob = tf.layers.dropout(attn_prob, dropatt, training=is_training)
+    attn_prob = tf.compat.v1.nn.softmax(attn_score, 1)
+    attn_prob = tf.compat.v1.layers.dropout(attn_prob, dropatt, training=is_training)
 
     # attention output
-    attn_vec = tf.einsum('ijbn,jbnd->ibnd', attn_prob, v_head_h)
+    attn_vec = tf.compat.v1.einsum('ijbn,jbnd->ibnd', attn_prob, v_head_h)
 
     return attn_vec
 
 
 def rel_shift(x, klen=-1):
     """perform relative shift to form the relative attention score."""
-    x_size = tf.shape(x)
+    x_size = tf.compat.v1.shape(x)
 
-    x = tf.reshape(x, [x_size[1], x_size[0], x_size[2], x_size[3]])
-    x = tf.slice(x, [1, 0, 0, 0], [-1, -1, -1, -1])
-    x = tf.reshape(x, [x_size[0], x_size[1] - 1, x_size[2], x_size[3]])
-    x = tf.slice(x, [0, 0, 0, 0], [-1, klen, -1, -1])
+    x = tf.compat.v1.reshape(x, [x_size[1], x_size[0], x_size[2], x_size[3]])
+    x = tf.compat.v1.slice(x, [1, 0, 0, 0], [-1, -1, -1, -1])
+    x = tf.compat.v1.reshape(x, [x_size[0], x_size[1] - 1, x_size[2], x_size[3]])
+    x = tf.compat.v1.slice(x, [0, 0, 0, 0], [-1, klen, -1, -1])
 
     return x
 
 
-def _create_mask(qlen, mlen, dtype=tf.float32, same_length=False):
+def _create_mask(qlen, mlen, dtype=tf.compat.v1.float32, same_length=False):
     """create causal attention mask."""
-    attn_mask = tf.ones([qlen, qlen], dtype=dtype)
-    mask_u = tf.matrix_band_part(attn_mask, 0, -1)
-    mask_dia = tf.matrix_band_part(attn_mask, 0, 0)
-    attn_mask_pad = tf.zeros([qlen, mlen], dtype=dtype)
-    ret = tf.concat([attn_mask_pad, mask_u - mask_dia], 1)
+    attn_mask = tf.compat.v1.ones([qlen, qlen], dtype=dtype)
+    mask_u = tf.compat.v1.matrix_band_part(attn_mask, 0, -1)
+    mask_dia = tf.compat.v1.matrix_band_part(attn_mask, 0, 0)
+    attn_mask_pad = tf.compat.v1.zeros([qlen, mlen], dtype=dtype)
+    ret = tf.compat.v1.concat([attn_mask_pad, mask_u - mask_dia], 1)
     if same_length:
-        mask_l = tf.matrix_band_part(attn_mask, -1, 0)
-        ret = tf.concat([ret[:, :qlen] + mask_l - mask_dia, ret[:, qlen:]], 1)
+        mask_l = tf.compat.v1.matrix_band_part(attn_mask, -1, 0)
+        ret = tf.compat.v1.concat([ret[:, :qlen] + mask_l - mask_dia, ret[:, qlen:]], 1)
 
     return ret
 
@@ -197,17 +197,17 @@ def _cache_mem(curr_out, prev_mem, mem_len, reuse_len=None):
         if prev_mem is None:
             new_mem = curr_out[-mem_len:]
         else:
-            new_mem = tf.concat([prev_mem, curr_out], 0)[-mem_len:]
+            new_mem = tf.compat.v1.concat([prev_mem, curr_out], 0)[-mem_len:]
 
-    return tf.stop_gradient(new_mem)
+    return tf.compat.v1.stop_gradient(new_mem)
 
 
 def relative_positional_encoding(qlen, klen, d_model, clamp_len, attn_type,
                                  bi_data, bsz=None, dtype=None):
     """create relative positional encoding."""
-    freq_seq = tf.range(0, d_model, 2.0)
-    if dtype is not None and dtype != tf.float32:
-        freq_seq = tf.cast(freq_seq, dtype=dtype)
+    freq_seq = tf.compat.v1.range(0, d_model, 2.0)
+    if dtype is not None and dtype != tf.compat.v1.float32:
+        freq_seq = tf.compat.v1.cast(freq_seq, dtype=dtype)
     inv_freq = 1 / (10000 ** (freq_seq / d_model))
 
     if attn_type == 'bi':
@@ -220,16 +220,16 @@ def relative_positional_encoding(qlen, klen, d_model, clamp_len, attn_type,
         raise ValueError('Unknown `attn_type` {}.'.format(attn_type))
 
     if bi_data:
-        fwd_pos_seq = tf.range(beg, end, -1.0)
-        bwd_pos_seq = tf.range(-beg, -end, 1.0)
+        fwd_pos_seq = tf.compat.v1.range(beg, end, -1.0)
+        bwd_pos_seq = tf.compat.v1.range(-beg, -end, 1.0)
 
-        if dtype is not None and dtype != tf.float32:
-            fwd_pos_seq = tf.cast(fwd_pos_seq, dtype=dtype)
-            bwd_pos_seq = tf.cast(bwd_pos_seq, dtype=dtype)
+        if dtype is not None and dtype != tf.compat.v1.float32:
+            fwd_pos_seq = tf.compat.v1.cast(fwd_pos_seq, dtype=dtype)
+            bwd_pos_seq = tf.compat.v1.cast(bwd_pos_seq, dtype=dtype)
 
         if clamp_len > 0:
-            fwd_pos_seq = tf.clip_by_value(fwd_pos_seq, -clamp_len, clamp_len)
-            bwd_pos_seq = tf.clip_by_value(bwd_pos_seq, -clamp_len, clamp_len)
+            fwd_pos_seq = tf.compat.v1.clip_by_value(fwd_pos_seq, -clamp_len, clamp_len)
+            bwd_pos_seq = tf.compat.v1.clip_by_value(bwd_pos_seq, -clamp_len, clamp_len)
 
         if bsz is not None:
             # With bi_data, the batch size should be divisible by 2.
@@ -239,13 +239,13 @@ def relative_positional_encoding(qlen, klen, d_model, clamp_len, attn_type,
             fwd_pos_emb = positional_embedding(fwd_pos_seq, inv_freq)
             bwd_pos_emb = positional_embedding(bwd_pos_seq, inv_freq)
 
-        pos_emb = tf.concat([fwd_pos_emb, bwd_pos_emb], axis=1)
+        pos_emb = tf.compat.v1.concat([fwd_pos_emb, bwd_pos_emb], axis=1)
     else:
-        fwd_pos_seq = tf.range(beg, end, -1.0)
-        if dtype is not None and dtype != tf.float32:
-            fwd_pos_seq = tf.cast(fwd_pos_seq, dtype=dtype)
+        fwd_pos_seq = tf.compat.v1.range(beg, end, -1.0)
+        if dtype is not None and dtype != tf.compat.v1.float32:
+            fwd_pos_seq = tf.compat.v1.cast(fwd_pos_seq, dtype=dtype)
         if clamp_len > 0:
-            fwd_pos_seq = tf.clip_by_value(fwd_pos_seq, -clamp_len, clamp_len)
+            fwd_pos_seq = tf.compat.v1.clip_by_value(fwd_pos_seq, -clamp_len, clamp_len)
         pos_emb = positional_embedding(fwd_pos_seq, inv_freq, bsz)
 
     return pos_emb
@@ -257,7 +257,7 @@ def multihead_attn(q, k, v, attn_mask, d_model, n_head, d_head, dropout,
     """Standard multi-head attention with absolute positional embedding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
+    with @@#variable_scope(scope, reuse=reuse):
         # attention heads
         q_head = head_projection(
             q, d_model, n_head, d_head, kernel_initializer, 'q')
@@ -284,9 +284,9 @@ def rel_multihead_attn(h, r, r_w_bias, r_r_bias, seg_mat, r_s_bias, seg_embed,
     """Multi-head attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
+    with @@#variable_scope(scope, reuse=reuse):
         if mems is not None and mems.shape.ndims > 1:
-            cat = tf.concat([mems, h], 0)
+            cat = tf.compat.v1.concat([mems, h], 0)
         else:
             cat = h
 
@@ -321,11 +321,11 @@ def two_stream_rel_attn(h, g, r, mems, r_w_bias, r_r_bias, seg_mat, r_s_bias,
     """Two-stream attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.compat.v1.variable_scope(scope, reuse=False):
+    with @@#variable_scope(scope, reuse=False):
 
         # content based attention score
         if mems is not None and mems.shape.ndims > 1:
-            cat = tf.concat([mems, h], 0)
+            cat = tf.compat.v1.concat([mems, h], 0)
         else:
             cat = h
 
@@ -355,7 +355,7 @@ def two_stream_rel_attn(h, g, r, mems, r_w_bias, r_r_bias, seg_mat, r_s_bias,
         output_h = post_attention(h, attn_vec_h, d_model, n_head, d_head, dropout,
                                   is_training, kernel_initializer)
 
-    with tf.compat.v1.variable_scope(scope, reuse=True):
+    with @@#variable_scope(scope, reuse=True):
         # g-stream
         # query-stream query head
         q_head_g = head_projection(
@@ -363,11 +363,11 @@ def two_stream_rel_attn(h, g, r, mems, r_w_bias, r_r_bias, seg_mat, r_s_bias,
 
         # core attention ops
         if target_mapping is not None:
-            q_head_g = tf.einsum('mbnd,mlb->lbnd', q_head_g, target_mapping)
+            q_head_g = tf.compat.v1.einsum('mbnd,mlb->lbnd', q_head_g, target_mapping)
             attn_vec_g = rel_attn_core(
                 q_head_g, k_head_h, v_head_h, k_head_r, seg_embed, seg_mat, r_w_bias,
                 r_r_bias, r_s_bias, attn_mask_g, dropatt, is_training, scale)
-            attn_vec_g = tf.einsum('lbnd,mlb->mbnd', attn_vec_g, target_mapping)
+            attn_vec_g = tf.compat.v1.einsum('lbnd,mlb->mbnd', attn_vec_g, target_mapping)
         else:
             attn_vec_g = rel_attn_core(
                 q_head_g, k_head_h, v_head_h, k_head_r, seg_embed, seg_mat, r_w_bias,
@@ -448,26 +448,26 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
       initializer: A tf initializer.
       scope: scope name for the computation graph.
     """
-    tf.compat.v1.logging.info('memory input {}'.format(mems))
-    tf_float = tf.bfloat16 if use_bfloat16 else tf.float32
-    tf.compat.v1.logging.info('Use float type {}'.format(tf_float))
+    @@#logging.info('memory input {}'.format(mems))
+    tf_float = tf.compat.v1.bfloat16 if use_bfloat16 else tf.compat.v1.float32
+    @@#logging.info('Use float type {}'.format(tf_float))
 
     new_mems = []
-    with tf.compat.v1.variable_scope(scope):
+    with @@#variable_scope(scope):
         if untie_r:
-            r_w_bias = tf.get_variable('r_w_bias', [n_layer, n_head, d_head],
+            r_w_bias = tf.compat.v1.get_variable('r_w_bias', [n_layer, n_head, d_head],
                                        dtype=tf_float, initializer=initializer)
-            r_r_bias = tf.get_variable('r_r_bias', [n_layer, n_head, d_head],
+            r_r_bias = tf.compat.v1.get_variable('r_r_bias', [n_layer, n_head, d_head],
                                        dtype=tf_float, initializer=initializer)
         else:
-            r_w_bias = tf.get_variable('r_w_bias', [n_head, d_head],
+            r_w_bias = tf.compat.v1.get_variable('r_w_bias', [n_head, d_head],
                                        dtype=tf_float, initializer=initializer)
-            r_r_bias = tf.get_variable('r_r_bias', [n_head, d_head],
+            r_r_bias = tf.compat.v1.get_variable('r_r_bias', [n_head, d_head],
                                        dtype=tf_float, initializer=initializer)
 
-        bsz = tf.shape(inp_k)[1]
-        qlen = tf.shape(inp_k)[0]
-        mlen = tf.shape(mems[0])[0] if mems is not None else 0
+        bsz = tf.compat.v1.shape(inp_k)[1]
+        qlen = tf.compat.v1.shape(inp_k)[0]
+        mlen = tf.compat.v1.shape(mems[0])[0] if mems is not None else 0
         klen = mlen + qlen
 
         # Attention mask
@@ -492,22 +492,22 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
 
         if data_mask is not None:
             # all mems can be attended to
-            mems_mask = tf.zeros([tf.shape(data_mask)[0], mlen, bsz],
+            mems_mask = tf.compat.v1.zeros([tf.compat.v1.shape(data_mask)[0], mlen, bsz],
                                  dtype=tf_float)
-            data_mask = tf.concat([mems_mask, data_mask], 1)
+            data_mask = tf.compat.v1.concat([mems_mask, data_mask], 1)
             if attn_mask is None:
                 attn_mask = data_mask[:, :, :, None]
             else:
                 attn_mask += data_mask[:, :, :, None]
 
         if attn_mask is not None:
-            attn_mask = tf.cast(attn_mask > 0, dtype=tf_float)
+            attn_mask = tf.compat.v1.cast(attn_mask > 0, dtype=tf_float)
 
         if attn_mask is not None:
-            non_tgt_mask = -tf.eye(qlen, dtype=tf_float)
-            non_tgt_mask = tf.concat([tf.zeros([qlen, mlen], dtype=tf_float),
+            non_tgt_mask = -tf.compat.v1.eye(qlen, dtype=tf_float)
+            non_tgt_mask = tf.compat.v1.concat([tf.compat.v1.zeros([qlen, mlen], dtype=tf_float),
                                       non_tgt_mask], axis=-1)
-            non_tgt_mask = tf.cast((attn_mask + non_tgt_mask[:, :, None, None]) > 0,
+            non_tgt_mask = tf.compat.v1.cast((attn_mask + non_tgt_mask[:, :, None, None]) > 0,
                                    dtype=tf_float)
         else:
             non_tgt_mask = None
@@ -523,39 +523,39 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
             scope='word_embedding')
 
         if inp_q is not None:
-            with tf.compat.v1.variable_scope('mask_emb'):
-                mask_emb = tf.get_variable('mask_emb', [1, 1, d_model], dtype=tf_float)
+            with @@#variable_scope('mask_emb'):
+                mask_emb = tf.compat.v1.get_variable('mask_emb', [1, 1, d_model], dtype=tf_float)
                 if target_mapping is not None:
-                    word_emb_q = tf.tile(mask_emb, [tf.shape(target_mapping)[0], bsz, 1])
+                    word_emb_q = tf.compat.v1.tile(mask_emb, [tf.compat.v1.shape(target_mapping)[0], bsz, 1])
                 else:
                     inp_q_ext = inp_q[:, :, None]
                     word_emb_q = inp_q_ext * mask_emb + (1 - inp_q_ext) * word_emb_k
-        output_h = tf.layers.dropout(word_emb_k, dropout, training=is_training)
+        output_h = tf.compat.v1.layers.dropout(word_emb_k, dropout, training=is_training)
         if inp_q is not None:
-            output_g = tf.layers.dropout(word_emb_q, dropout, training=is_training)
+            output_g = tf.compat.v1.layers.dropout(word_emb_q, dropout, training=is_training)
 
         # Segment embedding
         if seg_id is not None:
             if untie_r:
-                r_s_bias = tf.get_variable('r_s_bias', [n_layer, n_head, d_head],
+                r_s_bias = tf.compat.v1.get_variable('r_s_bias', [n_layer, n_head, d_head],
                                            dtype=tf_float, initializer=initializer)
             else:
                 # default case (tie)
-                r_s_bias = tf.get_variable('r_s_bias', [n_head, d_head],
+                r_s_bias = tf.compat.v1.get_variable('r_s_bias', [n_head, d_head],
                                            dtype=tf_float, initializer=initializer)
 
-            seg_embed = tf.get_variable('seg_embed', [n_layer, 2, n_head, d_head],
+            seg_embed = tf.compat.v1.get_variable('seg_embed', [n_layer, 2, n_head, d_head],
                                         dtype=tf_float, initializer=initializer)
 
             # Convert `seg_id` to one-hot `seg_mat`
-            mem_pad = tf.zeros([mlen, bsz], dtype=tf.int32)
-            cat_ids = tf.concat([mem_pad, seg_id], 0)
+            mem_pad = tf.compat.v1.zeros([mlen, bsz], dtype=tf.compat.v1.int32)
+            cat_ids = tf.compat.v1.concat([mem_pad, seg_id], 0)
 
             # `1` indicates not in the same segment [qlen x klen x bsz]
-            seg_mat = tf.cast(
-                tf.logical_not(tf.equal(seg_id[:, None], cat_ids[None, :])),
-                tf.int32)
-            seg_mat = tf.one_hot(seg_mat, 2, dtype=tf_float)
+            seg_mat = tf.compat.v1.cast(
+                tf.compat.v1.logical_not(tf.compat.v1.equal(seg_id[:, None], cat_ids[None, :])),
+                tf.compat.v1.int32)
+            seg_mat = tf.compat.v1.one_hot(seg_mat, 2, dtype=tf_float)
         else:
             seg_mat = None
 
@@ -563,7 +563,7 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
         pos_emb = relative_positional_encoding(
             qlen, klen, d_model, clamp_len, attn_type, bi_data,
             bsz=bsz, dtype=tf_float)
-        pos_emb = tf.layers.dropout(pos_emb, dropout, training=is_training)
+        pos_emb = tf.compat.v1.layers.dropout(pos_emb, dropout, training=is_training)
 
         # Attention layers
         if mems is None:
@@ -581,7 +581,7 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
                 r_s_bias_i = r_s_bias if not untie_r else r_s_bias[i]
                 seg_embed_i = seg_embed[i]
 
-            with tf.compat.v1.variable_scope('layer_{}'.format(i)):
+            with @@#variable_scope('layer_{}'.format(i)):
                 if inp_q is not None:
                     output_h, output_g = two_stream_rel_attn(
                         h=output_h,
@@ -647,9 +647,9 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
                     reuse=reuse)
 
         if inp_q is not None:
-            output = tf.layers.dropout(output_g, dropout, training=is_training)
+            output = tf.compat.v1.layers.dropout(output_g, dropout, training=is_training)
         else:
-            output = tf.layers.dropout(output_h, dropout, training=is_training)
+            output = tf.compat.v1.layers.dropout(output_h, dropout, training=is_training)
 
         return output, new_mems, lookup_table
 
@@ -658,25 +658,25 @@ def lm_loss(hidden, target, n_token, d_model, initializer, lookup_table=None,
             tie_weight=False, bi_data=True, use_tpu=False):
     """doc."""
 
-    with tf.compat.v1.variable_scope('lm_loss'):
+    with @@#variable_scope('lm_loss'):
         if tie_weight:
             assert lookup_table is not None, \
                 'lookup_table cannot be None for tie_weight'
             softmax_w = lookup_table
         else:
-            softmax_w = tf.get_variable('weight', [n_token, d_model],
+            softmax_w = tf.compat.v1.get_variable('weight', [n_token, d_model],
                                         dtype=hidden.dtype, initializer=initializer)
 
-        softmax_b = tf.get_variable('bias', [n_token], dtype=hidden.dtype,
-                                    initializer=tf.zeros_initializer())
+        softmax_b = tf.compat.v1.get_variable('bias', [n_token], dtype=hidden.dtype,
+                                    initializer=tf.compat.v1.zeros_initializer())
 
-        logits = tf.einsum('ibd,nd->ibn', hidden, softmax_w) + softmax_b
+        logits = tf.compat.v1.einsum('ibd,nd->ibn', hidden, softmax_w) + softmax_b
 
         if use_tpu:
-            one_hot_target = tf.one_hot(target, n_token, dtype=logits.dtype)
-            loss = -tf.reduce_sum(tf.nn.log_softmax(logits) * one_hot_target, -1)
+            one_hot_target = tf.compat.v1.one_hot(target, n_token, dtype=logits.dtype)
+            loss = -tf.compat.v1.reduce_sum(tf.compat.v1.nn.log_softmax(logits) * one_hot_target, -1)
         else:
-            loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=target,
+            loss = tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(labels=target,
                                                                   logits=logits)
 
         return loss
@@ -693,20 +693,20 @@ def summarize_sequence(summary_type, hidden, d_model, n_head, d_head, dropout,
         Otherwise, one should specify a different `scope` for each task.
     """
 
-    with tf.compat.v1.variable_scope(scope, 'sequnece_summary', reuse=reuse):
+    with @@#variable_scope(scope, 'sequnece_summary', reuse=reuse):
         if summary_type == 'last':
             summary = hidden[-1]
         elif summary_type == 'first':
             summary = hidden[0]
         elif summary_type == 'mean':
-            summary = tf.reduce_mean(hidden, axis=0)
+            summary = tf.compat.v1.reduce_mean(hidden, axis=0)
         elif summary_type == 'attn':
-            bsz = tf.shape(hidden)[1]
+            bsz = tf.compat.v1.shape(hidden)[1]
 
-            summary_bias = tf.get_variable('summary_bias', [d_model],
+            summary_bias = tf.compat.v1.get_variable('summary_bias', [d_model],
                                            dtype=hidden.dtype,
                                            initializer=initializer)
-            summary_bias = tf.tile(summary_bias[None, None], [1, bsz, 1])
+            summary_bias = tf.compat.v1.tile(summary_bias[None, None], [1, bsz, 1])
 
             if input_mask is not None:
                 input_mask = input_mask[None, :, :, None]
@@ -720,15 +720,15 @@ def summarize_sequence(summary_type, hidden, d_model, n_head, d_head, dropout,
 
         # use another projection as in BERT
         if use_proj:
-            summary = tf.layers.dense(
+            summary = tf.compat.v1.layers.dense(
                 summary,
                 d_model,
-                activation=tf.tanh,
+                activation=tf.compat.v1.tanh,
                 kernel_initializer=initializer,
                 name='summary')
 
         # dropout
-        summary = tf.layers.dropout(
+        summary = tf.compat.v1.layers.dropout(
             summary, dropout, training=is_training,
             name='dropout')
 
@@ -745,15 +745,15 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
         the classification weights.
     """
 
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        logits = tf.layers.dense(
+    with @@#variable_scope(scope, reuse=reuse):
+        logits = tf.compat.v1.layers.dense(
             hidden,
             n_class,
             kernel_initializer=initializer,
             name='logit')
 
-        one_hot_target = tf.one_hot(labels, n_class, dtype=hidden.dtype)
-        loss = -tf.reduce_sum(tf.nn.log_softmax(logits) * one_hot_target, -1)
+        one_hot_target = tf.compat.v1.one_hot(labels, n_class, dtype=hidden.dtype)
+        loss = -tf.compat.v1.reduce_sum(tf.compat.v1.nn.log_softmax(logits) * one_hot_target, -1)
 
         if return_logits:
             return loss, logits
@@ -763,15 +763,15 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
 
 def regression_loss(hidden, labels, initializer, scope, reuse=None,
                     return_logits=False):
-    with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        logits = tf.layers.dense(
+    with @@#variable_scope(scope, reuse=reuse):
+        logits = tf.compat.v1.layers.dense(
             hidden,
             1,
             kernel_initializer=initializer,
             name='logit')
 
-        logits = tf.squeeze(logits, axis=-1)
-        loss = tf.square(logits - labels)
+        logits = tf.compat.v1.squeeze(logits, axis=-1)
+        loss = tf.compat.v1.square(logits - labels)
 
         if return_logits:
             return loss, logits

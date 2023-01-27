@@ -121,7 +121,7 @@ def convert_to_unicode(text):
 
 
 def printable_text(text):
-    """Returns text encoded in a way suitable for print or `tf.logging`."""
+    """Returns text encoded in a way suitable for print or `tf.compat.v1.logging`."""
 
     # These functions want `str` for both Python2 and Python3, but in one case
     # it's a Unicode string and in the other it's a byte string.
@@ -146,7 +146,7 @@ def printable_text(text):
 def load_vocab(vocab_file):
     """Loads a vocabulary file into a dictionary."""
     vocab = collections.OrderedDict()
-    with tf.gfile.GFile(vocab_file, 'r') as reader:
+    with tf.compat.v1.gfile.GFile(vocab_file, 'r') as reader:
         while True:
             token = convert_to_unicode(reader.readline())
             if not token:
@@ -190,9 +190,9 @@ class FullTokenizer(object):
         self.sp_model = None
         if spm_model_file:
             self.sp_model = spm.SentencePieceProcessor()
-            tf.compat.v1.logging.info('loading sentence piece model')
+            @@#logging.info('loading sentence piece model')
             # Handle cases where SP can't load the file, but gfile can.
-            sp_model_ = tf.gfile.GFile(spm_model_file, 'rb').read()
+            sp_model_ = tf.compat.v1.gfile.GFile(spm_model_file, 'rb').read()
             self.sp_model.LoadFromSerializedProto(sp_model_)
             # Note(mingdachen): For the purpose of consisent API, we are
             # generating a vocabulary for the sentence piece tokenizer.
@@ -225,7 +225,7 @@ class FullTokenizer(object):
 
     def convert_tokens_to_ids(self, tokens):
         if self.sp_model:
-            tf.compat.v1.logging.info('using sentence piece tokenzier.')
+            @@#logging.info('using sentence piece tokenzier.')
             return [
                 self.sp_model.PieceToId(printable_text(token))
                 for token in tokens
@@ -235,7 +235,7 @@ class FullTokenizer(object):
 
     def convert_ids_to_tokens(self, ids):
         if self.sp_model:
-            tf.compat.v1.logging.info('using sentence piece tokenzier.')
+            @@#logging.info('using sentence piece tokenzier.')
             return [self.sp_model.IdToPiece(id_) for id_ in ids]
         else:
             return convert_by_vocab(self.inv_vocab, ids)

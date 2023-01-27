@@ -142,7 +142,7 @@ def load(model: str = 'electra', pool_mode: str = 'last', **kwargs):
         logger.warning(
             f'Load pretrained transformer {model} model will disable eager execution.'
         )
-        tf.compat.v1.disable_eager_execution()
+        @@#disable_eager_execution()
 
     if model in ['bert', 'tiny-bert']:
         from malaya.transformers.bert import load

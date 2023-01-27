@@ -258,7 +258,7 @@ class InputFeatures(object):
 
 def read_squad_examples(input_file, is_training):
     """Read a SQuAD json file into a list of SquadExample."""
-    with tf.gfile.Open(input_file, 'r') as reader:
+    with tf.compat.v1.gfile.Open(input_file, 'r') as reader:
         input_data = json.load(reader)['data']
 
     examples = []
@@ -617,19 +617,19 @@ def convert_examples_to_features(
                 end_position = cls_index
 
             if example_index < 20:
-                tf.compat.v1.logging.info('*** Example ***')
-                tf.compat.v1.logging.info('unique_id: %s' % (unique_id))
-                tf.compat.v1.logging.info('example_index: %s' % (example_index))
-                tf.compat.v1.logging.info('doc_span_index: %s' % (doc_span_index))
-                tf.compat.v1.logging.info(
+                @@#logging.info('*** Example ***')
+                @@#logging.info('unique_id: %s' % (unique_id))
+                @@#logging.info('example_index: %s' % (example_index))
+                @@#logging.info('doc_span_index: %s' % (doc_span_index))
+                @@#logging.info(
                     'tok_start_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_start_to_orig_index])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'tok_end_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_end_to_orig_index])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'token_is_max_context: %s'
                     % ' '.join(
                         [
@@ -638,18 +638,18 @@ def convert_examples_to_features(
                         ]
                     )
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'input_ids: %s' % ' '.join([str(x) for x in input_ids])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'input_mask: %s' % ' '.join([str(x) for x in input_mask])
                 )
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     'segment_ids: %s' % ' '.join([str(x) for x in segment_ids])
                 )
 
                 if is_training and span_is_impossible:
-                    tf.compat.v1.logging.info('impossible example span')
+                    @@#logging.info('impossible example span')
 
                 if is_training and not span_is_impossible:
                     pieces = [
@@ -657,9 +657,9 @@ def convert_examples_to_features(
                         for token in tokens[start_position : (end_position + 1)]
                     ]
                     answer_text = sp_model.DecodePieces(pieces)
-                    tf.compat.v1.logging.info('start_position: %d' % (start_position))
-                    tf.compat.v1.logging.info('end_position: %d' % (end_position))
-                    tf.compat.v1.logging.info(
+                    @@#logging.info('start_position: %d' % (start_position))
+                    @@#logging.info('end_position: %d' % (end_position))
+                    @@#logging.info(
                         'answer: %s' % (printable_text(answer_text))
                     )
 
@@ -698,7 +698,7 @@ def convert_examples_to_features(
             else:
                 cnt_pos += 1
 
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Total number of instances: {} = pos {} neg {}'.format(
             cnt_pos + cnt_neg, cnt_pos, cnt_neg
         )
@@ -752,21 +752,21 @@ class FeatureWriter(object):
         self.filename = filename
         self.is_training = is_training
         self.num_features = 0
-        self._writer = tf.python_io.TFRecordWriter(filename)
+        self._writer = tf.compat.v1.python_io.TFRecordWriter(filename)
 
     def process_feature(self, feature):
-        """Write a InputFeature to the TFRecordWriter as a tf.train.Example."""
+        """Write a InputFeature to the TFRecordWriter as a tf.compat.v1.train.Example."""
         self.num_features += 1
 
         def create_int_feature(values):
-            feature = tf.train.Feature(
-                int64_list = tf.train.Int64List(value = list(values))
+            feature = tf.compat.v1.train.Feature(
+                int64_list = tf.compat.v1.train.Int64List(value = list(values))
             )
             return feature
 
         def create_float_feature(values):
-            f = tf.train.Feature(
-                float_list = tf.train.FloatList(value = list(values))
+            f = tf.compat.v1.train.Feature(
+                float_list = tf.compat.v1.train.FloatList(value = list(values))
             )
             return f
 
@@ -791,8 +791,8 @@ class FeatureWriter(object):
                 impossible = 1
             features['is_impossible'] = create_float_feature([impossible])
 
-        tf_example = tf.train.Example(
-            features = tf.train.Features(feature = features)
+        tf_example = tf.compat.v1.train.Example(
+            features = tf.compat.v1.train.Features(feature = features)
         )
         self._writer.write(tf_example.SerializeToString())
 
@@ -840,8 +840,8 @@ def write_predictions(
     orig_data,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
-    # tf.compat.v1.logging.info("Writing nbest to: %s" % (output_nbest_file))
+    @@#logging.info('Writing predictions to: %s' % (output_prediction_file))
+    # @@#logging.info("Writing nbest to: %s" % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -980,13 +980,13 @@ def write_predictions(
 
         all_nbest_json[example.qas_id] = nbest_json
 
-    with tf.gfile.GFile(output_prediction_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_prediction_file, 'w') as writer:
         writer.write(json.dumps(all_predictions, indent = 4) + '\n')
 
-    with tf.gfile.GFile(output_nbest_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_nbest_file, 'w') as writer:
         writer.write(json.dumps(all_nbest_json, indent = 4) + '\n')
 
-    with tf.gfile.GFile(output_null_log_odds_file, 'w') as writer:
+    with tf.compat.v1.gfile.GFile(output_null_log_odds_file, 'w') as writer:
         writer.write(json.dumps(scores_diff_json, indent = 4) + '\n')
 
     qid_to_has_ans = make_qid_to_has_ans(orig_data)

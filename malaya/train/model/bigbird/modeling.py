@@ -22,7 +22,7 @@ from . import utils
 import tensorflow as tf
 
 
-class BertModel(tf.compat.v1.layers.Layer):
+class BertModel(@@#layers.Layer):
     """BERT model ("Bidirectional Encoder Representations from Transformers").
 
   Example usage:
@@ -54,8 +54,8 @@ class BertModel(tf.compat.v1.layers.Layer):
         self.params = copy.deepcopy(params)
         self.scope = params['scope']
 
-        with tf.compat.v1.variable_scope(
-            self.scope, reuse = tf.compat.v1.AUTO_REUSE
+        with @@#variable_scope(
+            self.scope, reuse = @@#AUTO_REUSE
         ) as vs:
             self.embeder = utils.EmbeddingLayer(
                 vocab_size = self.params['vocab_size'],
@@ -73,7 +73,7 @@ class BertModel(tf.compat.v1.layers.Layer):
                 dropout_prob = self.params['hidden_dropout_prob'],
             )
             self.encoder = encoder.EncoderStack(self.params)
-            self.pooler = tf.compat.v1.layers.Dense(
+            self.pooler = @@#layers.Dense(
                 units = self.params['hidden_size'],
                 activation = tf.tanh,
                 kernel_initializer = utils.create_initializer(
@@ -141,7 +141,7 @@ class BertModel(tf.compat.v1.layers.Layer):
         return sequence_output, pooled_output
 
 
-class TransformerModel(tf.compat.v1.layers.Layer):
+class TransformerModel(@@#layers.Layer):
     """Encoder-Decoder transformer model.
 
   Example usage:
@@ -172,8 +172,8 @@ class TransformerModel(tf.compat.v1.layers.Layer):
         self.params = params
         self.scope = params['scope']
 
-        with tf.compat.v1.variable_scope(
-            self.scope, reuse = tf.compat.v1.AUTO_REUSE
+        with @@#variable_scope(
+            self.scope, reuse = @@#AUTO_REUSE
         ) as vs:
             self.embeder = utils.EmbeddingLayer(
                 vocab_size = self.params['vocab_size'],

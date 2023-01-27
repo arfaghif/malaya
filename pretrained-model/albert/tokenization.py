@@ -254,7 +254,7 @@ class FullTokenizer(object):
         self.sp_model = None
         if spm_model_file:
             self.sp_model = spm.SentencePieceProcessor()
-            tf.compat.v1.logging.info('loading sentence piece model')
+            @@#logging.info('loading sentence piece model')
             self.sp_model.Load(spm_model_file)
             # Note(mingdachen): For the purpose of consisent API, we are
             # generating a vocabulary for the sentence piece tokenizer.
@@ -283,7 +283,7 @@ class FullTokenizer(object):
 
     def convert_tokens_to_ids(self, tokens):
         if self.sp_model:
-            # tf.compat.v1.logging.info('using sentence piece tokenzier.')
+            # @@#logging.info('using sentence piece tokenzier.')
             return [
                 self.sp_model.PieceToId(printable_text(token))
                 for token in tokens
@@ -293,7 +293,7 @@ class FullTokenizer(object):
 
     def convert_ids_to_tokens(self, ids):
         if self.sp_model:
-            # tf.compat.v1.logging.info('using sentence piece tokenzier.')
+            # @@#logging.info('using sentence piece tokenzier.')
             return [self.sp_model.IdToPiece(id_) for id_ in ids]
         else:
             return convert_by_vocab(self.inv_vocab, ids)

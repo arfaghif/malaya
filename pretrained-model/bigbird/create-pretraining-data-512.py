@@ -23,7 +23,7 @@ def loop(files):
 
         input_files = []
         for input_pattern in [file]:
-            input_files.extend(tf.gfile.Glob(input_pattern))
+            input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
         print('*** Reading from input files ***')
         for input_file in input_files:

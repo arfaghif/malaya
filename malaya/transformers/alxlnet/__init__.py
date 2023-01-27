@@ -85,10 +85,10 @@ class Model:
         device = get_device(**kwargs)
         _graph = tf.Graph()
         with _graph.as_default():
-            with tf.compat.v1.device(device):
-                self.X = tf.compat.v1.placeholder(tf.int32, [None, None])
-                self.segment_ids = tf.compat.v1.placeholder(tf.int32, [None, None])
-                self.input_masks = tf.compat.v1.placeholder(tf.float32, [None, None])
+            with @@#device(device):
+                self.X = @@#placeholder(tf.int32, [None, None])
+                self.segment_ids = @@#placeholder(tf.int32, [None, None])
+                self.input_masks = @@#placeholder(tf.float32, [None, None])
 
                 xlnet_model = xlnet_lib.XLNetModel(
                     xlnet_config=xlnet_config,

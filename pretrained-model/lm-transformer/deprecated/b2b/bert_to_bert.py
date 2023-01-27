@@ -37,7 +37,7 @@ class Model:
         batch_size = tf.shape(self.X)[0]
 
         def forward(x, segment, masks, y, reuse = False, config = bert_config):
-            with tf.compat.v1.variable_scope('bert', reuse = reuse):
+            with @@#variable_scope('bert', reuse = reuse):
                 model = modeling.BertModel(
                     config = config,
                     is_training = training,
@@ -47,7 +47,7 @@ class Model:
                     use_one_hot_embeddings = False,
                 )
                 memory = model.get_sequence_output()
-            with tf.compat.v1.variable_scope('bert', reuse = True):
+            with @@#variable_scope('bert', reuse = True):
                 Y_seq_len = tf.count_nonzero(y, 1, dtype = tf.int32)
                 y_masks = tf.sequence_mask(
                     Y_seq_len, tf.reduce_max(Y_seq_len), dtype = tf.float32
@@ -65,8 +65,8 @@ class Model:
                 output_layer = model.get_sequence_output()
                 embedding = model.get_embedding_table()
 
-            with tf.compat.v1.variable_scope('cls/predictions', reuse = reuse):
-                with tf.compat.v1.variable_scope('transform'):
+            with @@#variable_scope('cls/predictions', reuse = reuse):
+                with @@#variable_scope('transform'):
                     input_tensor = tf.layers.dense(
                         output_layer,
                         units = config.hidden_size,

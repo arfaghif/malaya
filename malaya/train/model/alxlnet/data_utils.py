@@ -104,10 +104,10 @@ def _create_data(idx, input_paths):
     for input_path in input_paths:
         input_data, sent_ids = [], []
         sent_id, line_cnt = True, 0
-        tf.compat.v1.logging.info('Processing %s', input_path)
+        @@#logging.info('Processing %s', input_path)
         for line in tf.gfile.Open(input_path):
             if line_cnt % 100000 == 0:
-                tf.compat.v1.logging.info('Loading line %d', line_cnt)
+                @@#logging.info('Loading line %d', line_cnt)
             line_cnt += 1
 
             if not line.strip():
@@ -129,7 +129,7 @@ def _create_data(idx, input_paths):
             sent_ids.extend([sent_id] * len(cur_sent))
             sent_id = not sent_id
 
-        tf.compat.v1.logging.info('Finish with line %d', line_cnt)
+        @@#logging.info('Finish with line %d', line_cnt)
         if line_cnt == 0:
             continue
 
@@ -139,7 +139,7 @@ def _create_data(idx, input_paths):
         total_line_cnt += line_cnt
         input_shards.append((input_data, sent_ids))
 
-    tf.compat.v1.logging.info('[Task %d] Total number line: %d', idx, total_line_cnt)
+    @@#logging.info('[Task %d] Total number line: %d', idx, total_line_cnt)
 
     tfrecord_dir = os.path.join(FLAGS.save_dir, 'tfrecords')
 
@@ -149,7 +149,7 @@ def _create_data(idx, input_paths):
     np.random.seed(100 * FLAGS.task + FLAGS.pass_id)
 
     perm_indices = np.random.permutation(len(input_shards))
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Using perm indices %s for pass %d',
         perm_indices.tolist(),
         FLAGS.pass_id,
@@ -228,15 +228,15 @@ def create_data(_):
 
     # Interleavely split the work into FLAGS.num_task splits
     file_paths = sorted(tf.gfile.Glob(FLAGS.input_glob))
-    tf.compat.v1.logging.info('Use glob: %s', FLAGS.input_glob)
-    tf.compat.v1.logging.info('Find %d files: %s', len(file_paths), file_paths)
+    @@#logging.info('Use glob: %s', FLAGS.input_glob)
+    @@#logging.info('Find %d files: %s', len(file_paths), file_paths)
 
     task_file_paths = file_paths[FLAGS.task :: FLAGS.num_task]
     if not task_file_paths:
-        tf.compat.v1.logging.info('Exit: task %d has no file to process.', FLAGS.task)
+        @@#logging.info('Exit: task %d has no file to process.', FLAGS.task)
         return
 
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'Task %d process %d files: %s',
         FLAGS.task,
         len(task_file_paths),
@@ -283,7 +283,7 @@ def _split_a_and_b(data, sent_ids, begin_idx, tot_len, extend_target = False):
 
     data_len = data.shape[0]
     if begin_idx + tot_len >= data_len:
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[_split_a_and_b] returns None: '
             'begin_idx %d + tot_len %d >= data_len %d',
             begin_idx,
@@ -339,7 +339,7 @@ def _split_a_and_b(data, sent_ids, begin_idx, tot_len, extend_target = False):
 
     if extend_target:
         if a_end >= data_len or b_end >= data_len:
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '[_split_a_and_b] returns None: '
                 'a_end %d or b_end %d >= data_len %d',
                 a_end,
@@ -460,7 +460,7 @@ def create_tfrecords(
     else:
         data, sent_ids = batchify(data, bsz_per_host, sent_ids)
 
-    tf.compat.v1.logging.info('Raw data shape %s.', data.shape)
+    @@#logging.info('Raw data shape %s.', data.shape)
 
     file_name = format_filename(
         prefix = basename,
@@ -476,7 +476,7 @@ def create_tfrecords(
     )
     save_path = os.path.join(save_dir, file_name)
     record_writer = tf.python_io.TFRecordWriter(save_path)
-    tf.compat.v1.logging.info('Start writing %s.', save_path)
+    @@#logging.info('Start writing %s.', save_path)
 
     num_batch = 0
     reuse_len = FLAGS.reuse_len
@@ -491,7 +491,7 @@ def create_tfrecords(
     i = 0
     while i + seq_len <= data_len:
         if num_batch % 500 == 0:
-            tf.compat.v1.logging.info('Processing batch %d', num_batch)
+            @@#logging.info('Processing batch %d', num_batch)
 
         all_ok = True
         features = []
@@ -507,7 +507,7 @@ def create_tfrecords(
                 extend_target = True,
             )
             if results is None:
-                tf.compat.v1.logging.info('Break out with seq idx %d', i)
+                @@#logging.info('Break out with seq idx %d', i)
                 all_ok = False
                 break
 
@@ -581,7 +581,7 @@ def create_tfrecords(
         i += reuse_len
 
     record_writer.close()
-    tf.compat.v1.logging.info('Done writing %s. Num of batches: %d', save_path, num_batch)
+    @@#logging.info('Done writing %s. Num of batches: %d', save_path, num_batch)
 
     return save_path, num_batch
 
@@ -621,7 +621,7 @@ def parse_files_to_dataset(
     if host_id == num_hosts - 1:
         my_end_file_id = num_files
     file_paths = file_names[my_start_file_id:my_end_file_id]
-    tf.compat.v1.logging.info('Host %d handles %d files', host_id, len(file_paths))
+    @@#logging.info('Host %d handles %d files', host_id, len(file_paths))
 
     assert split == 'train'
     dataset = tf.data.Dataset.from_tensor_slices(file_paths)
@@ -832,7 +832,7 @@ def get_dataset(
         _convert_example(example, use_bfloat16)
 
         for k, v in example.items():
-            tf.compat.v1.logging.info('%s: %s', k, v)
+            @@#logging.info('%s: %s', k, v)
 
         return example
 
@@ -886,14 +886,14 @@ def get_input_fn(
     record_info = {'num_batch': 0, 'filenames': []}
 
     tfrecord_dirs = tfrecord_dir.split(',')
-    tf.compat.v1.logging.info('Use the following tfrecord dirs: %s', tfrecord_dirs)
+    @@#logging.info('Use the following tfrecord dirs: %s', tfrecord_dirs)
 
     for idx, record_dir in enumerate(tfrecord_dirs):
         record_glob = os.path.join(record_dir, record_glob_base)
-        tf.compat.v1.logging.info('[%d] Record glob: %s', idx, record_glob)
+        @@#logging.info('[%d] Record glob: %s', idx, record_glob)
 
         record_paths = sorted(tf.gfile.Glob(record_glob))
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[%d] Num of record info path: %d', idx, len(record_paths)
         )
 
@@ -905,7 +905,7 @@ def get_input_fn(
                 fields = record_info_name.split('.')[0].split('-')
                 pass_id = int(fields[-1])
                 if len(fields) == 5 and pass_id >= num_passes:
-                    tf.compat.v1.logging.info(
+                    @@#logging.info(
                         'Skip pass %d: %s', pass_id, record_info_name
                     )
                     continue
@@ -933,25 +933,25 @@ def get_input_fn(
             new_filenames.append(new_filename)
         cur_record_info['filenames'] = new_filenames
 
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[Dir %d] Number of chosen batches: %s',
             idx,
             cur_record_info['num_batch'],
         )
-        tf.compat.v1.logging.info(
+        @@#logging.info(
             '[Dir %d] Number of chosen files: %s',
             idx,
             len(cur_record_info['filenames']),
         )
-        tf.compat.v1.logging.info(cur_record_info['filenames'])
+        @@#logging.info(cur_record_info['filenames'])
 
         # add `cur_record_info` to global `record_info`
         record_info['num_batch'] += cur_record_info['num_batch']
         record_info['filenames'] += cur_record_info['filenames']
 
-    tf.compat.v1.logging.info('Total number of batches: %d', record_info['num_batch'])
-    tf.compat.v1.logging.info('Total number of files: %d', len(record_info['filenames']))
-    tf.compat.v1.logging.info(record_info['filenames'])
+    @@#logging.info('Total number of batches: %d', record_info['num_batch'])
+    @@#logging.info('Total number of files: %d', len(record_info['filenames']))
+    @@#logging.info(record_info['filenames'])
 
     def input_fn(params):
         """docs."""
@@ -1049,5 +1049,5 @@ if __name__ == '__main__':
         'using multiple workers to identify each worker.',
     )
 
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
-    tf.compat.v1.app.run(create_data)
+    @@#logging.set_verbosity(@@#logging.info)
+    @@#app.run(create_data)

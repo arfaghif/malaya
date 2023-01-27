@@ -11,11 +11,11 @@ import custom_modeling as modeling
 def _get_initializer(FLAGS):
     """Get variable intializer."""
     if FLAGS.init == 'uniform':
-        initializer = tf.initializers.random_uniform(
+        initializer = tf.compat.v1.initializers.random_uniform(
             minval = -FLAGS.init_range, maxval = FLAGS.init_range, seed = None
         )
     elif FLAGS.init == 'normal':
-        initializer = tf.initializers.random_normal(
+        initializer = tf.compat.v1.initializers.random_normal(
             stddev = FLAGS.init_std, seed = None
         )
     else:
@@ -67,7 +67,7 @@ class XLNetConfig(object):
             setattr(self, key, getattr(FLAGS, key))
 
     def init_from_json(self, json_path):
-        with tf.gfile.Open(json_path) as f:
+        with tf.compat.v1.gfile.Open(json_path) as f:
             json_data = json.load(f)
             for key in self.keys:
                 setattr(self, key, json_data[key])
@@ -79,9 +79,9 @@ class XLNetConfig(object):
             json_data[key] = getattr(self, key)
 
         json_dir = os.path.dirname(json_path)
-        if not tf.io.gfile.exists(json_dir):
-            tf.io.gfile.mkdir(json_dir)
-        with tf.gfile.Open(json_path, 'w') as f:
+        if not tf.compat.v1.io.gfile.exists(json_dir):
+            tf.compat.v1.io.gfile.mkdir(json_dir)
+        with tf.compat.v1.gfile.Open(json_path, 'w') as f:
             json.dump(json_data, f, indent = 4, sort_keys = True)
 
 
@@ -250,7 +250,7 @@ class XLNetModel(object):
         )
         tfm_args.update(input_args)
 
-        with tf.compat.v1.variable_scope('model', reuse = tf.AUTO_REUSE):
+        with @@#variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
             (
                 self.output,
                 self.new_mems,
@@ -277,7 +277,7 @@ class XLNetModel(object):
         xlnet_config = self.xlnet_config
         run_config = self.run_config
 
-        with tf.compat.v1.variable_scope('model', reuse = tf.AUTO_REUSE):
+        with @@#variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
             summary = modeling.summarize_sequence(
                 summary_type = summary_type,
                 hidden = self.output,

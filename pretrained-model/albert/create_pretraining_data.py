@@ -233,8 +233,8 @@ def write_instance_to_example_files(
         total_written += 1
 
         if inst_index < 20:
-            tf.compat.v1.logging.info('*** Example ***')
-            tf.compat.v1.logging.info(
+            @@#logging.info('*** Example ***')
+            @@#logging.info(
                 'tokens: %s'
                 % ' '.join(
                     [tokenization.printable_text(x) for x in instance.tokens]
@@ -248,7 +248,7 @@ def write_instance_to_example_files(
                     values = feature.int64_list.value
                 elif feature.float_list.value:
                     values = feature.float_list.value
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     '%s: %s'
                     % (feature_name, ' '.join([str(x) for x in values]))
                 )
@@ -256,7 +256,7 @@ def write_instance_to_example_files(
     for writer in writers:
         writer.close()
 
-    tf.compat.v1.logging.info('Wrote %d total instances', total_written)
+    @@#logging.info('Wrote %d total instances', total_written)
 
 
 def create_int_feature(values):
@@ -553,7 +553,7 @@ def create_masked_lm_predictions(
         # Note that Whole Word Masking does *not* change the training code
         # at all -- we still predict each WordPiece independently, softmaxed
         # over the entire vocabulary.
-        # tf.compat.v1.logging.info(token)
+        # @@#logging.info(token)
         if (
             FLAGS.do_whole_word_mask
             and len(cand_indexes) >= 1
@@ -752,7 +752,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_num_tokens, rng):
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     tokenizer = tokenization.FullTokenizer(
         vocab_file=FLAGS.vocab_file,
@@ -764,9 +764,9 @@ def main(_):
     for input_pattern in FLAGS.input_file.split(','):
         input_files.extend(tf.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info('*** Reading from input files ***')
+    @@#logging.info('*** Reading from input files ***')
     for input_file in input_files:
-        tf.compat.v1.logging.info('  %s', input_file)
+        @@#logging.info('  %s', input_file)
 
     rng = random.Random(FLAGS.random_seed)
     instances = create_training_instances(
@@ -780,12 +780,12 @@ def main(_):
         rng,
     )
 
-    tf.compat.v1.logging.info('number of instances: %i', len(instances))
+    @@#logging.info('number of instances: %i', len(instances))
 
     output_files = FLAGS.output_file.split(',')
-    tf.compat.v1.logging.info('*** Writing to output files ***')
+    @@#logging.info('*** Writing to output files ***')
     for output_file in output_files:
-        tf.compat.v1.logging.info('  %s', output_file)
+        @@#logging.info('  %s', output_file)
 
     write_instance_to_example_files(
         instances,
@@ -800,4 +800,4 @@ if __name__ == '__main__':
     flags.mark_flag_as_required('input_file')
     flags.mark_flag_as_required('output_file')
     flags.mark_flag_as_required('vocab_file')
-    tf.compat.v1.app.run()
+    @@#app.run()

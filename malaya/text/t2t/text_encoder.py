@@ -66,7 +66,7 @@ def native_to_unicode(s):
         return to_unicode(s)
     except UnicodeDecodeError:
         res = to_unicode(s, ignore_errors=True)
-        tf.compat.v1.logging.info('Ignoring Unicode error, outputting: %s' % res)
+        @@#logging.info('Ignoring Unicode error, outputting: %s' % res)
         return res
 
 
@@ -225,7 +225,7 @@ class ClassLabelEncoder(TextEncoder):
         super(ClassLabelEncoder, self).__init__(num_reserved_ids=0)
 
         if class_labels_fname:
-            with tf.gfile.Open(class_labels_fname) as f:
+            with tf.compat.v1.gfile.Open(class_labels_fname) as f:
                 class_labels = [label.strip() for label in f.readlines()]
 
         assert class_labels
@@ -349,7 +349,7 @@ class TokenTextEncoder(TextEncoder):
     Args:
       vocab_file: The file to load vocabulary from.
     """
-        with tf.gfile.Open(vocab_file) as f:
+        with tf.compat.v1.gfile.Open(vocab_file) as f:
             tokens = [token.strip() for token in f.readlines()]
 
         def token_gen():
@@ -403,7 +403,7 @@ class TokenTextEncoder(TextEncoder):
     Args:
       vocab_file: Full path of the file to store the vocab to.
     """
-        with tf.gfile.Open(vocab_file, 'w') as f:
+        with tf.compat.v1.gfile.Open(vocab_file, 'w') as f:
             for i in range(len(self._id_to_token)):
                 f.write(self._id_to_token[i] + '\n')
 
@@ -753,7 +753,7 @@ class SubwordTextEncoder(TextEncoder):
         def bisect(min_val, max_val):
             """Bisection to find the right size."""
             present_count = (max_val + min_val) // 2
-            tf.compat.v1.logging.info('Trying min_count %d' % present_count)
+            @@#logging.info('Trying min_count %d' % present_count)
             subtokenizer = cls()
             subtokenizer.build_from_token_counts(
                 token_counts,
@@ -846,7 +846,7 @@ class SubwordTextEncoder(TextEncoder):
         if min_count < 1:
             min_count = 1
         for i in range(num_iterations):
-            tf.compat.v1.logging.info('Iteration {0}'.format(i))
+            @@#logging.info('Iteration {0}'.format(i))
 
             # Collect all substrings of the encoded token that break along current
             # subtoken boundaries.
@@ -871,7 +871,7 @@ class SubwordTextEncoder(TextEncoder):
                     start += len(subtoken)
                 iter_time_secs = time.time() - iter_start_time
                 if iter_time_secs > 0.1:
-                    tf.compat.v1.logging.info(
+                    @@#logging.info(
                         u'Processing token [{0}] took {1} seconds, consider '
                         'setting Text2TextProblem.max_subtoken_length to a '
                         'smaller value.'.format(token, iter_time_secs)
@@ -923,7 +923,7 @@ class SubwordTextEncoder(TextEncoder):
                 )
 
             self._init_subtokens_from_list(new_subtoken_strings)
-            tf.compat.v1.logging.info('vocab_size = %d' % self.vocab_size)
+            @@#logging.info('vocab_size = %d' % self.vocab_size)
 
     @property
     def all_subtoken_strings(self):
@@ -1003,13 +1003,13 @@ class SubwordTextEncoder(TextEncoder):
 
     def _load_from_file(self, vocab_file):
         """Load from a vocab file."""
-        if not tf.io.gfile.exists(vocab_file):
+        if not tf.compat.v1.io.gfile.exists(vocab_file):
             raise ValueError('File %s not found' % vocab_file)
-        with tf.gfile.Open(vocab_file) as f:
+        with tf.compat.v1.gfile.Open(vocab_file) as f:
             self._load_from_file_object(f)
 
     def store_to_file(self, vocab_file, add_single_quotes=True):
-        with tf.gfile.Open(vocab_file, 'w') as f:
+        with tf.compat.v1.gfile.Open(vocab_file, 'w') as f:
             for subtoken_string in self._all_subtoken_strings:
                 if add_single_quotes:
                     f.write("'" + unicode_to_native(subtoken_string) + "'\n")
@@ -1044,7 +1044,7 @@ class ImageEncoder(object):
         try:
             import matplotlib.image as im  # pylint: disable=g-import-not-at-top
         except ImportError as e:
-            tf.logging.warning(
+            tf.compat.v1.logging.warning(
                 'Reading an image requires matplotlib to be installed: %s', e
             )
             raise NotImplementedError('Image reading not implemented.')
@@ -1085,17 +1085,17 @@ class ImageEncoder(object):
                     ' '.join([str(i) for i in ids]),
                 )
             )
-        with tf.Graph().as_default():
-            raw = tf.constant(ids, dtype=tf.uint8)
+        with tf.compat.v1.Graph().as_default():
+            raw = tf.compat.v1.constant(ids, dtype=tf.compat.v1.uint8)
             if size is None:
-                img = tf.reshape(
+                img = tf.compat.v1.reshape(
                     raw, [self._height, self._width, self._channels]
                 )
             else:
-                img = tf.reshape(raw, [size, size, self._channels])
-            png = tf.image.encode_png(img)
-            op = tf.write_file(tmp_file_path, png)
-            with tf.Session() as sess:
+                img = tf.compat.v1.reshape(raw, [size, size, self._channels])
+            png = tf.compat.v1.image.encode_png(img)
+            op = tf.compat.v1.write_file(tmp_file_path, png)
+            with tf.compat.v1.Session() as sess:
                 sess.run(op)
         return tmp_file_path
 

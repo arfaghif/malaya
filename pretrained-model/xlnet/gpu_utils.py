@@ -7,7 +7,7 @@ import tensorflow as tf
 
 def assign_to_gpu(gpu=0, ps_dev="/device:CPU:0"):
     def _assign(op):
-        node_def = op if isinstance(op, tf.NodeDef) else op.node_def
+        node_def = op if isinstance(op, tf.compat.v1.NodeDef) else op.node_def
         if node_def.op == "Variable":
             return ps_dev
         else:
@@ -34,15 +34,15 @@ def average_grads_and_vars(tower_grads_and_vars):
         for g, _ in grad_and_vars:
             indices += [g.indices]
             values += [g.values]
-        indices = tf.concat(indices, 0)
-        values = tf.concat(values, 0) / len(grad_and_vars)
-        return tf.IndexedSlices(values, indices, grad_and_vars[0][0].dense_shape)
+        indices = tf.compat.v1.concat(indices, 0)
+        values = tf.compat.v1.concat(values, 0) / len(grad_and_vars)
+        return tf.compat.v1.IndexedSlices(values, indices, grad_and_vars[0][0].dense_shape)
 
     average_grads_and_vars = []
     for grad_and_vars in zip(*tower_grads_and_vars):
         if grad_and_vars[0][0] is None:
             grad = None
-        elif isinstance(grad_and_vars[0][0], tf.IndexedSlices):
+        elif isinstance(grad_and_vars[0][0], tf.compat.v1.IndexedSlices):
             grad = average_sparse(grad_and_vars)
         else:
             grad = average_dense(grad_and_vars)
@@ -56,8 +56,8 @@ def average_grads_and_vars(tower_grads_and_vars):
 
 
 def load_from_checkpoint(saver, logdir):
-    sess = tf.get_default_session()
-    ckpt = tf.train.get_checkpoint_state(logdir)
+    sess = tf.compat.v1.get_default_session()
+    ckpt = tf.compat.v1.train.get_checkpoint_state(logdir)
     if ckpt and ckpt.model_checkpoint_path:
         if os.path.isabs(ckpt.model_checkpoint_path):
             # Restores from checkpoint with absolute path.

@@ -22,7 +22,7 @@ directory = sys.argv[1] or 'tfrecord'
 os.system(f'mkdir {directory}')
 global_count = 0
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+@@#logging.set_verbosity(@@#logging.info)
 
 
 def loop(files):

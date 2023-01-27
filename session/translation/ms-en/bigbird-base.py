@@ -43,10 +43,10 @@ total_steps = 300000
 
 
 def learning_rate_schedule(step_num):
-    step_num = tf.cast(step_num, tf.float32)
+    step_num = tf.compat.v1.cast(step_num, tf.compat.v1.float32)
     lr = learning_rate_constant
-    lr *= tf.minimum(1.0, step_num / learning_rate_warmup_steps)
-    lr *= tf.rsqrt(tf.maximum(step_num, learning_rate_warmup_steps))
+    lr *= tf.compat.v1.minimum(1.0, step_num / learning_rate_warmup_steps)
+    lr *= tf.compat.v1.rsqrt(tf.compat.v1.maximum(step_num, learning_rate_warmup_steps))
     lr *= bert_config['hidden_size'] ** -0.5
     return lr
 
@@ -149,24 +149,24 @@ def generate():
 
 def get_dataset(batch_size = 8):
     def get():
-        dataset = tf.data.Dataset.from_generator(
+        dataset = tf.compat.v1.data.Dataset.from_generator(
             generate_random,
-            {'x': tf.int32, 'y': tf.int32},
+            {'x': tf.compat.v1.int32, 'y': tf.compat.v1.int32},
             output_shapes = {
-                'x': tf.TensorShape([None]),
-                'y': tf.TensorShape([None]),
+                'x': tf.compat.v1.TensorShape([None]),
+                'y': tf.compat.v1.TensorShape([None]),
             },
         )
         dataset = dataset.shuffle(batch_size)
         dataset = dataset.padded_batch(
             batch_size,
             padded_shapes = {
-                'x': tf.TensorShape([bert_config['max_encoder_length']]),
-                'y': tf.TensorShape([bert_config['max_decoder_length']]),
+                'x': tf.compat.v1.TensorShape([bert_config['max_encoder_length']]),
+                'y': tf.compat.v1.TensorShape([bert_config['max_decoder_length']]),
             },
             padding_values = {
-                'x': tf.constant(0, dtype = tf.int32),
-                'y': tf.constant(0, dtype = tf.int32),
+                'x': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
+                'y': tf.compat.v1.constant(0, dtype = tf.compat.v1.int32),
             },
         )
         return dataset
@@ -176,41 +176,41 @@ def get_dataset(batch_size = 8):
 
 # dataset = get_dataset()()
 # dataset = dataset.make_one_shot_iterator().get_next()
-# sess = tf.Session()
+# sess = tf.compat.v1.Session()
 # sess.run(dataset)
 
 
 def padded_cross_entropy_loss(logits, labels, smoothing, vocab_size):
-    with tf.name_scope('loss'):
+    with tf.compat.v1.name_scope('loss'):
 
         if labels is not None:
-            with tf.name_scope('smoothing_cross_entropy'):
+            with tf.compat.v1.name_scope('smoothing_cross_entropy'):
                 confidence = 1.0 - smoothing
-                vocab_float = tf.cast(vocab_size - 1, tf.float32)
+                vocab_float = tf.compat.v1.cast(vocab_size - 1, tf.compat.v1.float32)
                 low_confidence = (1.0 - confidence) / vocab_float
-                soft_targets = tf.one_hot(
+                soft_targets = tf.compat.v1.one_hot(
                     labels,
                     depth = vocab_size,
                     on_value = confidence,
                     off_value = low_confidence,
                 )
-                xentropy = tf.nn.softmax_cross_entropy_with_logits(
+                xentropy = tf.compat.v1.nn.softmax_cross_entropy_with_logits(
                     logits = logits, labels = soft_targets
                 )
 
                 normalizing_constant = -(
-                    confidence * tf.math.log(confidence)
+                    confidence * tf.compat.v1.math.log(confidence)
                     + vocab_float
                     * low_confidence
-                    * tf.math.log(low_confidence + 1e-20)
+                    * tf.compat.v1.math.log(low_confidence + 1e-20)
                 )
                 xentropy -= normalizing_constant
 
-            weights = tf.cast(tf.not_equal(labels, 0), tf.float32)
-            loss = tf.reduce_sum(xentropy * weights) / tf.reduce_sum(weights)
+            weights = tf.compat.v1.cast(tf.compat.v1.not_equal(labels, 0), tf.compat.v1.float32)
+            loss = tf.compat.v1.reduce_sum(xentropy * weights) / tf.compat.v1.reduce_sum(weights)
 
         else:
-            loss = tf.constant(0.0)
+            loss = tf.compat.v1.constant(0.0)
 
         return loss
 
@@ -228,28 +228,28 @@ def model_fn(features, labels, mode, params):
         bert_config['label_smoothing'],
         bert_config['vocab_size'],
     )
-    tf.identity(total_loss, 'total_loss')
-    tf.summary.scalar('total_loss', total_loss)
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        global_step = tf.train.get_global_step()
+    tf.compat.v1.identity(total_loss, 'total_loss')
+    tf.compat.v1.summary.scalar('total_loss', total_loss)
+    if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
+        global_step = tf.compat.v1.train.get_global_step()
         lr = learning_rate_schedule(global_step)
 
-        tf.summary.scalar('learning_rate', lr)
-        optimizer = tf.train.AdamOptimizer(learning_rate = lr)
+        tf.compat.v1.summary.scalar('learning_rate', lr)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate = lr)
         train_op = optimizer.minimize(total_loss, global_step = global_step)
-        estimator_spec = tf.estimator.EstimatorSpec(
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
             mode = mode, loss = total_loss, train_op = train_op
         )
-    elif mode == tf.estimator.ModeKeys.EVAL:
+    elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
-        estimator_spec = tf.estimator.EstimatorSpec(
-            mode = tf.estimator.ModeKeys.EVAL, loss = total_loss
+        estimator_spec = tf.compat.v1.estimator.EstimatorSpec(
+            mode = tf.compat.v1.estimator.ModeKeys.EVAL, loss = total_loss
         )
 
     return estimator_spec
 
 
-train_hooks = [tf.train.LoggingTensorHook(['total_loss'], every_n_iter = 100)]
+train_hooks = [tf.compat.v1.train.LoggingTensorHook(['total_loss'], every_n_iter = 100)]
 train_dataset = get_dataset()
 
 save_directory = 'bigbird-base-ms-en'

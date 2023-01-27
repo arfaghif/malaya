@@ -212,7 +212,7 @@ def get_model_fn():
     def model_fn(features, labels, mode, params):
         """doc."""
         #### Training or Evaluation
-        is_training = mode == tf.estimator.ModeKeys.TRAIN
+        is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
         assert is_training
 
         #### Retrieve `mems` from `params["cache"]`
@@ -232,8 +232,8 @@ def get_model_fn():
             new_cache += new_mems['mems']
 
         #### Check model parameters
-        num_params = sum([np.prod(v.shape) for v in tf.trainable_variables()])
-        tf.compat.v1.logging.info('#params: {}'.format(num_params))
+        num_params = sum([np.prod(v.shape) for v in tf.compat.v1.trainable_variables()])
+        @@#logging.info('#params: {}'.format(num_params))
 
         #### Configuring the optimizer
         train_op, learning_rate, gnorm = model_utils.get_train_op(
@@ -247,7 +247,7 @@ def get_model_fn():
             FLAGS, global_vars = True
         )
 
-        output_spec = tf.estimator.EstimatorSpec(
+        output_spec = tf.compat.v1.estimator.EstimatorSpec(
             mode = mode,
             loss = total_loss,
             train_op = train_op,
@@ -286,13 +286,13 @@ def get_input_fn(split, batch_size):
 
 def get_cache_fn(mem_len, batch_size):
     """doc."""
-    tf_float = tf.bfloat16 if FLAGS.use_bfloat16 else tf.float32
+    tf_float = tf.compat.v1.bfloat16 if FLAGS.use_bfloat16 else tf.compat.v1.float32
 
     def cache_fn():
         mems = []
         if FLAGS.mem_len > 0:
             for _ in range(FLAGS.n_layer):
-                zeros = tf.zeros(
+                zeros = tf.compat.v1.zeros(
                     [mem_len, batch_size, FLAGS.d_model], dtype = tf_float
                 )
                 mems.append(zeros)
@@ -306,29 +306,29 @@ def get_cache_fn(mem_len, batch_size):
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     # Get corpus info
     FLAGS.n_token = data_utils.VOCAB_SIZE
-    tf.compat.v1.logging.info('n_token {}'.format(FLAGS.n_token))
+    @@#logging.info('n_token {}'.format(FLAGS.n_token))
 
-    if not tf.io.gfile.exists(FLAGS.model_dir):
-        tf.io.gfile.mkdir(FLAGS.model_dir)
+    if not tf.compat.v1.io.gfile.exists(FLAGS.model_dir):
+        tf.compat.v1.io.gfile.mkdir(FLAGS.model_dir)
 
     bsz_per_core = per_device_batch_size(
         FLAGS.train_batch_size, FLAGS.num_gpu_cores
     )
 
     train_input_fn, train_record_info_dict = get_input_fn('train', bsz_per_core)
-    tf.compat.v1.logging.info(
+    @@#logging.info(
         'num of batches {}'.format(train_record_info_dict['num_batch'])
     )
     train_cache_fn = get_cache_fn(FLAGS.mem_len, bsz_per_core)
-    tf.compat.v1.logging.info(train_cache_fn)
+    @@#logging.info(train_cache_fn)
 
-    tf.compat.v1.logging.info('Use normal RunConfig')
-    tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
-    dist_strategy = tf.contrib.distribute.MirroredStrategy(
+    @@#logging.info('Use normal RunConfig')
+    @@#logging.info(FLAGS.num_gpu_cores)
+    dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
         num_gpus = FLAGS.num_gpu_cores,
         auto_shard_dataset = True,
         cross_device_ops = AllReduceCrossDeviceOps(
@@ -346,17 +346,17 @@ def main(_):
         save_summary_steps = None,
     )
     model_fn = get_model_fn()
-    tf.compat.v1.logging.info('Use normal Estimator')
+    @@#logging.info('Use normal Estimator')
     estimator = Estimator(
         model_fn = model_fn,
         params = {'batch_size': bsz_per_core, 'cache': None},
         config = run_config,
     )
 
-    tf.compat.v1.logging.info('***** Running training *****')
-    tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
+    @@#logging.info('***** Running training *****')
+    @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
     estimator.train(input_fn = train_input_fn, max_steps = FLAGS.train_steps)
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

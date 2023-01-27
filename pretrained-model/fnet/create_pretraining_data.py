@@ -27,7 +27,7 @@ def convert_to_unicode(text):
 
 
 def printable_text(text):
-    """Returns text encoded in a way suitable for print or `tf.logging`."""
+    """Returns text encoded in a way suitable for print or `tf.compat.v1.logging`."""
 
     # These functions want `str` for both Python2 and Python3, but in one case
     # it's a Unicode string and in the other it's a byte string.
@@ -103,7 +103,7 @@ def create_training_instances(
     """Create `TrainingInstance`s from raw text."""
     all_documents = [[]]
     for input_file in input_files:
-        with tf.gfile.GFile(input_file, 'r') as reader:
+        with tf.compat.v1.gfile.GFile(input_file, 'r') as reader:
             while True:
                 line = tokenization.convert_to_unicode(reader.readline())
                 if not line:

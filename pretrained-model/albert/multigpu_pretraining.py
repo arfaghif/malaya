@@ -228,9 +228,9 @@ def model_fn_builder(
     ):  # pylint: disable=unused-argument
         """The `model_fn` for TPUEstimator."""
 
-        tf.compat.v1.logging.info('*** Features ***')
+        @@#logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
@@ -284,7 +284,7 @@ def model_fn_builder(
         initialized_variable_names = {}
         scaffold_fn = None
         if init_checkpoint:
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 'number of hidden group %d to initialize',
                 albert_config.num_hidden_groups,
             )
@@ -303,8 +303,8 @@ def model_fn_builder(
 
                 def tpu_scaffold():
                     for gid in range(num_of_initialize_group):
-                        tf.compat.v1.logging.info('initialize the %dth layer', gid)
-                        tf.compat.v1.logging.info(assignment_map[gid])
+                        @@#logging.info('initialize the %dth layer', gid)
+                        @@#logging.info(assignment_map[gid])
                         tf.train.init_from_checkpoint(
                             init_checkpoint, assignment_map[gid]
                         )
@@ -313,18 +313,18 @@ def model_fn_builder(
                 scaffold_fn = tpu_scaffold
             else:
                 for gid in range(num_of_initialize_group):
-                    tf.compat.v1.logging.info('initialize the %dth layer', gid)
-                    tf.compat.v1.logging.info(assignment_map[gid])
+                    @@#logging.info('initialize the %dth layer', gid)
+                    @@#logging.info(assignment_map[gid])
                     tf.train.init_from_checkpoint(
                         init_checkpoint, assignment_map[gid]
                     )
 
-        tf.compat.v1.logging.info('**** Trainable Variables ****')
+        @@#logging.info('**** Trainable Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
@@ -441,10 +441,10 @@ def get_masked_lm_output(
     """Get loss and log probs for the masked LM."""
     input_tensor = gather_indexes(input_tensor, positions)
 
-    with tf.compat.v1.variable_scope('cls/predictions'):
+    with @@#variable_scope('cls/predictions'):
         # We apply one more non-linear transformation before the output layer.
         # This matrix is not used after pre-training.
-        with tf.compat.v1.variable_scope('transform'):
+        with @@#variable_scope('transform'):
             input_tensor = tf.layers.dense(
                 input_tensor,
                 units = albert_config.embedding_size,
@@ -492,7 +492,7 @@ def get_sentence_order_output(albert_config, input_tensor, labels):
 
     # Simple binary classification. Note that 0 is "next sentence" and 1 is
     # "random sentence". This weight matrix is not used after pre-training.
-    with tf.compat.v1.variable_scope('cls/seq_relationship'):
+    with @@#variable_scope('cls/seq_relationship'):
         output_weights = tf.get_variable(
             'output_weights',
             shape = [2, albert_config.hidden_size],
@@ -616,7 +616,7 @@ def input_fn_builder(
                 drop_remainder = True,
             )
         )
-        tf.compat.v1.logging.info(d)
+        @@#logging.info(d)
         return d
 
     return input_fn
@@ -709,7 +709,7 @@ def _decode_record(record, name_to_features):
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError(
@@ -726,12 +726,12 @@ def main(_):
     for input_pattern in FLAGS.input_file.split(','):
         input_files.extend(tf.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info('*** Input Files ***')
+    @@#logging.info('*** Input Files ***')
     for input_file in input_files:
-        tf.compat.v1.logging.info('  %s' % input_file)
+        @@#logging.info('  %s' % input_file)
 
-    tf.compat.v1.logging.info('Use normal RunConfig')
-    tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
+    @@#logging.info('Use normal RunConfig')
+    @@#logging.info(FLAGS.num_gpu_cores)
     dist_strategy = tf.contrib.distribute.MirroredStrategy(
         num_gpus = FLAGS.num_gpu_cores,
         auto_shard_dataset = True,
@@ -763,12 +763,12 @@ def main(_):
         start_warmup_step = FLAGS.start_warmup_step,
     )
 
-    tf.compat.v1.logging.info('Use normal Estimator')
+    @@#logging.info('Use normal Estimator')
     estimator = Estimator(model_fn = model_fn, params = {}, config = run_config)
 
     if FLAGS.do_train:
-        tf.compat.v1.logging.info('***** Running training *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
+        @@#logging.info('***** Running training *****')
+        @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
         train_input_fn = input_fn_builder_gpu(
             input_files = input_files,
             max_seq_length = FLAGS.max_seq_length,
@@ -783,8 +783,8 @@ def main(_):
         )
 
     if FLAGS.do_eval:
-        tf.compat.v1.logging.info('***** Running evaluation *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.eval_batch_size)
+        @@#logging.info('***** Running evaluation *****')
+        @@#logging.info('  Batch size = %d', FLAGS.eval_batch_size)
         global_step = -1
         output_eval_file = os.path.join(FLAGS.output_dir, 'eval_results.txt')
         writer = tf.gfile.GFile(output_eval_file, 'w')
@@ -797,16 +797,16 @@ def main(_):
         )
         while global_step < FLAGS.num_train_steps:
             if estimator.latest_checkpoint() is None:
-                tf.compat.v1.logging.info('No checkpoint found yet. Sleeping.')
+                @@#logging.info('No checkpoint found yet. Sleeping.')
                 time.sleep(1)
             else:
                 result = estimator.evaluate(
                     input_fn = eval_input_fn, steps = FLAGS.max_eval_steps
                 )
                 global_step = result['global_step']
-                tf.compat.v1.logging.info('***** Eval results *****')
+                @@#logging.info('***** Eval results *****')
                 for key in sorted(result.keys()):
-                    tf.compat.v1.logging.info('  %s = %s', key, str(result[key]))
+                    @@#logging.info('  %s = %s', key, str(result[key]))
                     writer.write('%s = %s\n' % (key, str(result[key])))
 
 
@@ -814,4 +814,4 @@ if __name__ == '__main__':
     flags.mark_flag_as_required('input_file')
     flags.mark_flag_as_required('albert_config_file')
     flags.mark_flag_as_required('output_dir')
-    tf.compat.v1.app.run()
+    @@#app.run()

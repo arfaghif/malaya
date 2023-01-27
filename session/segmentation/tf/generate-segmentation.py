@@ -80,8 +80,8 @@ os.system('rm -rf t2t-segmentation/data')
 DATA_DIR = os.path.expanduser('t2t-segmentation/data')
 TMP_DIR = os.path.expanduser('t2t-segmentation/tmp')
 
-tf.io.gfile.mkdir(DATA_DIR)
-tf.io.gfile.mkdir(TMP_DIR)
+tf.compat.v1.io.gfile.mkdir(DATA_DIR)
+tf.compat.v1.io.gfile.mkdir(TMP_DIR)
 
 from tensor2tensor.utils import registry
 from tensor2tensor import problems

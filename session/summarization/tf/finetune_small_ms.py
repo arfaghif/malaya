@@ -9,7 +9,7 @@ gcloud compute tpus create node-1 --zone=us-central1-f --accelerator-type='v2-8'
 """
 
 vocab = 'gs://mesolitica-tpu-general/sp10m.cased.t5.model'
-tpu = tf.distribute.cluster_resolver.TPUClusterResolver(
+tpu = tf.compat.v1.distribute.cluster_resolver.TPUClusterResolver(
     'node-1', zone='us-central1-f', project='mesolitica-tpu'
 )
 TPU_ADDRESS = tpu.get_master()
@@ -31,18 +31,18 @@ files = [
 
 def summarization_dataset(split, shuffle_files=False):
     del shuffle_files
-    ds = tf.data.TextLineDataset(
+    ds = tf.compat.v1.data.TextLineDataset(
         files
     )
 
     ds = ds.map(
         functools.partial(
-            tf.io.decode_csv,
+            tf.compat.v1.io.decode_csv,
             record_defaults=['', ''],
             field_delim='\t',
             use_quote_delim=False,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
     ds = ds.map(lambda *ex: dict(zip(['question', 'answer'], ex)))
     return ds
@@ -51,13 +51,13 @@ def summarization_dataset(split, shuffle_files=False):
 def summarization_preprocessor(ds):
     def to_inputs_and_targets(ex):
         return {
-            'inputs': tf.strings.join(['ringkasan: ', ex['question']]),
+            'inputs': tf.compat.v1.strings.join(['ringkasan: ', ex['question']]),
             'targets': ex['answer'],
         }
 
     return ds.map(
         to_inputs_and_targets,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.compat.v1.data.experimental.AUTOTUNE,
     )
 
 
@@ -80,7 +80,7 @@ t5.data.MixtureRegistry.add(
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+    @@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
     model_parallelism, train_batch_size, keep_checkpoint_max = {
         'small': (1, 256, 16),
@@ -115,4 +115,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

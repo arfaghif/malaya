@@ -80,7 +80,7 @@ print("Loaded {:,} test examples.".format(len(test_treebank)))
 
 import tensorflow as tf
 
-sess = tf.InteractiveSession()
+sess = tf.compat.v1.InteractiveSession()
 
 sd = parser.state_dict()
 
@@ -96,8 +96,8 @@ def make_bert_instance(input_ids, input_mask, token_type_ids):
         input_ids=input_ids, input_mask=input_mask, token_type_ids=token_type_ids)
 
     # Next, transfer learned weights (after fine-tuning)
-    bert_variables = [v for v in tf.get_collection('variables') if 'bert' in v.name]
-    tf.variables_initializer(bert_variables).run()
+    bert_variables = [v for v in tf.compat.v1.get_collection('variables') if 'bert' in v.name]
+    tf.compat.v1.variables_initializer(bert_variables).run()
 
     # Based on: convert_tf_checkpoint_to_pytorch.py from pytorch-pretrained-BERT
     for variable in bert_variables:
@@ -144,31 +144,31 @@ def make_bert_instance(input_ids, input_mask, token_type_ids):
 
 def make_bert(input_ids, word_end_mask):
     # We can derive input_mask from either input_ids or word_end_mask
-    input_mask = (1 - tf.cumprod(1 - word_end_mask, axis=-1, reverse=True))
-    token_type_ids = tf.zeros_like(input_ids)
+    input_mask = (1 - tf.compat.v1.cumprod(1 - word_end_mask, axis=-1, reverse=True))
+    token_type_ids = tf.compat.v1.zeros_like(input_ids)
     bert_model = make_bert_instance(input_ids, input_mask, token_type_ids)
 
     bert_features = bert_model.get_sequence_output()
-    bert_features_packed = tf.gather(
-        tf.reshape(bert_features, [-1, int(bert_features.shape[-1])]),
-        tf.to_int32(tf.where(tf.reshape(word_end_mask, (-1,))))[:,0])
-    projected_annotations = tf.matmul(
+    bert_features_packed = tf.compat.v1.gather(
+        tf.compat.v1.reshape(bert_features, [-1, int(bert_features.shape[-1])]),
+        tf.compat.v1.to_int32(tf.compat.v1.where(tf.compat.v1.reshape(word_end_mask, (-1,))))[:,0])
+    projected_annotations = tf.compat.v1.matmul(
         bert_features_packed,
-        tf.constant(sd['project_bert.weight'].numpy().transpose()))
+        tf.compat.v1.constant(sd['project_bert.weight'].numpy().transpose()))
 
     # input_mask is over subwords, whereas valid_mask is over words
-    sentence_lengths = tf.reduce_sum(word_end_mask, -1)
-    valid_mask = (tf.range(tf.reduce_max(sentence_lengths))[None,:] < sentence_lengths[:, None])
-    dim_padded = tf.shape(valid_mask)[:2]
-    mask_flat = tf.reshape(valid_mask, (-1,))
-    dim_flat = tf.shape(mask_flat)[:1]
-    nonpad_ids = tf.to_int32(tf.where(mask_flat)[:,0])
+    sentence_lengths = tf.compat.v1.reduce_sum(word_end_mask, -1)
+    valid_mask = (tf.compat.v1.range(tf.compat.v1.reduce_max(sentence_lengths))[None,:] < sentence_lengths[:, None])
+    dim_padded = tf.compat.v1.shape(valid_mask)[:2]
+    mask_flat = tf.compat.v1.reshape(valid_mask, (-1,))
+    dim_flat = tf.compat.v1.shape(mask_flat)[:1]
+    nonpad_ids = tf.compat.v1.to_int32(tf.compat.v1.where(mask_flat)[:,0])
 
     return projected_annotations, nonpad_ids, dim_flat, dim_padded, valid_mask, sentence_lengths
 
 #%%
 
-position_table = tf.constant(sd['embedding.position_table'], name="position_table")
+position_table = tf.compat.v1.constant(sd['embedding.position_table'], name="position_table")
 
 # %%
 
@@ -178,31 +178,31 @@ def make_layer_norm(input, torch_name, name):
     # tensorflow code adds eps=1e-6 to the variance.
     # However, the resulting mismatch in floating-point values does not seem to
     # translate to any noticable changes in the parser's tree output
-    mean, variance = tf.nn.moments(input, [1], keep_dims=True)
-    return tf.nn.batch_normalization(
+    mean, variance = tf.compat.v1.nn.moments(input, [1], keep_dims=True)
+    return tf.compat.v1.nn.batch_normalization(
         input,
         mean, variance,
-        offset=tf.constant(sd[f'{torch_name}.b_2'], name=f"{name}/offset"),
-        scale=tf.constant(sd[f'{torch_name}.a_2'], name=f"{name}/scale"),
+        offset=tf.compat.v1.constant(sd[f'{torch_name}.b_2'], name=f"{name}/offset"),
+        scale=tf.compat.v1.constant(sd[f'{torch_name}.a_2'], name=f"{name}/scale"),
         variance_epsilon=1e-6)
 
 
 def make_heads(input, shape_bthf, shape_xtf, torch_name, name):
-    res = tf.matmul(input,
-        tf.constant(sd[torch_name].numpy().transpose((1,0,2)).reshape((512, -1)), name=f"{name}/W"))
-    res = tf.reshape(res, shape_bthf)
-    res = tf.transpose(res, (0,2,1,3)) # batch x num_heads x time x feat
-    res = tf.reshape(res, shape_xtf) # _ x time x feat
+    res = tf.compat.v1.matmul(input,
+        tf.compat.v1.constant(sd[torch_name].numpy().transpose((1,0,2)).reshape((512, -1)), name=f"{name}/W"))
+    res = tf.compat.v1.reshape(res, shape_bthf)
+    res = tf.compat.v1.transpose(res, (0,2,1,3)) # batch x num_heads x time x feat
+    res = tf.compat.v1.reshape(res, shape_xtf) # _ x time x feat
     return res
 
 def make_attention(input, nonpad_ids, dim_flat, dim_padded, valid_mask, torch_name, name):
-    input_flat = tf.scatter_nd(indices=nonpad_ids[:, None], updates=input, shape=tf.concat([dim_flat, tf.shape(input)[1:]], axis=0))
-    input_flat_dat, input_flat_pos = tf.split(input_flat, 2, axis=-1)
+    input_flat = tf.compat.v1.scatter_nd(indices=nonpad_ids[:, None], updates=input, shape=tf.compat.v1.concat([dim_flat, tf.compat.v1.shape(input)[1:]], axis=0))
+    input_flat_dat, input_flat_pos = tf.compat.v1.split(input_flat, 2, axis=-1)
 
-    shape_bthf = tf.concat([dim_padded, [8, -1]], axis=0)
-    shape_bhtf = tf.convert_to_tensor([dim_padded[0], 8, dim_padded[1], -1])
-    shape_xtf = tf.convert_to_tensor([dim_padded[0] * 8, dim_padded[1], -1])
-    shape_xf = tf.concat([dim_flat, [-1]], axis=0)
+    shape_bthf = tf.compat.v1.concat([dim_padded, [8, -1]], axis=0)
+    shape_bhtf = tf.compat.v1.convert_to_tensor([dim_padded[0], 8, dim_padded[1], -1])
+    shape_xtf = tf.compat.v1.convert_to_tensor([dim_padded[0] * 8, dim_padded[1], -1])
+    shape_xf = tf.compat.v1.concat([dim_flat, [-1]], axis=0)
 
     qs1 = make_heads(input_flat_dat, shape_bthf, shape_xtf, f'{torch_name}.w_qs1', f'{name}/q_dat')
     ks1 = make_heads(input_flat_dat, shape_bthf, shape_xtf, f'{torch_name}.w_ks1', f'{name}/k_dat')
@@ -211,44 +211,44 @@ def make_attention(input, nonpad_ids, dim_flat, dim_padded, valid_mask, torch_na
     ks2 = make_heads(input_flat_pos, shape_bthf, shape_xtf, f'{torch_name}.w_ks2', f'{name}/k_pos')
     vs2 = make_heads(input_flat_pos, shape_bthf, shape_xtf, f'{torch_name}.w_vs2', f'{name}/v_pos')
 
-    qs = tf.concat([qs1, qs2], axis=-1)
-    ks = tf.concat([ks1, ks2], axis=-1)
-    attn_logits = tf.matmul(qs, ks, transpose_b=True) / (1024 ** 0.5)
+    qs = tf.compat.v1.concat([qs1, qs2], axis=-1)
+    ks = tf.compat.v1.concat([ks1, ks2], axis=-1)
+    attn_logits = tf.compat.v1.matmul(qs, ks, transpose_b=True) / (1024 ** 0.5)
 
-    attn_mask = tf.reshape(tf.tile(valid_mask, [1,8*dim_padded[1]]), tf.shape(attn_logits))
-    # TODO(nikita): use tf.where and -float('inf') here?
-    attn_logits -= 1e10 * tf.to_float(~attn_mask)
+    attn_mask = tf.compat.v1.reshape(tf.compat.v1.tile(valid_mask, [1,8*dim_padded[1]]), tf.compat.v1.shape(attn_logits))
+    # TODO(nikita): use tf.compat.v1.where and -float('inf') here?
+    attn_logits -= 1e10 * tf.compat.v1.to_float(~attn_mask)
 
-    attn = tf.nn.softmax(attn_logits)
+    attn = tf.compat.v1.nn.softmax(attn_logits)
 
-    attended_dat_raw = tf.matmul(attn, vs1)
-    attended_dat_flat = tf.reshape(tf.transpose(tf.reshape(attended_dat_raw, shape_bhtf), (0,2,1,3)), shape_xf)
-    attended_dat = tf.gather(attended_dat_flat, nonpad_ids)
-    attended_pos_raw = tf.matmul(attn, vs2)
-    attended_pos_flat = tf.reshape(tf.transpose(tf.reshape(attended_pos_raw, shape_bhtf), (0,2,1,3)), shape_xf)
-    attended_pos = tf.gather(attended_pos_flat, nonpad_ids)
+    attended_dat_raw = tf.compat.v1.matmul(attn, vs1)
+    attended_dat_flat = tf.compat.v1.reshape(tf.compat.v1.transpose(tf.compat.v1.reshape(attended_dat_raw, shape_bhtf), (0,2,1,3)), shape_xf)
+    attended_dat = tf.compat.v1.gather(attended_dat_flat, nonpad_ids)
+    attended_pos_raw = tf.compat.v1.matmul(attn, vs2)
+    attended_pos_flat = tf.compat.v1.reshape(tf.compat.v1.transpose(tf.compat.v1.reshape(attended_pos_raw, shape_bhtf), (0,2,1,3)), shape_xf)
+    attended_pos = tf.compat.v1.gather(attended_pos_flat, nonpad_ids)
 
-    out_dat = tf.matmul(attended_dat, tf.constant(sd[f'{torch_name}.proj1.weight'].numpy().transpose()))
-    out_pos = tf.matmul(attended_pos, tf.constant(sd[f'{torch_name}.proj2.weight'].numpy().transpose()))
+    out_dat = tf.compat.v1.matmul(attended_dat, tf.compat.v1.constant(sd[f'{torch_name}.proj1.weight'].numpy().transpose()))
+    out_pos = tf.compat.v1.matmul(attended_pos, tf.compat.v1.constant(sd[f'{torch_name}.proj2.weight'].numpy().transpose()))
 
-    out = tf.concat([out_dat, out_pos], -1)
+    out = tf.compat.v1.concat([out_dat, out_pos], -1)
     return make_layer_norm(input + out, f'{torch_name}.layer_norm', f'{name}/layer_norm')
 
 def make_dense_relu_dense(input, torch_name, torch_type, name):
     # TODO: use name
-    mul1 = tf.matmul(input, tf.constant(sd[f'{torch_name}.w_1{torch_type}.weight'].numpy().transpose()))
-    mul1b = tf.nn.bias_add(mul1, tf.constant(sd[f'{torch_name}.w_1{torch_type}.bias']))
-    mul1b = tf.nn.relu(mul1b)
-    mul2 = tf.matmul(mul1b, tf.constant(sd[f'{torch_name}.w_2{torch_type}.weight'].numpy().transpose()))
-    mul2b = tf.nn.bias_add(mul2, tf.constant(sd[f'{torch_name}.w_2{torch_type}.bias']))
+    mul1 = tf.compat.v1.matmul(input, tf.compat.v1.constant(sd[f'{torch_name}.w_1{torch_type}.weight'].numpy().transpose()))
+    mul1b = tf.compat.v1.nn.bias_add(mul1, tf.compat.v1.constant(sd[f'{torch_name}.w_1{torch_type}.bias']))
+    mul1b = tf.compat.v1.nn.relu(mul1b)
+    mul2 = tf.compat.v1.matmul(mul1b, tf.compat.v1.constant(sd[f'{torch_name}.w_2{torch_type}.weight'].numpy().transpose()))
+    mul2b = tf.compat.v1.nn.bias_add(mul2, tf.compat.v1.constant(sd[f'{torch_name}.w_2{torch_type}.bias']))
     return mul2b
 
 def make_ff(input, torch_name, name):
     # TODO: use name
-    input_dat, input_pos = tf.split(input, 2, axis=-1)
+    input_dat, input_pos = tf.compat.v1.split(input, 2, axis=-1)
     out_dat = make_dense_relu_dense(input_dat, torch_name, 'c', name="TODO_dat")
     out_pos = make_dense_relu_dense(input_pos, torch_name, 'p', name="TODO_pos")
-    out = tf.concat([out_dat, out_pos], -1)
+    out = tf.compat.v1.concat([out_dat, out_pos], -1)
     return make_layer_norm(input + out, f'{torch_name}.layer_norm', f'{name}/layer_norm')
 
 def make_stacks(input, nonpad_ids, dim_flat, dim_padded, valid_mask, num_stacks):
@@ -264,8 +264,8 @@ def make_layer_norm_with_constants(input, constants):
     # tensorflow code adds eps=1e-6 to the variance.
     # However, the resulting mismatch in floating-point values does not seem to
     # translate to any noticable changes in the parser's tree output
-    mean, variance = tf.nn.moments(input, [1], keep_dims=True)
-    return tf.nn.batch_normalization(
+    mean, variance = tf.compat.v1.nn.moments(input, [1], keep_dims=True)
+    return tf.compat.v1.nn.batch_normalization(
         input,
         mean, variance,
         offset=constants[0],
@@ -273,88 +273,88 @@ def make_layer_norm_with_constants(input, constants):
         variance_epsilon=1e-6)
 
 def make_flabel_with_constants(input, constants):
-    mul1 = tf.matmul(input, constants[0])
-    mul1b = tf.nn.bias_add(mul1, constants[1])
+    mul1 = tf.compat.v1.matmul(input, constants[0])
+    mul1b = tf.compat.v1.nn.bias_add(mul1, constants[1])
     mul1b = make_layer_norm_with_constants(mul1b, constants[2:4])
-    mul1b = tf.nn.relu(mul1b)
-    mul2 = tf.matmul(mul1b, constants[4])
-    mul2b = tf.nn.bias_add(mul2, constants[5], name='flabel')
+    mul1b = tf.compat.v1.nn.relu(mul1b)
+    mul2 = tf.compat.v1.matmul(mul1b, constants[4])
+    mul2b = tf.compat.v1.nn.bias_add(mul2, constants[5], name='flabel')
     return mul2b
 
 def make_ftag(input):
     constants = (
-        tf.constant(sd['f_tag.0.weight'].numpy().transpose()),
-        tf.constant(sd['f_tag.0.bias']),
-        tf.constant(sd['f_tag.1.b_2'], name="tag/layer_norm/offset"),
-        tf.constant(sd['f_tag.1.a_2'], name="tag/layer_norm/scale"),
-        tf.constant(sd['f_tag.3.weight'].numpy().transpose()),
-        tf.constant(sd['f_tag.3.bias']),
+        tf.compat.v1.constant(sd['f_tag.0.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_tag.0.bias']),
+        tf.compat.v1.constant(sd['f_tag.1.b_2'], name="tag/layer_norm/offset"),
+        tf.compat.v1.constant(sd['f_tag.1.a_2'], name="tag/layer_norm/scale"),
+        tf.compat.v1.constant(sd['f_tag.3.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_tag.3.bias']),
     )
-    mul1 = tf.matmul(input, constants[0])
-    mul1b = tf.nn.bias_add(mul1, constants[1])
+    mul1 = tf.compat.v1.matmul(input, constants[0])
+    mul1b = tf.compat.v1.nn.bias_add(mul1, constants[1])
     mul1b = make_layer_norm_with_constants(mul1b, constants[2:4])
-    mul1b = tf.nn.relu(mul1b)
-    mul2 = tf.matmul(mul1b, constants[4])
-    mul2b = tf.nn.bias_add(mul2, constants[5], name='ftag')
+    mul1b = tf.compat.v1.nn.relu(mul1b)
+    mul2 = tf.compat.v1.matmul(mul1b, constants[4])
+    mul2b = tf.compat.v1.nn.bias_add(mul2, constants[5], name='ftag')
     return mul2b
 
 def make_flabel_constants():
     return (
-        tf.constant(sd['f_label.0.weight'].numpy().transpose()),
-        tf.constant(sd['f_label.0.bias']),
-        tf.constant(sd['f_label.1.b_2'], name="label/layer_norm/offset"),
-        tf.constant(sd['f_label.1.a_2'], name="label/layer_norm/scale"),
-        tf.constant(sd['f_label.3.weight'].numpy().transpose()),
-        tf.constant(sd['f_label.3.bias']),
+        tf.compat.v1.constant(sd['f_label.0.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_label.0.bias']),
+        tf.compat.v1.constant(sd['f_label.1.b_2'], name="label/layer_norm/offset"),
+        tf.compat.v1.constant(sd['f_label.1.a_2'], name="label/layer_norm/scale"),
+        tf.compat.v1.constant(sd['f_label.3.weight'].numpy().transpose()),
+        tf.compat.v1.constant(sd['f_label.3.bias']),
     )
 
 def make_network():
     # batch x num_subwords
-    input_ids = tf.compat.v1.placeholder(shape=(None, None), dtype=tf.int32, name='input_ids')
-    word_end_mask = tf.compat.v1.placeholder(shape=(None, None), dtype=tf.int32, name='word_end_mask')
+    input_ids = @@#placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='input_ids')
+    word_end_mask = @@#placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='word_end_mask')
     input_dat, nonpad_ids, dim_flat, dim_padded, valid_mask, lengths = make_bert(input_ids, word_end_mask)
-    input_pos_flat = tf.tile(position_table[:dim_padded[1]], [dim_padded[0], 1])
-    input_pos = tf.gather(input_pos_flat, nonpad_ids)
+    input_pos_flat = tf.compat.v1.tile(position_table[:dim_padded[1]], [dim_padded[0], 1])
+    input_pos = tf.compat.v1.gather(input_pos_flat, nonpad_ids)
 
-    input_joint = tf.concat([input_dat, input_pos], -1)
+    input_joint = tf.compat.v1.concat([input_dat, input_pos], -1)
     input_joint = make_layer_norm(input_joint, 'embedding.layer_norm', 'embedding/layer_norm')
 
     word_out = make_stacks(input_joint, nonpad_ids, dim_flat, dim_padded, valid_mask, num_stacks=parser.spec['hparams']['num_layers'])
-    word_out = tf.concat([word_out[:, 0::2], word_out[:, 1::2]], -1)
+    word_out = tf.compat.v1.concat([word_out[:, 0::2], word_out[:, 1::2]], -1)
 
     # part-of-speech predictions
     ftag = make_ftag(word_out)
-    tags_packed = tf.argmax(ftag, axis=-1)
-    tags = tf.reshape(
-        tf.scatter_nd(indices=nonpad_ids[:, None], updates=tags_packed, shape=dim_flat),
+    tags_packed = tf.compat.v1.argmax(ftag, axis=-1)
+    tags = tf.compat.v1.reshape(
+        tf.compat.v1.scatter_nd(indices=nonpad_ids[:, None], updates=tags_packed, shape=dim_flat),
         dim_padded
         )
-    tags = tf.identity(tags, name="tags")
+    tags = tf.compat.v1.identity(tags, name="tags")
 
-    fp_out = tf.concat([word_out[:-1,:512], word_out[1:,512:]], -1)
+    fp_out = tf.compat.v1.concat([word_out[:-1,:512], word_out[1:,512:]], -1)
 
-    fp_start_idxs = tf.cumsum(lengths, exclusive=True)
-    fp_end_idxs = tf.cumsum(lengths) - 1 # the number of fenceposts is 1 less than the number of words
+    fp_start_idxs = tf.compat.v1.cumsum(lengths, exclusive=True)
+    fp_end_idxs = tf.compat.v1.cumsum(lengths) - 1 # the number of fenceposts is 1 less than the number of words
 
-    fp_end_idxs_uneven = fp_end_idxs - tf.convert_to_tensor([1, 0])
+    fp_end_idxs_uneven = fp_end_idxs - tf.compat.v1.convert_to_tensor([1, 0])
 
-    # Have to make these outside tf.map_fn for model compression to work
+    # Have to make these outside tf.compat.v1.map_fn for model compression to work
     constants = make_flabel_constants()
 
     def to_map(start_and_end):
         start, end = start_and_end
         fp = fp_out[start:end]
-        flabel = make_flabel_with_constants(tf.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)), constants)
+        flabel = make_flabel_with_constants(tf.compat.v1.reshape(fp[None,:,:] - fp[:,None,:], (-1, 1024)), constants)
         actual_chart_size = end-start
-        flabel = tf.reshape(flabel, [actual_chart_size, actual_chart_size, -1])
+        flabel = tf.compat.v1.reshape(flabel, [actual_chart_size, actual_chart_size, -1])
         amount_to_pad = dim_padded[1] - actual_chart_size
         # extra padding on the label dimension is for the not-a-constituent label,
         # which always has a score of 0
-        flabel = tf.pad(flabel, [[0, amount_to_pad], [0, amount_to_pad], [1, 0]])
+        flabel = tf.compat.v1.pad(flabel, [[0, amount_to_pad], [0, amount_to_pad], [1, 0]])
         return flabel
 
-    charts = tf.map_fn(to_map, (fp_start_idxs, fp_end_idxs), dtype=(tf.float32))
-    charts = tf.identity(charts, name="charts")
+    charts = tf.compat.v1.map_fn(to_map, (fp_start_idxs, fp_end_idxs), dtype=(tf.compat.v1.float32))
+    charts = tf.compat.v1.identity(charts, name="charts")
 
     return input_ids, word_end_mask, charts, tags
 
@@ -451,7 +451,7 @@ output_node_names = [the_out_chart.name.split(':')[0], the_out_tags.name.split('
 print("Input node names:", input_node_names)
 print("Output node names:", output_node_names)
 
-graph_def = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def, output_node_names)
+graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(sess, sess.graph_def, output_node_names)
 
 #%%
 from tensorflow.tools.graph_transforms import TransformGraph
@@ -487,17 +487,17 @@ with open("export/meta.json", "w") as f:
     json.dump(META, f)
 
 #%%
-newg = tf.Graph()
+newg = tf.compat.v1.Graph()
 
 with newg.as_default():
-    tf.import_graph_def(graph_def)
+    tf.compat.v1.import_graph_def(graph_def)
 
 new_inp_tokens = newg.get_tensor_by_name('import/input_ids:0')
 new_inp_mask = newg.get_tensor_by_name('import/word_end_mask:0')
 new_out_chart = newg.get_tensor_by_name('import/charts:0')
 new_out_tags = newg.get_tensor_by_name('import/tags:0')
 
-new_sess = tf.InteractiveSession(graph=newg)
+new_sess = tf.compat.v1.InteractiveSession(graph=newg)
 #%%
 
 def tf_parse_batch_new(sentences):

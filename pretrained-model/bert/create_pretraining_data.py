@@ -25,7 +25,7 @@ import tensorflow as tf
 import re
 from tqdm import tqdm
 
-flags = tf.flags
+flags = tf.compat.v1.flags
 
 FLAGS = flags.FLAGS
 
@@ -117,7 +117,7 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
     """Create TF example files from `TrainingInstance`s."""
     writers = []
     for output_file in output_files:
-        writers.append(tf.python_io.TFRecordWriter(output_file))
+        writers.append(tf.compat.v1.python_io.TFRecordWriter(output_file))
 
     writer_index = 0
 
@@ -157,7 +157,7 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
         features["masked_lm_weights"] = create_float_feature(masked_lm_weights)
         features["next_sentence_labels"] = create_int_feature([next_sentence_label])
 
-        tf_example = tf.train.Example(features=tf.train.Features(feature=features))
+        tf_example = tf.compat.v1.train.Example(features=tf.compat.v1.train.Features(feature=features))
 
         writers[writer_index].write(tf_example.SerializeToString())
         writer_index = (writer_index + 1) % len(writers)
@@ -165,8 +165,8 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
         total_written += 1
 
         if inst_index < 20:
-            tf.compat.v1.logging.info("*** Example ***")
-            tf.compat.v1.logging.info("tokens: %s" % " ".join(
+            @@#logging.info("*** Example ***")
+            @@#logging.info("tokens: %s" % " ".join(
                 [tokenization.printable_text(x) for x in instance.tokens]))
 
             for feature_name in features.keys():
@@ -176,22 +176,22 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
                     values = feature.int64_list.value
                 elif feature.float_list.value:
                     values = feature.float_list.value
-                tf.compat.v1.logging.info(
+                @@#logging.info(
                     "%s: %s" % (feature_name, " ".join([str(x) for x in values])))
 
     for writer in writers:
         writer.close()
 
-    tf.compat.v1.logging.info("Wrote %d total instances", total_written)
+    @@#logging.info("Wrote %d total instances", total_written)
 
 
 def create_int_feature(values):
-    feature = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
+    feature = tf.compat.v1.train.Feature(int64_list=tf.compat.v1.train.Int64List(value=list(values)))
     return feature
 
 
 def create_float_feature(values):
-    feature = tf.train.Feature(float_list=tf.train.FloatList(value=list(values)))
+    feature = tf.compat.v1.train.Feature(float_list=tf.compat.v1.train.FloatList(value=list(values)))
     return feature
 
 
@@ -208,7 +208,7 @@ def create_training_instances(input_files, tokenizer, max_seq_length,
     # (2) Blank lines between documents. Document boundaries are needed so
     # that the "next sentence prediction" task doesn't span between documents.
     for input_file in input_files:
-        with tf.gfile.GFile(input_file, "r") as reader:
+        with tf.compat.v1.gfile.GFile(input_file, "r") as reader:
             while True:
                 line = tokenization.convert_to_unicode(reader.readline())
                 if not line:
@@ -453,18 +453,18 @@ def truncate_seq_pair(tokens_a, tokens_b, max_num_tokens, rng):
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     tokenizer = tokenization.FullTokenizer(
         vocab_file=FLAGS.vocab_file, do_lower_case=FLAGS.do_lower_case)
 
     input_files = []
     for input_pattern in FLAGS.input_file.split(","):
-        input_files.extend(tf.gfile.Glob(input_pattern))
+        input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info("*** Reading from input files ***")
+    @@#logging.info("*** Reading from input files ***")
     for input_file in input_files:
-        tf.compat.v1.logging.info("  %s", input_file)
+        @@#logging.info("  %s", input_file)
 
     rng = random.Random(FLAGS.random_seed)
     instances = create_training_instances(
@@ -473,9 +473,9 @@ def main(_):
         rng)
 
     output_files = FLAGS.output_file.split(",")
-    tf.compat.v1.logging.info("*** Writing to output files ***")
+    @@#logging.info("*** Writing to output files ***")
     for output_file in output_files:
-        tf.compat.v1.logging.info("  %s", output_file)
+        @@#logging.info("  %s", output_file)
 
     write_instance_to_example_files(instances, tokenizer, FLAGS.max_seq_length,
                                     FLAGS.max_predictions_per_seq, output_files)
@@ -485,4 +485,4 @@ if __name__ == "__main__":
     flags.mark_flag_as_required("input_file")
     flags.mark_flag_as_required("output_file")
     flags.mark_flag_as_required("vocab_file")
-    tf.compat.v1.app.run()
+    @@#app.run()

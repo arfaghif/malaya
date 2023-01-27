@@ -7,7 +7,7 @@ import re
 import six
 import optimization
 
-flags = tf.flags
+flags = tf.compat.v1.flags
 
 FLAGS = flags.FLAGS
 
@@ -67,7 +67,7 @@ flags.DEFINE_integer(
 
 flags.DEFINE_bool('use_tpu', False, 'Whether to use TPU or GPU/CPU.')
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_name',
     None,
     'The Cloud TPU to use for training. This should be either the name '
@@ -75,7 +75,7 @@ tf.flags.DEFINE_string(
     'url.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'tpu_zone',
     None,
     '[Optional] GCE zone where the Cloud TPU is located in. If not '
@@ -83,7 +83,7 @@ tf.flags.DEFINE_string(
     'metadata.',
 )
 
-tf.flags.DEFINE_string(
+tf.compat.v1.flags.DEFINE_string(
     'gcp_project',
     None,
     '[Optional] Project name for the Cloud TPU-enabled project. If not '
@@ -91,7 +91,7 @@ tf.flags.DEFINE_string(
     'metadata.',
 )
 
-tf.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
+tf.compat.v1.flags.DEFINE_string('master', None, '[Optional] TensorFlow master URL.')
 
 flags.DEFINE_integer(
     'num_tpu_cores',
@@ -130,7 +130,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
             name = m.group(1)
         name_to_variable[name] = var
 
-    init_vars = tf.train.list_variables(init_checkpoint)
+    init_vars = tf.compat.v1.train.list_variables(init_checkpoint)
 
     assignment_map = collections.OrderedDict()
     for x in init_vars:
@@ -156,38 +156,38 @@ def input_fn_builder(
         batch_size = params['batch_size']
 
         name_to_features = {
-            'input_ids': tf.io.FixedLenFeature([max_seq_length_encoder], tf.int64),
-            'target_ids': tf.io.FixedLenFeature(
-                [max_seq_length_decoder], tf.int64
+            'input_ids': tf.compat.v1.io.FixedLenFeature([max_seq_length_encoder], tf.compat.v1.int64),
+            'target_ids': tf.compat.v1.io.FixedLenFeature(
+                [max_seq_length_decoder], tf.compat.v1.int64
             ),
-            'masked_lm_positions': tf.io.FixedLenFeature(
-                [max_predictions_per_seq], tf.int64
+            'masked_lm_positions': tf.compat.v1.io.FixedLenFeature(
+                [max_predictions_per_seq], tf.compat.v1.int64
             ),
-            'masked_lm_ids': tf.io.FixedLenFeature(
-                [max_predictions_per_seq], tf.int64
+            'masked_lm_ids': tf.compat.v1.io.FixedLenFeature(
+                [max_predictions_per_seq], tf.compat.v1.int64
             ),
-            'masked_lm_weights': tf.io.FixedLenFeature(
-                [max_predictions_per_seq], tf.float32
+            'masked_lm_weights': tf.compat.v1.io.FixedLenFeature(
+                [max_predictions_per_seq], tf.compat.v1.float32
             ),
         }
         if is_training:
-            d = tf.data.Dataset.from_tensor_slices(tf.constant(input_files))
+            d = tf.compat.v1.data.Dataset.from_tensor_slices(tf.compat.v1.constant(input_files))
             d = d.repeat()
             d = d.shuffle(buffer_size = len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.contrib.data.parallel_interleave(
-                    tf.data.TFRecordDataset,
+                tf.compat.v1.contrib.data.parallel_interleave(
+                    tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
                 )
             )
             d = d.shuffle(buffer_size = 100)
         else:
-            d = tf.data.TFRecordDataset(input_files)
+            d = tf.compat.v1.data.TFRecordDataset(input_files)
             d = d.repeat()
         d = d.apply(
-            tf.contrib.data.map_and_batch(
+            tf.compat.v1.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -201,14 +201,14 @@ def input_fn_builder(
 
 def _decode_record(record, name_to_features):
     """Decodes a record to a TensorFlow example."""
-    example = tf.io.parse_single_example(record, name_to_features)
+    example = tf.compat.v1.io.parse_single_example(record, name_to_features)
 
-    # tf.Example only supports tf.int64, but the TPU only supports tf.int32.
+    # tf.compat.v1.Example only supports tf.compat.v1.int64, but the TPU only supports tf.compat.v1.int32.
     # So cast all int64 to int32.
     for name in list(example.keys()):
         t = example[name]
-        if t.dtype == tf.int64:
-            t = tf.to_int32(t)
+        if t.dtype == tf.compat.v1.int64:
+            t = tf.compat.v1.to_int32(t)
         example[name] = t
 
     return example
@@ -227,7 +227,7 @@ def assert_rank(tensor, expected_rank, name = None):
 
     actual_rank = tensor.shape.ndims
     if actual_rank not in expected_rank_dict:
-        scope_name = tf.compat.v1.get_variable_scope().name
+        scope_name = @@#get_variable_scope().name
         raise ValueError(
             'For the tensor `%s` in scope `%s`, the actual rank '
             '`%d` (shape = %s) is not equal to the expected rank `%s`'
@@ -258,7 +258,7 @@ def get_shape_list(tensor, expected_rank = None, name = None):
     if not non_static_indexes:
         return shape
 
-    dyn_shape = tf.shape(tensor)
+    dyn_shape = tf.compat.v1.shape(tensor)
     for index in non_static_indexes:
         shape[index] = dyn_shape[index]
     return shape
@@ -271,14 +271,14 @@ def gather_indexes(sequence_tensor, positions):
     seq_length = sequence_shape[1]
     width = sequence_shape[2]
 
-    flat_offsets = tf.reshape(
-        tf.range(0, batch_size, dtype = tf.int32) * seq_length, [-1, 1]
+    flat_offsets = tf.compat.v1.reshape(
+        tf.compat.v1.range(0, batch_size, dtype = tf.compat.v1.int32) * seq_length, [-1, 1]
     )
-    flat_positions = tf.reshape(positions + flat_offsets, [-1])
-    flat_sequence_tensor = tf.reshape(
+    flat_positions = tf.compat.v1.reshape(positions + flat_offsets, [-1])
+    flat_sequence_tensor = tf.compat.v1.reshape(
         sequence_tensor, [batch_size * seq_length, width]
     )
-    output_tensor = tf.gather(flat_sequence_tensor, flat_positions)
+    output_tensor = tf.compat.v1.gather(flat_sequence_tensor, flat_positions)
     return output_tensor
 
 
@@ -288,33 +288,33 @@ def get_masked_lm_output(
     """Get loss and log probs for the masked LM."""
     input_tensor = gather_indexes(input_tensor, positions)
 
-    with tf.compat.v1.variable_scope('cls/predictions'):
-        with tf.compat.v1.variable_scope('transform'):
-            input_tensor = tf.layers.dense(
-                input_tensor, units = hidden_size, activation = tf.nn.relu
+    with @@#variable_scope('cls/predictions'):
+        with @@#variable_scope('transform'):
+            input_tensor = tf.compat.v1.layers.dense(
+                input_tensor, units = hidden_size, activation = tf.compat.v1.nn.relu
             )
 
-        output_bias = tf.get_variable(
+        output_bias = tf.compat.v1.get_variable(
             'output_bias',
             shape = [vocab_size],
-            initializer = tf.zeros_initializer(),
+            initializer = tf.compat.v1.zeros_initializer(),
         )
-        logits = tf.matmul(input_tensor, output_weights, transpose_b = True)
-        logits = tf.nn.bias_add(logits, output_bias)
-        log_probs = tf.nn.log_softmax(logits, axis = -1)
+        logits = tf.compat.v1.matmul(input_tensor, output_weights, transpose_b = True)
+        logits = tf.compat.v1.nn.bias_add(logits, output_bias)
+        log_probs = tf.compat.v1.nn.log_softmax(logits, axis = -1)
 
-        label_ids = tf.reshape(label_ids, [-1])
-        label_weights = tf.reshape(label_weights, [-1])
+        label_ids = tf.compat.v1.reshape(label_ids, [-1])
+        label_weights = tf.compat.v1.reshape(label_weights, [-1])
 
-        one_hot_labels = tf.one_hot(
-            label_ids, depth = vocab_size, dtype = tf.float32
+        one_hot_labels = tf.compat.v1.one_hot(
+            label_ids, depth = vocab_size, dtype = tf.compat.v1.float32
         )
 
-        per_example_loss = -tf.reduce_sum(
+        per_example_loss = -tf.compat.v1.reduce_sum(
             log_probs * one_hot_labels, axis = [-1]
         )
-        numerator = tf.reduce_sum(label_weights * per_example_loss)
-        denominator = tf.reduce_sum(label_weights) + 1e-5
+        numerator = tf.compat.v1.reduce_sum(label_weights * per_example_loss)
+        denominator = tf.compat.v1.reduce_sum(label_weights) + 1e-5
         loss = numerator / denominator
 
     return (loss, per_example_loss, log_probs)
@@ -329,11 +329,11 @@ def learning_rate_schedule_noam(
     offset = 0,
 ):
     train_steps = float(total_train_steps) - offset
-    step_num = tf.cast(step, tf.float32) - offset
-    learning_rate = tf.math.rsqrt(tf.maximum(step_num, warmup_steps))
+    step_num = tf.compat.v1.cast(step, tf.compat.v1.float32) - offset
+    learning_rate = tf.compat.v1.math.rsqrt(tf.compat.v1.maximum(step_num, warmup_steps))
     learning_rate *= multiplier
     if linear_decay_fraction > 0:
-        learning_rate *= tf.minimum(
+        learning_rate *= tf.compat.v1.minimum(
             1.0,
             (train_steps - step_num) / (train_steps * linear_decay_fraction),
         )
@@ -344,9 +344,9 @@ def model_fn_builder(
     init_checkpoint, learning_rate, num_train_steps, num_warmup_steps, use_tpu
 ):
     def model_fn(features, labels, mode, params):
-        tf.compat.v1.logging.info('*** Features ***')
+        @@#logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
@@ -356,7 +356,7 @@ def model_fn_builder(
         masked_lm_ids = features['masked_lm_ids']
         masked_lm_weights = features['masked_lm_weights']
 
-        is_training = mode == tf.estimator.ModeKeys.TRAIN
+        is_training = mode == tf.compat.v1.estimator.ModeKeys.TRAIN
 
         model = transformer.TransformerEncoderDecoderModel(
             vocab_size,
@@ -387,7 +387,7 @@ def model_fn_builder(
 
         total_loss = loss
 
-        tvars = tf.trainable_variables()
+        tvars = tf.compat.v1.trainable_variables()
 
         initialized_variable_names = {}
         scaffold_fn = None
@@ -399,33 +399,33 @@ def model_fn_builder(
             if use_tpu:
 
                 def tpu_scaffold():
-                    tf.train.init_from_checkpoint(
+                    tf.compat.v1.train.init_from_checkpoint(
                         init_checkpoint, assignment_map
                     )
-                    return tf.train.Scaffold()
+                    return tf.compat.v1.train.Scaffold()
 
                 scaffold_fn = tpu_scaffold
             else:
-                tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+                tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-        tf.compat.v1.logging.info('**** Trainable Variables ****')
+        @@#logging.info('**** Trainable Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            tf.compat.v1.logging.info(
+            @@#logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
         output_spec = None
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == tf.compat.v1.estimator.ModeKeys.TRAIN:
 
             init_lr = learning_rate
-            global_step = tf.train.get_global_step()
+            global_step = tf.compat.v1.train.get_global_step()
             lr = (
                 init_lr
                 / 0.01
-                * tf.rsqrt(tf.maximum(tf.to_float(global_step), 10000))
+                * tf.compat.v1.rsqrt(tf.compat.v1.maximum(tf.compat.v1.to_float(global_step), 10000))
             )
 
             optimizer = adafactor.AdafactorOptimizer(
@@ -434,10 +434,10 @@ def model_fn_builder(
                 beta1 = 0.0,
             )
             if use_tpu:
-                optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
+                optimizer = tf.compat.v1.contrib.tpu.CrossShardOptimizer(optimizer)
             train_op = optimizer.minimize(loss, global_step = global_step)
 
-            # global_step = tf.train.get_global_step()
+            # global_step = tf.compat.v1.train.get_global_step()
             # lr = learning_rate_schedule_noam(
             #     global_step,
             #     total_train_steps = num_train_steps,
@@ -448,7 +448,7 @@ def model_fn_builder(
             #     learning_rate = lr, beta1 = 0.0
             # )
             # if use_tpu:
-            #     optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
+            #     optimizer = tf.compat.v1.contrib.tpu.CrossShardOptimizer(optimizer)
 
             # train_op = optimizer.minimize(loss, global_step = global_step)
 
@@ -460,13 +460,13 @@ def model_fn_builder(
             #     use_tpu,
             # )
 
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                 mode = mode,
                 loss = total_loss,
                 train_op = train_op,
                 scaffold_fn = scaffold_fn,
             )
-        elif mode == tf.estimator.ModeKeys.EVAL:
+        elif mode == tf.compat.v1.estimator.ModeKeys.EVAL:
 
             def metric_fn(
                 masked_lm_example_loss,
@@ -475,23 +475,23 @@ def model_fn_builder(
                 masked_lm_weights,
             ):
                 """Computes the loss and accuracy of the model."""
-                masked_lm_log_probs = tf.reshape(
+                masked_lm_log_probs = tf.compat.v1.reshape(
                     masked_lm_log_probs, [-1, masked_lm_log_probs.shape[-1]]
                 )
-                masked_lm_predictions = tf.argmax(
-                    masked_lm_log_probs, axis = -1, output_type = tf.int32
+                masked_lm_predictions = tf.compat.v1.argmax(
+                    masked_lm_log_probs, axis = -1, output_type = tf.compat.v1.int32
                 )
-                masked_lm_example_loss = tf.reshape(
+                masked_lm_example_loss = tf.compat.v1.reshape(
                     masked_lm_example_loss, [-1]
                 )
-                masked_lm_ids = tf.reshape(masked_lm_ids, [-1])
-                masked_lm_weights = tf.reshape(masked_lm_weights, [-1])
-                masked_lm_accuracy = tf.metrics.accuracy(
+                masked_lm_ids = tf.compat.v1.reshape(masked_lm_ids, [-1])
+                masked_lm_weights = tf.compat.v1.reshape(masked_lm_weights, [-1])
+                masked_lm_accuracy = tf.compat.v1.metrics.accuracy(
                     labels = masked_lm_ids,
                     predictions = masked_lm_predictions,
                     weights = masked_lm_weights,
                 )
-                masked_lm_mean_loss = tf.metrics.mean(
+                masked_lm_mean_loss = tf.compat.v1.metrics.mean(
                     values = masked_lm_example_loss, weights = masked_lm_weights
                 )
 
@@ -509,7 +509,7 @@ def model_fn_builder(
                     masked_lm_weights,
                 ],
             )
-            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
                 mode = mode,
                 loss = total_loss,
                 eval_metrics = eval_metrics,
@@ -526,36 +526,36 @@ def model_fn_builder(
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+    @@#logging.set_verbosity(@@#logging.info)
 
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError(
             'At least one of `do_train` or `do_eval` must be True.'
         )
 
-    tf.io.gfile.mkdir(FLAGS.output_dir)
+    tf.compat.v1.io.gfile.mkdir(FLAGS.output_dir)
 
     input_files = []
     for input_pattern in FLAGS.input_file.split(','):
-        input_files.extend(tf.gfile.Glob(input_pattern))
+        input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    tf.compat.v1.logging.info('*** Input Files ***')
+    @@#logging.info('*** Input Files ***')
     for input_file in input_files:
-        tf.compat.v1.logging.info('  %s' % input_file)
+        @@#logging.info('  %s' % input_file)
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
-        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+        tpu_cluster_resolver = tf.compat.v1.contrib.cluster_resolver.TPUClusterResolver(
             FLAGS.tpu_name, zone = FLAGS.tpu_zone, project = FLAGS.gcp_project
         )
 
-    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-    run_config = tf.contrib.tpu.RunConfig(
+    is_per_host = tf.compat.v1.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.compat.v1.contrib.tpu.RunConfig(
         cluster = tpu_cluster_resolver,
         master = FLAGS.master,
         model_dir = FLAGS.output_dir,
         save_checkpoints_steps = FLAGS.save_checkpoints_steps,
-        tpu_config = tf.contrib.tpu.TPUConfig(
+        tpu_config = tf.compat.v1.contrib.tpu.TPUConfig(
             iterations_per_loop = FLAGS.iterations_per_loop,
             num_shards = FLAGS.num_tpu_cores,
             per_host_input_for_training = is_per_host,
@@ -570,7 +570,7 @@ def main(_):
         use_tpu = FLAGS.use_tpu,
     )
 
-    estimator = tf.contrib.tpu.TPUEstimator(
+    estimator = tf.compat.v1.contrib.tpu.TPUEstimator(
         use_tpu = FLAGS.use_tpu,
         model_fn = model_fn,
         config = run_config,
@@ -579,8 +579,8 @@ def main(_):
     )
 
     if FLAGS.do_train:
-        tf.compat.v1.logging.info('***** Running training *****')
-        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
+        @@#logging.info('***** Running training *****')
+        @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
         train_input_fn = input_fn_builder(
             input_files = input_files,
             max_seq_length_encoder = FLAGS.max_seq_length_encoder,
@@ -596,4 +596,4 @@ def main(_):
 if __name__ == '__main__':
     flags.mark_flag_as_required('input_file')
     flags.mark_flag_as_required('output_dir')
-    tf.compat.v1.app.run()
+    @@#app.run()

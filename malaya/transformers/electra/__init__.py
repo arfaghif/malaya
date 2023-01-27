@@ -55,15 +55,15 @@ class Model:
         device = get_device(**kwargs)
         _graph = tf.Graph()
         with _graph.as_default():
-            with tf.compat.v1.device(device):
-                self.X = tf.compat.v1.placeholder(tf.int32, [None, None])
-                self.segment_ids = tf.compat.v1.placeholder(tf.int32, [None, None])
-                self.top_p = tf.compat.v1.placeholder(tf.float32, None)
-                self.top_k = tf.compat.v1.placeholder(tf.int32, None)
-                self.k = tf.compat.v1.placeholder(tf.int32, None)
-                self.temperature = tf.compat.v1.placeholder(tf.float32, None)
-                self.indices = tf.compat.v1.placeholder(tf.int32, [None, None])
-                self.MASK = tf.compat.v1.placeholder(tf.int32, [None, None])
+            with @@#device(device):
+                self.X = @@#placeholder(tf.int32, [None, None])
+                self.segment_ids = @@#placeholder(tf.int32, [None, None])
+                self.top_p = @@#placeholder(tf.float32, None)
+                self.top_k = @@#placeholder(tf.int32, None)
+                self.k = @@#placeholder(tf.int32, None)
+                self.temperature = @@#placeholder(tf.float32, None)
+                self.indices = @@#placeholder(tf.int32, [None, None])
+                self.MASK = @@#placeholder(tf.int32, [None, None])
                 self._tokenizer = tokenizer
 
                 self.model = modeling.BertModel(
@@ -79,7 +79,7 @@ class Model:
                 self.logits = self.model.get_pooled_output()
                 output_layer = self.model.get_sequence_output()
 
-                with tf.compat.v1.variable_scope('generator_predictions'):
+                with @@#variable_scope('generator_predictions'):
                     hidden = tf.layers.dense(
                         output_layer,
                         units=modeling.get_shape_list(

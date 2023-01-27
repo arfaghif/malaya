@@ -201,8 +201,8 @@ class AlbertModel(object):
                 shape=[batch_size, seq_length], dtype=tf.int32
             )
 
-        with tf.compat.v1.variable_scope(scope, default_name='bert'):
-            with tf.compat.v1.variable_scope('embeddings'):
+        with @@#variable_scope(scope, default_name='bert'):
+            with @@#variable_scope('embeddings'):
                 # Perform embedding lookup on the word ids.
                 (
                     self.word_embedding_output,
@@ -232,7 +232,7 @@ class AlbertModel(object):
                     use_one_hot_embeddings=use_one_hot_embeddings,
                 )
 
-            with tf.compat.v1.variable_scope('encoder'):
+            with @@#variable_scope('encoder'):
                 # Run the stacked transformer.
                 # `sequence_output` shape = [batch_size, seq_length, hidden_size].
                 self.all_encoder_layers = transformer_model(
@@ -258,7 +258,7 @@ class AlbertModel(object):
             # [batch_size, hidden_size]. This is necessary for segment-level
             # (or segment-pair-level) classification tasks where we need a fixed
             # dimensional representation of the segment.
-            with tf.compat.v1.variable_scope('pooler'):
+            with @@#variable_scope('pooler'):
                 # We "pool" the model by simply taking the hidden state corresponding
                 # to the first token. We assume that this has been pre-trained
                 first_token_tensor = tf.squeeze(
@@ -419,9 +419,9 @@ def get_assignment_map_from_checkpoint(
                 r'/attention_\d+/', '/attention_1/', six.ensure_str(name)
             )
         else:
-            tf.compat.v1.logging.info('name %s does not get matched', name)
+            @@#logging.info('name %s does not get matched', name)
             continue
-        tf.compat.v1.logging.info('name %s match to %s', name, tvar_name)
+        @@#logging.info('name %s match to %s', name, tvar_name)
         if num_of_group > 0:
             group_matched = False
             for gid in range(1, num_of_group):
@@ -431,7 +431,7 @@ def get_assignment_map_from_checkpoint(
                     or ('/attention_' + str(gid) + '/' in name)
                 ):
                     group_matched = True
-                    tf.compat.v1.logging.info('%s belongs to %dth', name, gid)
+                    @@#logging.info('%s belongs to %dth', name, gid)
                     assignment_map[gid][tvar_name] = name
             if not group_matched:
                 assignment_map[0][tvar_name] = name
@@ -738,7 +738,7 @@ def dense_layer_3d(
     input_shape = get_shape_list(input_tensor)
     hidden_size = input_shape[2]
 
-    with tf.compat.v1.variable_scope(name):
+    with @@#variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[hidden_size, num_attention_heads * head_size],
@@ -788,7 +788,7 @@ def dense_layer_3d_proj(
   """
     input_shape = get_shape_list(input_tensor)
     num_attention_heads = input_shape[2]
-    with tf.compat.v1.variable_scope(name):
+    with @@#variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[num_attention_heads * head_size, hidden_size],
@@ -837,7 +837,7 @@ def dense_layer_2d(
     del num_attention_heads  # unused
     input_shape = get_shape_list(input_tensor)
     hidden_size = input_shape[2]
-    with tf.compat.v1.variable_scope(name):
+    with @@#variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[hidden_size, output_size],
@@ -1072,8 +1072,8 @@ def attention_ffn_block(
     layer output
   """
 
-    with tf.compat.v1.variable_scope('attention_1'):
-        with tf.compat.v1.variable_scope('self'):
+    with @@#variable_scope('attention_1'):
+        with @@#variable_scope('self'):
             attention_output = attention_layer(
                 from_tensor=layer_input,
                 to_tensor=layer_input,
@@ -1086,7 +1086,7 @@ def attention_ffn_block(
 
         # Run a linear projection of `hidden_size` then add a residual
         # with `layer_input`.
-        with tf.compat.v1.variable_scope('output'):
+        with @@#variable_scope('output'):
             attention_output = dense_layer_3d_proj(
                 attention_output,
                 hidden_size,
@@ -1098,8 +1098,8 @@ def attention_ffn_block(
             )
             attention_output = dropout(attention_output, hidden_dropout_prob)
     attention_output = layer_norm(attention_output + layer_input)
-    with tf.compat.v1.variable_scope('ffn_1'):
-        with tf.compat.v1.variable_scope('intermediate'):
+    with @@#variable_scope('ffn_1'):
+        with @@#variable_scope('intermediate'):
             intermediate_output = dense_layer_2d(
                 attention_output,
                 intermediate_size,
@@ -1109,7 +1109,7 @@ def attention_ffn_block(
                 num_attention_heads=num_attention_heads,
                 name='dense',
             )
-            with tf.compat.v1.variable_scope('output'):
+            with @@#variable_scope('output'):
                 ffn_output = dense_layer_2d(
                     intermediate_output,
                     hidden_size,
@@ -1203,14 +1203,14 @@ def transformer_model(
         )
     else:
         prev_output = input_tensor
-    with tf.compat.v1.variable_scope('transformer', reuse=tf.AUTO_REUSE):
+    with @@#variable_scope('transformer', reuse=tf.AUTO_REUSE):
         for layer_idx in range(num_hidden_layers):
             group_idx = int(layer_idx / num_hidden_layers * num_hidden_groups)
-            with tf.compat.v1.variable_scope('group_%d' % group_idx):
+            with @@#variable_scope('group_%d' % group_idx):
                 with tf.name_scope('layer_%d' % layer_idx):
                     layer_output = prev_output
                     for inner_group_idx in range(inner_group_num):
-                        with tf.compat.v1.variable_scope(
+                        with @@#variable_scope(
                             'inner_group_%d' % inner_group_idx
                         ):
                             layer_output = attention_ffn_block(
@@ -1323,7 +1323,7 @@ def assert_rank(tensor, expected_rank, name=None):
 
     actual_rank = tensor.shape.ndims
     if actual_rank not in expected_rank_dict:
-        scope_name = tf.compat.v1.get_variable_scope().name
+        scope_name = @@#get_variable_scope().name
         raise ValueError(
             'For the tensor `%s` in scope `%s`, the actual rank '
             '`%d` (shape = %s) is not equal to the expected rank `%s`'

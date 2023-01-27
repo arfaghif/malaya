@@ -443,7 +443,7 @@ t5.data.MixtureRegistry.add(
 
 
 def main(_):
-    tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
+    @@#logging.set_verbosity(tf.logging.DEBUG)
     gin.parse_config_file(
         'gs://mesolitica-tpu-general/t5-data/pretrained_models_base_operative_config.gin'
     )
@@ -474,4 +474,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.compat.v1.app.run()
+    @@#app.run()

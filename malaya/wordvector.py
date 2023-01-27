@@ -92,7 +92,7 @@ class WordVector:
             logger.warning(
                 'Load pretrained wordvector into `malaya.wordvector.WordVector` class will disable eager execution.'
             )
-            tf.compat.v1.disable_eager_execution()
+            @@#disable_eager_execution()
 
         self._embed_matrix = embed_matrix
         self._dictionary = dictionary
@@ -102,11 +102,11 @@ class WordVector:
         device = get_device(**kwargs)
         _graph = tf.Graph()
         with _graph.as_default():
-            with tf.compat.v1.device(device):
-                self._embedding = tf.compat.v1.placeholder(
+            with @@#device(device):
+                self._embedding = @@#placeholder(
                     tf.float32, self._embed_matrix.shape
                 )
-                self._x = tf.compat.v1.placeholder(
+                self._x = @@#placeholder(
                     tf.float32, [None, self._embed_matrix.shape[1]]
                 )
                 normed_embedding = tf.nn.l2_normalize(self._embedding, axis=1)

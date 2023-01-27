@@ -529,40 +529,40 @@ malaya.model.t5
 malaya.model.tf
 ----------------------------------
 
-.. autoclass:: malaya.model.tf.DeepLang()
+.. autoclass:: malaya.model.tf.compat.v1.DeepLang()
     :members:
 
-.. autoclass:: malaya.model.tf.Translation()
+.. autoclass:: malaya.model.tf.compat.v1.Translation()
     :members:
 
-.. autoclass:: malaya.model.tf.Constituency()
+.. autoclass:: malaya.model.tf.compat.v1.Constituency()
     :members:
 
-.. autoclass:: malaya.model.tf.TrueCase()
+.. autoclass:: malaya.model.tf.compat.v1.TrueCase()
     :members:
 
-.. autoclass:: malaya.model.tf.Segmentation()
+.. autoclass:: malaya.model.tf.compat.v1.Segmentation()
     :members:
 
-.. autoclass:: malaya.model.tf.Paraphrase()
+.. autoclass:: malaya.model.tf.compat.v1.Paraphrase()
     :members:
     
-.. autoclass:: malaya.model.tf.Tatabahasa()
+.. autoclass:: malaya.model.tf.compat.v1.Tatabahasa()
     :members:
 
-.. autoclass:: malaya.model.tf.SQUAD()
+.. autoclass:: malaya.model.tf.compat.v1.SQUAD()
     :members:
 
-.. autoclass:: malaya.model.tf.GPT2()
+.. autoclass:: malaya.model.tf.compat.v1.GPT2()
     :members:
 
-.. autoclass:: malaya.model.tf.Seq2SeqLSTM()
+.. autoclass:: malaya.model.tf.compat.v1.Seq2SeqLSTM()
     :members:
 
-.. autoclass:: malaya.model.tf.JawiRumi()
+.. autoclass:: malaya.model.tf.compat.v1.JawiRumi()
     :members:
 
-.. autoclass:: malaya.model.tf.RumiJawi()
+.. autoclass:: malaya.model.tf.compat.v1.RumiJawi()
     :members:
 
 malaya.model.xlnet

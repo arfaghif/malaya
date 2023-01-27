@@ -46,7 +46,7 @@ def maybe_flatten3d2d(x):
     xshape = common_layers.shape_list(x)
     if len(xshape) != 3:
         return x
-    return tf.reshape(x, [xshape[0], xshape[1] * xshape[2]])
+    return tf.compat.v1.reshape(x, [xshape[0], xshape[1] * xshape[2]])
 
 
 def maybe_flatten4d2d(x):
@@ -57,14 +57,14 @@ def features_to_nonpadding(features, inputs_or_targets = 'inputs'):
     """See transformer.features_to_nonpadding."""
     key = inputs_or_targets + '_segmentation'
     if features and key in features:
-        return tf.minimum(tf.to_float(features[key]), 1.0)
+        return tf.compat.v1.minimum(tf.compat.v1.to_float(features[key]), 1.0)
     return None
 
 
 def gather_2d(params, indices):
-    """2D version of tf.gather.
+    """2D version of tf.compat.v1.gather.
 
-  This is a batched version of tf.gather(), i.e. it applies tf.gather() to
+  This is a batched version of tf.compat.v1.gather(), i.e. it applies tf.compat.v1.gather() to
   each batch separately.
   Example:
     params = [[10, 11, 12, 13, 14],
@@ -83,16 +83,16 @@ def gather_2d(params, indices):
       Entries must be smaller than n
 
   Returns:
-    The result of tf.gather() on each entry of the batch.
+    The result of tf.compat.v1.gather() on each entry of the batch.
   """
-    batch_size = tf.shape(params)[0]
-    num_indices = tf.shape(indices)[1]
-    batch_indices = tf.tile(
-        tf.expand_dims(tf.range(batch_size), 1), [1, num_indices]
+    batch_size = tf.compat.v1.shape(params)[0]
+    num_indices = tf.compat.v1.shape(indices)[1]
+    batch_indices = tf.compat.v1.tile(
+        tf.compat.v1.expand_dims(tf.compat.v1.range(batch_size), 1), [1, num_indices]
     )
     # batch_indices is [[0,0,0,0,...],[1,1,1,1,...],...]
-    gather_nd_indices = tf.stack([batch_indices, indices], axis = 2)
-    return tf.gather_nd(params, gather_nd_indices)
+    gather_nd_indices = tf.compat.v1.stack([batch_indices, indices], axis = 2)
+    return tf.compat.v1.gather_nd(params, gather_nd_indices)
 
 
 @registry.register_model
@@ -233,7 +233,7 @@ class TransformerTag(t2t_model.T2TModel):
         loss_mask = common_layers.weights_nonzero(
             maybe_flatten4d2d(features['targets_raw'])
         )
-        self.loss_den = tf.reduce_sum(loss_mask)
+        self.loss_den = tf.compat.v1.reduce_sum(loss_mask)
         decoder_output = self._prediction_cascade(
             hparams = hparams,
             features = features,
@@ -246,7 +246,7 @@ class TransformerTag(t2t_model.T2TModel):
         )
 
         if hparams.middle_prediction:
-            with tf.compat.v1.variable_scope('after_prediction'):
+            with @@#variable_scope('after_prediction'):
                 decoder_output = self.decode(
                     decoder_input + decoder_output,
                     encoder_output,
@@ -258,10 +258,10 @@ class TransformerTag(t2t_model.T2TModel):
                     **decode_kwargs
                 )
 
-        ret = {'targets': tf.reshape(decoder_output, targets_shape)}
+        ret = {'targets': tf.compat.v1.reshape(decoder_output, targets_shape)}
         ret.update(self.logits)
         if losses:
-            return ret, {'extra_loss': tf.add_n(losses)}
+            return ret, {'extra_loss': tf.compat.v1.add_n(losses)}
         else:
             return ret
 
@@ -332,7 +332,7 @@ class TransformerTag(t2t_model.T2TModel):
             loss_num, loss_den = super(TransformerTag, self)._loss_single(
                 logits, feature_name, feature, weights
             )
-        tf.summary.scalar('loss/%s' % feature_name, loss_num / loss_den)
+        tf.compat.v1.summary.scalar('loss/%s' % feature_name, loss_num / loss_den)
         return loss_num, loss_den
 
     def top(self, body_output, features):
@@ -341,10 +341,10 @@ class TransformerTag(t2t_model.T2TModel):
         for feat in body_output.keys():
             while len(body_output[feat].shape) < 4:
                 logging.warning('Expanding body output %s...', feat)
-                body_output[feat] = tf.expand_dims(body_output[feat], -2)
+                body_output[feat] = tf.compat.v1.expand_dims(body_output[feat], -2)
             if feat in exp_features:
                 while len(exp_features[feat].shape) < 4:
-                    exp_features[feat] = tf.expand_dims(exp_features[feat], -1)
+                    exp_features[feat] = tf.compat.v1.expand_dims(exp_features[feat], -1)
                     logging.warning('Expanding feature %s...', feat)
         return super(TransformerTag, self).top(body_output, exp_features)
 
@@ -358,11 +358,11 @@ class TransformerTag(t2t_model.T2TModel):
         dp = self._data_parallelism
         hparams = self._hparams
         inputs = features['inputs']
-        inputs = tf.expand_dims(inputs, axis = 1)
+        inputs = tf.compat.v1.expand_dims(inputs, axis = 1)
         if len(inputs.shape) < 5:
-            inputs = tf.expand_dims(inputs, axis = 4)
+            inputs = tf.compat.v1.expand_dims(inputs, axis = 4)
         s = common_layers.shape_list(inputs)
-        inputs = tf.reshape(inputs, [s[0] * s[1], s[2], s[3], s[4]])
+        inputs = tf.compat.v1.reshape(inputs, [s[0] * s[1], s[2], s[3], s[4]])
         inputs = self._shard_features({'inputs': inputs})['inputs']
         input_modality = self._problem_hparams.modality['inputs']
         input_vocab_size = self._problem_hparams.vocab_size['inputs']
@@ -371,7 +371,7 @@ class TransformerTag(t2t_model.T2TModel):
         modality_name = hparams.name.get(
             'inputs', modalities.get_name(input_modality)
         )(hparams, input_vocab_size)
-        with tf.compat.v1.variable_scope(modality_name):
+        with @@#variable_scope(modality_name):
             bottom = hparams.bottom.get(
                 'inputs', modalities.get_bottom(input_modality)
             )
@@ -412,7 +412,7 @@ class TransformerTag(t2t_model.T2TModel):
             return super(TransformerTag, self)._greedy_infer(
                 features, decode_length
             )
-        with tf.compat.v1.variable_scope(self.name):
+        with @@#variable_scope(self.name):
             if use_tpu:
                 return self._fast_decode_tpu(features, decode_length)
             return self._fast_decode(features, decode_length)
@@ -469,7 +469,7 @@ class TransformerTag(t2t_model.T2TModel):
                 )
             batch_size = inputs_shape[0]
             inputs = self._prepare_inputs_for_decode(features)
-            with tf.compat.v1.variable_scope('body'):
+            with @@#variable_scope('body'):
                 encoder_output, encoder_decoder_attention_bias = dp(
                     self.encode,
                     inputs,
@@ -492,7 +492,7 @@ class TransformerTag(t2t_model.T2TModel):
             partial_targets = common_layers.expand_squeeze_to_nd(
                 partial_targets, 2
             )
-            partial_targets = tf.to_int64(partial_targets)
+            partial_targets = tf.compat.v1.to_int64(partial_targets)
             partial_targets_shape = common_layers.shape_list(partial_targets)
             partial_targets_length = partial_targets_shape[1]
             decode_length = partial_targets_length + features.get(
@@ -506,13 +506,13 @@ class TransformerTag(t2t_model.T2TModel):
             )
         elif hparams.pos == 'timing_from_features':
             positional_encoding = common_attention.add_timing_signals_from_features(
-                tf.zeros([1, decode_length, hparams.hidden_size]),
+                tf.compat.v1.zeros([1, decode_length, hparams.hidden_size]),
                 features,
                 hparams.position_features,
             )
         elif hparams.pos == 'emb':
             positional_encoding = common_attention.add_positional_embedding(
-                tf.zeros([1, decode_length, hparams.hidden_size]),
+                tf.compat.v1.zeros([1, decode_length, hparams.hidden_size]),
                 hparams.max_length,
                 'body/targets_positional_embedding',
                 None,
@@ -525,7 +525,7 @@ class TransformerTag(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.compat.v1.variable_scope(modality_name + '/targets'):
+            with @@#variable_scope(modality_name + '/targets'):
                 bottom = hparams.bottom.get(
                     'targets', modalities.get_targets_bottom(target_modality)
                 )
@@ -533,9 +533,9 @@ class TransformerTag(t2t_model.T2TModel):
             targets = common_layers.flatten4d3d(targets)
 
             if not self.get_decode_start_id():
-                targets = tf.cond(
-                    tf.equal(i, 0),
-                    lambda: tf.zeros_like(targets),
+                targets = tf.compat.v1.cond(
+                    tf.compat.v1.equal(i, 0),
+                    lambda: tf.compat.v1.zeros_like(targets),
                     lambda: targets,
                 )
 
@@ -550,7 +550,7 @@ class TransformerTag(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets_error_tag', modalities.get_name(target_tag_modality)
             )(hparams, target_tag_vocab_size)
-            with tf.compat.v1.variable_scope(modality_name + '/targets_error_tag'):
+            with @@#variable_scope(modality_name + '/targets_error_tag'):
                 bottom = hparams.bottom.get(
                     'targets_error_tag',
                     modalities.get_targets_bottom(target_tag_modality),
@@ -558,9 +558,9 @@ class TransformerTag(t2t_model.T2TModel):
                 targets = dp(bottom, targets, hparams, target_tag_vocab_size)[0]
             targets = common_layers.flatten4d3d(targets)
             if not self.get_decode_start_id():
-                targets = tf.cond(
-                    tf.equal(i, 0),
-                    lambda: tf.zeros_like(targets),
+                targets = tf.compat.v1.cond(
+                    tf.compat.v1.equal(i, 0),
+                    lambda: tf.compat.v1.zeros_like(targets),
                     lambda: targets,
                 )
 
@@ -582,7 +582,7 @@ class TransformerTag(t2t_model.T2TModel):
                 encoder_output
             )[0:2]
             for layer in range(num_layers):
-                att_cache['attention_history']['layer_%d' % layer] = tf.zeros(
+                att_cache['attention_history']['layer_%d' % layer] = tf.compat.v1.zeros(
                     [att_batch_size, hparams.num_heads, 0, enc_seq_length]
                 )
 
@@ -604,7 +604,7 @@ class TransformerTag(t2t_model.T2TModel):
                     idx += 1
                 layer_nbr = 'layer_%d' % int(layer_nbr[:idx])
                 if layer_nbr in cache['attention_history']:
-                    cache['attention_history'][layer_nbr] = tf.concat(
+                    cache['attention_history'][layer_nbr] = tf.compat.v1.concat(
                         [
                             cache['attention_history'][layer_nbr],
                             self.attention_weights[k],
@@ -618,30 +618,30 @@ class TransformerTag(t2t_model.T2TModel):
         def symbols_to_logits_fn(ids, ids_tag, i, cache):
             """Go from ids to logits for next symbol."""
             ids = ids[:, -1:]
-            targets = tf.expand_dims(tf.expand_dims(ids, axis = 2), axis = 3)
+            targets = tf.compat.v1.expand_dims(tf.compat.v1.expand_dims(ids, axis = 2), axis = 3)
             targets = preprocess_targets_method(targets, i)
 
             ids_tag = ids_tag[:, -1:]
-            targets_tag = tf.expand_dims(
-                tf.expand_dims(ids_tag, axis = 2), axis = 3
+            targets_tag = tf.compat.v1.expand_dims(
+                tf.compat.v1.expand_dims(ids_tag, axis = 2), axis = 3
             )
             targets_tag = preprocess_targets_tag_method(targets_tag, i)
 
             bias = decoder_self_attention_bias[:, :, i : i + 1, : i + 1]
 
-            with tf.compat.v1.variable_scope('body'):
-                with tf.compat.v1.variable_scope('edit_ops_layer'):
-                    with tf.compat.v1.variable_scope('ffn'):
+            with @@#variable_scope('body'):
+                with @@#variable_scope('edit_ops_layer'):
+                    with @@#variable_scope('ffn'):
                         x = targets
                         preproc = lambda z: common_layers.layer_preprocess(
                             z, hparams, layer_collection = None
                         )
                         layer_inputs = [
-                            tf.concat(preproc(x), axis = 0),
-                            tf.concat(preproc(targets_tag), axis = 0),
+                            tf.compat.v1.concat(preproc(x), axis = 0),
+                            tf.compat.v1.concat(preproc(targets_tag), axis = 0),
                         ]
                         y = transformer_layers.transformer_ffn_layer(
-                            tf.concat(layer_inputs, axis = 2),
+                            tf.compat.v1.concat(layer_inputs, axis = 2),
                             hparams,
                             conv_padding = 'LEFT',
                             nonpadding_mask = features_to_nonpadding(
@@ -684,7 +684,7 @@ class TransformerTag(t2t_model.T2TModel):
                 )
                 logits_tag = logits_tag[0]['targets_error_tag']
                 if hparams.middle_prediction:
-                    with tf.compat.v1.variable_scope('after_prediction'):
+                    with @@#variable_scope('after_prediction'):
                         body_outputs = dp(
                             self.decode,
                             targets + body_outputs[0],
@@ -703,7 +703,7 @@ class TransformerTag(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.compat.v1.variable_scope('targets/' + modality_name):
+            with @@#variable_scope('targets/' + modality_name):
                 top = hparams.top.get(
                     'targets', modalities.get_top(target_modality)
                 )
@@ -711,24 +711,24 @@ class TransformerTag(t2t_model.T2TModel):
                     top, body_outputs, None, hparams, target_vocab_size
                 )[0]
 
-            ret = tf.squeeze(logits, axis = [1, 2])
+            ret = tf.compat.v1.squeeze(logits, axis = [1, 2])
             if partial_targets is not None:
-                vocab_size = tf.shape(ret)[1]
+                vocab_size = tf.compat.v1.shape(ret)[1]
 
                 def forced_logits():
-                    return tf.one_hot(
-                        tf.tile(partial_targets[:, i], [beam_size]),
+                    return tf.compat.v1.one_hot(
+                        tf.compat.v1.tile(partial_targets[:, i], [beam_size]),
                         vocab_size,
                         0.0,
                         -1e9,
                     )
 
-                ret = tf.cond(
-                    tf.less(i, partial_targets_length),
+                ret = tf.compat.v1.cond(
+                    tf.compat.v1.less(i, partial_targets_length),
                     forced_logits,
                     lambda: ret,
                 )
-            logits_tag = tf.squeeze(logits_tag, axis = [1])
+            logits_tag = tf.compat.v1.squeeze(logits_tag, axis = [1])
             return ret, logits_tag, cache
 
         sos_id = self.get_decode_start_id() or 0
@@ -798,8 +798,8 @@ def transformer_edit_ops_layer(
     """Layer that conditions on the error tag and start and end token pointers."""
     if isinstance(encoder_output, list):  # Select forward encoder
         encoder_output = encoder_output[0]
-    with tf.compat.v1.variable_scope('edit_ops_layer'):
-        with tf.compat.v1.variable_scope('ffn'):
+    with @@#variable_scope('edit_ops_layer'):
+        with @@#variable_scope('ffn'):
             x = decoder_input
             # Shorthand for layer preprocessing
             # pylint: disable=g-long-lambda
@@ -813,7 +813,7 @@ def transformer_edit_ops_layer(
             )
             layer_inputs.append(preproc(error_tags))
             y = transformer_layers.transformer_ffn_layer(
-                tf.concat(layer_inputs, axis = 2),
+                tf.compat.v1.concat(layer_inputs, axis = 2),
                 hparams,
                 conv_padding = 'LEFT',
                 nonpadding_mask = nonpadding,
@@ -837,9 +837,9 @@ def transformer_between_predictions_layer(
     layer_collection = None,
 ):
     """Stack between prediction layers."""
-    with tf.compat.v1.variable_scope(name):
+    with @@#variable_scope(name):
         for i in range(hparams.ffn_in_prediction_cascade):
-            with tf.compat.v1.variable_scope('layer_%d' % i):
+            with @@#variable_scope('layer_%d' % i):
                 y = transformer_layers.transformer_ffn_layer(
                     common_layers.layer_preprocess(
                         x, hparams, layer_collection = layer_collection
@@ -859,7 +859,7 @@ def transformer_between_predictions_layer(
 def get_error_tag_embedding_matrix():
     candidates = [
         var
-        for var in tf.global_variables()
+        for var in tf.compat.v1.global_variables()
         if 'targets_error_tag' in var.op.name
     ]
     if len(candidates) != 1:
@@ -875,13 +875,13 @@ def transformer_error_tag_prediction_layer(
     x, hparams, features, loss_mask, layer_collection = None
 ):
     """Layer that predicts the error tag."""
-    with tf.compat.v1.variable_scope('error_tag_prediction'):
+    with @@#variable_scope('error_tag_prediction'):
         x = maybe_flatten4d3d(x)
         vocab_size = hparams.problem.feature_info[
             'targets_error_tag'
         ].vocab_size
         labels = features['targets_error_tag_raw']
-        with tf.compat.v1.variable_scope('projection'):
+        with @@#variable_scope('projection'):
             bottleneck = common_layers.dense(
                 x,
                 hparams.error_tag_embed_size,
@@ -895,11 +895,11 @@ def transformer_error_tag_prediction_layer(
                 layer_collection = layer_collection,
                 name = 'logits',
             )
-            xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            xent = tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
                 logits = logits, labels = labels
             )
-            loss = tf.reduce_sum(xent * loss_mask)
-        with tf.compat.v1.variable_scope('embedding'):
+            loss = tf.compat.v1.reduce_sum(xent * loss_mask)
+        with @@#variable_scope('embedding'):
             # embed_mat = get_error_tag_embedding_matrix()
             y = common_layers.layer_preprocess(
                 common_layers.embedding(
@@ -918,12 +918,12 @@ def transformer_error_tag_prediction_layer(
 def transformer_error_tag_prediction_layer_predict(
     x, hparams, layer_collection = None
 ):
-    with tf.compat.v1.variable_scope('error_tag_prediction'):
+    with @@#variable_scope('error_tag_prediction'):
         x = maybe_flatten4d3d(x)
         vocab_size = hparams.problem.feature_info[
             'targets_error_tag'
         ].vocab_size
-        with tf.compat.v1.variable_scope('projection'):
+        with @@#variable_scope('projection'):
             bottleneck = common_layers.dense(
                 x,
                 hparams.error_tag_embed_size,
@@ -937,8 +937,8 @@ def transformer_error_tag_prediction_layer_predict(
                 layer_collection = layer_collection,
                 name = 'logits',
             )
-        labels = tf.argmax(logits, axis = -1)
-        with tf.compat.v1.variable_scope('embedding'):
+        labels = tf.compat.v1.argmax(logits, axis = -1)
+        with @@#variable_scope('embedding'):
             y = common_layers.layer_preprocess(
                 common_layers.embedding(
                     labels,
@@ -977,11 +977,11 @@ def _init_transformer_cache(
             'layer_%d'
             % layer: {
                 'k': common_attention.split_heads(
-                    tf.zeros([batch_size, attention_init_length, key_channels]),
+                    tf.compat.v1.zeros([batch_size, attention_init_length, key_channels]),
                     hparams.num_heads,
                 ),
                 'v': common_attention.split_heads(
-                    tf.zeros(
+                    tf.compat.v1.zeros(
                         [batch_size, attention_init_length, value_channels]
                     ),
                     hparams.num_heads,
@@ -992,14 +992,14 @@ def _init_transformer_cache(
     )
     if hparams.ffn_layer not in ['dense_relu_dense', 'conv_hidden_relu']:
         for layer in range(num_layers):
-            cache['layer_%d' % layer]['f'] = tf.zeros(
+            cache['layer_%d' % layer]['f'] = tf.compat.v1.zeros(
                 [batch_size, 0, hparams.hidden_size]
             )
 
     if encoder_output is not None:
         for layer in range(num_layers):
             layer_name = 'layer_%d' % layer
-            with tf.compat.v1.variable_scope(
+            with @@#variable_scope(
                 '%sdecoder/%s/encdec_attention/multihead_attention'
                 % (scope_prefix, layer_name)
             ):
@@ -1101,7 +1101,7 @@ def fast_decode(
     )
 
     if beam_size > 1:  # Beam Search
-        initial_ids = sos_id * tf.ones([batch_size], dtype = tf.int32)
+        initial_ids = sos_id * tf.compat.v1.ones([batch_size], dtype = tf.compat.v1.int32)
         decoded_ids, scores, cache = beam_search.beam_search(
             symbols_to_logits_fn,
             initial_ids,
@@ -1160,18 +1160,18 @@ def fast_decode(
                     logits_tag, temperature, top_k
                 )
 
-            log_prob_indices = tf.stack(
-                [tf.range(tf.to_int64(batch_size)), next_id], axis = 1
+            log_prob_indices = tf.compat.v1.stack(
+                [tf.compat.v1.range(tf.compat.v1.to_int64(batch_size)), next_id], axis = 1
             )
-            log_prob += tf.gather_nd(log_probs, log_prob_indices) * (
-                1 - tf.to_float(hit_eos)
+            log_prob += tf.compat.v1.gather_nd(log_probs, log_prob_indices) * (
+                1 - tf.compat.v1.to_float(hit_eos)
             )
-            hit_eos |= tf.equal(next_id, eos_id)
+            hit_eos |= tf.compat.v1.equal(next_id, eos_id)
 
-            next_id = tf.expand_dims(next_id, axis = 1)
-            decoded_ids = tf.concat([decoded_ids, next_id], axis = 1)
-            next_id_tag = tf.expand_dims(next_id_tag, axis = 1)
-            decoded_ids_tag = tf.concat(
+            next_id = tf.compat.v1.expand_dims(next_id, axis = 1)
+            decoded_ids = tf.compat.v1.concat([decoded_ids, next_id], axis = 1)
+            next_id_tag = tf.compat.v1.expand_dims(next_id_tag, axis = 1)
+            decoded_ids_tag = tf.compat.v1.concat(
                 [decoded_ids_tag, next_id_tag], axis = 1
             )
 
@@ -1189,21 +1189,21 @@ def fast_decode(
         def is_not_finished(i, hit_eos, *_):
             finished = i >= decode_length
             if not force_decode_length:
-                finished |= tf.reduce_all(hit_eos)
-            return tf.logical_not(finished)
+                finished |= tf.compat.v1.reduce_all(hit_eos)
+            return tf.compat.v1.logical_not(finished)
 
-        decoded_ids = tf.zeros([batch_size, 0], dtype = tf.int64)
-        decoded_ids_tag = tf.zeros([batch_size, 0], dtype = tf.int64)
-        hit_eos = tf.fill([batch_size], False)
-        next_id = sos_id * tf.ones([batch_size, 1], dtype = tf.int64)
-        next_id_tag = sos_id * tf.ones([batch_size, 1], dtype = tf.int64)
-        initial_log_prob = tf.zeros([batch_size], dtype = tf.float32)
+        decoded_ids = tf.compat.v1.zeros([batch_size, 0], dtype = tf.compat.v1.int64)
+        decoded_ids_tag = tf.compat.v1.zeros([batch_size, 0], dtype = tf.compat.v1.int64)
+        hit_eos = tf.compat.v1.fill([batch_size], False)
+        next_id = sos_id * tf.compat.v1.ones([batch_size, 1], dtype = tf.compat.v1.int64)
+        next_id_tag = sos_id * tf.compat.v1.ones([batch_size, 1], dtype = tf.compat.v1.int64)
+        initial_log_prob = tf.compat.v1.zeros([batch_size], dtype = tf.compat.v1.float32)
 
-        _, _, _, _, decoded_ids, decoded_ids_tag, cache, log_prob = tf.while_loop(
+        _, _, _, _, decoded_ids, decoded_ids_tag, cache, log_prob = tf.compat.v1.while_loop(
             is_not_finished,
             inner_loop,
             [
-                tf.constant(0),
+                tf.compat.v1.constant(0),
                 hit_eos,
                 next_id,
                 next_id_tag,
@@ -1213,16 +1213,16 @@ def fast_decode(
                 initial_log_prob,
             ],
             shape_invariants = [
-                tf.TensorShape([]),
-                tf.TensorShape([None]),
-                tf.TensorShape([None, None]),
-                tf.TensorShape([None, None]),
-                tf.TensorShape([None, None]),
-                tf.TensorShape([None, None]),
+                tf.compat.v1.TensorShape([]),
+                tf.compat.v1.TensorShape([None]),
+                tf.compat.v1.TensorShape([None, None]),
+                tf.compat.v1.TensorShape([None, None]),
+                tf.compat.v1.TensorShape([None, None]),
+                tf.compat.v1.TensorShape([None, None]),
                 nest.map_structure(
                     beam_search.get_state_shape_invariants, cache
                 ),
-                tf.TensorShape([None]),
+                tf.compat.v1.TensorShape([None]),
             ],
         )
         scores = log_prob
