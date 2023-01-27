@@ -312,7 +312,7 @@ def train(ps_device):
 def main(unused_argv):
   del unused_argv  # Unused
 
-  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
   # Get corpus info
   FLAGS.n_token = data_utils.VOCAB_SIZE
