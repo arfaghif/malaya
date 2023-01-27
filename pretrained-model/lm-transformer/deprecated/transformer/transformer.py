@@ -86,7 +86,7 @@ class Transformer(object):
             mode = 'fan_avg',
             distribution = 'uniform',
         )
-        with tf.variable_scope('Transformer', initializer = initializer):
+        with tf.compat.v1.variable_scope('Transformer', initializer = initializer):
             # Calculate attention bias for encoder self-attention and decoder
             # multi-headed attention layers.
             attention_bias = model_utils.get_padding_bias(inputs)
@@ -385,12 +385,12 @@ class EncoderStack(tf.layers.Layer):
             self_attention_layer = layer[0]
             feed_forward_network = layer[1]
 
-            with tf.variable_scope('layer_%d' % n):
-                with tf.variable_scope('self_attention'):
+            with tf.compat.v1.variable_scope('layer_%d' % n):
+                with tf.compat.v1.variable_scope('self_attention'):
                     encoder_inputs = self_attention_layer(
                         encoder_inputs, attention_bias
                     )
-                with tf.variable_scope('ffn'):
+                with tf.compat.v1.variable_scope('ffn'):
                     encoder_inputs = feed_forward_network(
                         encoder_inputs, inputs_padding
                     )
@@ -484,18 +484,18 @@ class DecoderStack(tf.layers.Layer):
             # Run inputs through the sublayers.
             layer_name = 'layer_%d' % n
             layer_cache = cache[layer_name] if cache is not None else None
-            with tf.variable_scope(layer_name):
-                with tf.variable_scope('self_attention'):
+            with tf.compat.v1.variable_scope(layer_name):
+                with tf.compat.v1.variable_scope('self_attention'):
                     decoder_inputs = self_attention_layer(
                         decoder_inputs,
                         decoder_self_attention_bias,
                         cache = layer_cache,
                     )
-                with tf.variable_scope('encdec_attention'):
+                with tf.compat.v1.variable_scope('encdec_attention'):
                     decoder_inputs = enc_dec_attention_layer(
                         decoder_inputs, encoder_outputs, attention_bias
                     )
-                with tf.variable_scope('ffn'):
+                with tf.compat.v1.variable_scope('ffn'):
                     decoder_inputs = feed_forward_network(decoder_inputs)
 
         return self.output_normalization(decoder_inputs)

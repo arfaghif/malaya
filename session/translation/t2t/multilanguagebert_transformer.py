@@ -123,8 +123,8 @@ class Model:
                 attention_bias,
             )
 
-        with tf.variable_scope('cls/predictions'):
-            with tf.variable_scope('transform'):
+        with tf.compat.v1.variable_scope('cls/predictions'):
+            with tf.compat.v1.variable_scope('transform'):
                 input_tensor = tf.layers.dense(
                     outputs,
                     units = bert_config.hidden_size,
@@ -191,8 +191,8 @@ class Model:
         #             cache,
         #         )
 
-        #         with tf.variable_scope('cls/predictions', reuse = True):
-        #             with tf.variable_scope('transform'):
+        #         with tf.compat.v1.variable_scope('cls/predictions', reuse = True):
+        #             with tf.compat.v1.variable_scope('transform'):
         #                 input_tensor = tf.layers.dense(
         #                     decoder_outputs,
         #                     units = bert_config.hidden_size,

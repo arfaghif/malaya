@@ -201,8 +201,8 @@ class AlbertModel(object):
                 shape=[batch_size, seq_length], dtype=tf.int32
             )
 
-        with tf.variable_scope(scope, default_name='bert'):
-            with tf.variable_scope('embeddings'):
+        with tf.compat.v1.variable_scope(scope, default_name='bert'):
+            with tf.compat.v1.variable_scope('embeddings'):
                 # Perform embedding lookup on the word ids.
                 (
                     self.word_embedding_output,
@@ -232,7 +232,7 @@ class AlbertModel(object):
                     use_one_hot_embeddings=use_one_hot_embeddings,
                 )
 
-            with tf.variable_scope('encoder'):
+            with tf.compat.v1.variable_scope('encoder'):
                 # Run the stacked transformer.
                 # `sequence_output` shape = [batch_size, seq_length, hidden_size].
                 self.all_encoder_layers = transformer_model(
@@ -258,7 +258,7 @@ class AlbertModel(object):
             # [batch_size, hidden_size]. This is necessary for segment-level
             # (or segment-pair-level) classification tasks where we need a fixed
             # dimensional representation of the segment.
-            with tf.variable_scope('pooler'):
+            with tf.compat.v1.variable_scope('pooler'):
                 # We "pool" the model by simply taking the hidden state corresponding
                 # to the first token. We assume that this has been pre-trained
                 first_token_tensor = tf.squeeze(
@@ -738,7 +738,7 @@ def dense_layer_3d(
     input_shape = get_shape_list(input_tensor)
     hidden_size = input_shape[2]
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[hidden_size, num_attention_heads * head_size],
@@ -788,7 +788,7 @@ def dense_layer_3d_proj(
   """
     input_shape = get_shape_list(input_tensor)
     num_attention_heads = input_shape[2]
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[num_attention_heads * head_size, hidden_size],
@@ -837,7 +837,7 @@ def dense_layer_2d(
     del num_attention_heads  # unused
     input_shape = get_shape_list(input_tensor)
     hidden_size = input_shape[2]
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         w = tf.get_variable(
             name='kernel',
             shape=[hidden_size, output_size],
@@ -1072,8 +1072,8 @@ def attention_ffn_block(
     layer output
   """
 
-    with tf.variable_scope('attention_1'):
-        with tf.variable_scope('self'):
+    with tf.compat.v1.variable_scope('attention_1'):
+        with tf.compat.v1.variable_scope('self'):
             attention_output = attention_layer(
                 from_tensor=layer_input,
                 to_tensor=layer_input,
@@ -1086,7 +1086,7 @@ def attention_ffn_block(
 
         # Run a linear projection of `hidden_size` then add a residual
         # with `layer_input`.
-        with tf.variable_scope('output'):
+        with tf.compat.v1.variable_scope('output'):
             attention_output = dense_layer_3d_proj(
                 attention_output,
                 hidden_size,
@@ -1098,8 +1098,8 @@ def attention_ffn_block(
             )
             attention_output = dropout(attention_output, hidden_dropout_prob)
     attention_output = layer_norm(attention_output + layer_input)
-    with tf.variable_scope('ffn_1'):
-        with tf.variable_scope('intermediate'):
+    with tf.compat.v1.variable_scope('ffn_1'):
+        with tf.compat.v1.variable_scope('intermediate'):
             intermediate_output = dense_layer_2d(
                 attention_output,
                 intermediate_size,
@@ -1109,7 +1109,7 @@ def attention_ffn_block(
                 num_attention_heads=num_attention_heads,
                 name='dense',
             )
-            with tf.variable_scope('output'):
+            with tf.compat.v1.variable_scope('output'):
                 ffn_output = dense_layer_2d(
                     intermediate_output,
                     hidden_size,
@@ -1203,14 +1203,14 @@ def transformer_model(
         )
     else:
         prev_output = input_tensor
-    with tf.variable_scope('transformer', reuse=tf.AUTO_REUSE):
+    with tf.compat.v1.variable_scope('transformer', reuse=tf.AUTO_REUSE):
         for layer_idx in range(num_hidden_layers):
             group_idx = int(layer_idx / num_hidden_layers * num_hidden_groups)
-            with tf.variable_scope('group_%d' % group_idx):
+            with tf.compat.v1.variable_scope('group_%d' % group_idx):
                 with tf.name_scope('layer_%d' % layer_idx):
                     layer_output = prev_output
                     for inner_group_idx in range(inner_group_num):
-                        with tf.variable_scope(
+                        with tf.compat.v1.variable_scope(
                             'inner_group_%d' % inner_group_idx
                         ):
                             layer_output = attention_ffn_block(

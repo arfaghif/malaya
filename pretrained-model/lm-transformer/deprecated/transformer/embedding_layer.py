@@ -47,7 +47,7 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         self.method = method
 
     def build(self, _):
-        with tf.variable_scope('embedding_and_softmax', reuse = tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('embedding_and_softmax', reuse = tf.AUTO_REUSE):
             # Create and initialize weights. The random normal initializer was chosen
             # randomly, and works well.
             self.shared_weights = tf.get_variable(

@@ -34,7 +34,7 @@ def embedding_lookup(
     dtype = tf.float32,
 ):
     """TPU and GPU embedding_lookup function."""
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         lookup_table = tf.get_variable(
             'lookup_table',
             [n_token, d_embed],
@@ -90,7 +90,7 @@ def positionwise_ffn(
         )
 
     output = inp
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         output = tf.layers.dense(
             output,
             d_inner,
@@ -342,7 +342,7 @@ def multihead_attn(
     """Standard multi-head attention with absolute positional embedding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         # attention heads
         q_head = head_projection(
             q, d_model, n_head, d_head, kernel_initializer, 'q'
@@ -398,7 +398,7 @@ def rel_multihead_attn(
     """Multi-head attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         if mems is not None and mems.shape.ndims > 1:
             cat = tf.concat([mems, h], 0)
         else:
@@ -477,7 +477,7 @@ def two_stream_rel_attn(
     """Two-stream attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with tf.variable_scope(scope, reuse = False):
+    with tf.compat.v1.variable_scope(scope, reuse = False):
 
         # content based attention score
         if mems is not None and mems.shape.ndims > 1:
@@ -535,7 +535,7 @@ def two_stream_rel_attn(
             kernel_initializer,
         )
 
-    with tf.variable_scope(scope, reuse = True):
+    with tf.compat.v1.variable_scope(scope, reuse = True):
         ##### g-stream
         # query-stream query head
         q_head_g = head_projection(
@@ -688,7 +688,7 @@ def transformer_xl(
     tf.compat.v1.logging.info('Use float type {}'.format(tf_float))
 
     new_mems = []
-    with tf.variable_scope(scope):
+    with tf.compat.v1.variable_scope(scope):
         if untie_r:
             r_w_bias = tf.get_variable(
                 'r_w_bias',
@@ -780,7 +780,7 @@ def transformer_xl(
         )
 
         if inp_q is not None:
-            with tf.variable_scope('mask_emb'):
+            with tf.compat.v1.variable_scope('mask_emb'):
                 mask_emb = tf.get_variable(
                     'mask_emb', [1, 1, d_model], dtype = tf_float
                 )
@@ -868,7 +868,7 @@ def transformer_xl(
                 r_s_bias_i = r_s_bias if not untie_r else r_s_bias[i]
                 seg_embed_i = seg_embed[i]
 
-            with tf.variable_scope('layer_{}'.format(i)):
+            with tf.compat.v1.variable_scope('layer_{}'.format(i)):
                 if inp_q is not None:
                     output_h, output_g = two_stream_rel_attn(
                         h = output_h,
@@ -962,7 +962,7 @@ def lm_loss(
 ):
     """doc."""
 
-    with tf.variable_scope('lm_loss'):
+    with tf.compat.v1.variable_scope('lm_loss'):
         if tie_weight:
             assert (
                 lookup_table is not None
@@ -1011,7 +1011,7 @@ def lm_accuracy(
 ):
     """doc."""
 
-    with tf.variable_scope('lm_loss'):
+    with tf.compat.v1.variable_scope('lm_loss'):
         if tie_weight:
             assert (
                 lookup_table is not None
@@ -1078,7 +1078,7 @@ def summarize_sequence(
       Otherwise, one should specify a different `scope` for each task.
   """
 
-    with tf.variable_scope(scope, 'sequnece_summary', reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, 'sequnece_summary', reuse = reuse):
         if summary_type == 'last':
             summary = hidden[-1]
         elif summary_type == 'first':
@@ -1152,7 +1152,7 @@ def classification_loss(
       the classification weights.
   """
 
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         logits = tf.layers.dense(
             hidden, n_class, kernel_initializer = initializer, name = 'logit'
         )
@@ -1169,7 +1169,7 @@ def classification_loss(
 def regression_loss(
     hidden, labels, initializer, scope, reuse = None, return_logits = False
 ):
-    with tf.variable_scope(scope, reuse = reuse):
+    with tf.compat.v1.variable_scope(scope, reuse = reuse):
         logits = tf.layers.dense(
             hidden, 1, kernel_initializer = initializer, name = 'logit'
         )

@@ -79,8 +79,8 @@ class Model:
                 output_layer = self.model.get_sequence_output()
                 embedding = self.model.get_embedding_table()
 
-                with tf.variable_scope('cls/predictions'):
-                    with tf.variable_scope('transform'):
+                with tf.compat.v1.variable_scope('cls/predictions'):
+                    with tf.compat.v1.variable_scope('transform'):
                         input_tensor = tf.layers.dense(
                             output_layer,
                             units=bert_config.hidden_size,

@@ -250,7 +250,7 @@ class SparseTransformer(t2t_model.T2TModel):
 
     def sample(self, features, decode_step, cache, decoding_stats):
         """Sample step for infer."""
-        with tf.variable_scope(
+        with tf.compat.v1.variable_scope(
             'sparse_transformer/body', reuse = tf.AUTO_REUSE
         ):
             logits = self.body(features, decode_step, cache, decoding_stats)
@@ -309,7 +309,7 @@ class SparseTransformer(t2t_model.T2TModel):
         return logits
 
     def infer(self, features, **kwargs):
-        with tf.variable_scope('sparse_transformer', reuse = tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('sparse_transformer', reuse = tf.AUTO_REUSE):
             features = self.bottom(features)
         decode_length = self.hparams.max_target_length
         cache = {}
@@ -335,7 +335,7 @@ class SparseTransformer(t2t_model.T2TModel):
                     self.hparams.hidden_size,
                 ]
             )
-        with tf.variable_scope(
+        with tf.compat.v1.variable_scope(
             'sparse_transformer/body', reuse = tf.AUTO_REUSE
         ):
             self.body(

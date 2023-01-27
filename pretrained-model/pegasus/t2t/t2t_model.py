@@ -478,7 +478,7 @@ class T2TModel(base.Layer):
         return sharded_logits, losses
 
     def model_fn(self, features):
-        with tf.variable_scope(
+        with tf.compat.v1.variable_scope(
             tf.compat.v1.get_variable_scope(), use_resource = True
         ) as vs:
             self._add_variable_scope('model_fn', vs)
@@ -562,7 +562,7 @@ class T2TModel(base.Layer):
                     feature_name, modalities.get_targets_bottom(modality)
                 )
                 # TODO(aidangomez): share variables?
-                with tf.variable_scope(variable_scope_name) as vs:
+                with tf.compat.v1.variable_scope(variable_scope_name) as vs:
                     self._add_variable_scope(variable_scope_name, vs)
                     log_info(
                         "Transforming feature '%s' with %s.targets_bottom",
@@ -577,7 +577,7 @@ class T2TModel(base.Layer):
                     feature_name, modalities.get_bottom(modality)
                 )
                 do_reuse = modality_name in all_previous_modalities
-                with tf.variable_scope(modality_name, reuse = do_reuse) as vs:
+                with tf.compat.v1.variable_scope(modality_name, reuse = do_reuse) as vs:
                     self._add_variable_scope(modality_name, vs)
                     log_info(
                         "Transforming feature '%s' with %s.bottom",
@@ -631,7 +631,7 @@ class T2TModel(base.Layer):
         name = self._hparams.name.get(
             feature_name, modalities.get_name(modality)
         )(self._hparams, vocab_size)
-        with tf.variable_scope(name, reuse = tf.AUTO_REUSE) as tm_vs:
+        with tf.compat.v1.variable_scope(name, reuse = tf.AUTO_REUSE) as tm_vs:
             self._add_variable_scope(tm_vs.name, tm_vs)
             log_info('Transforming body output with %s.top', name)
             top = self._hparams.top.get(
@@ -709,7 +709,7 @@ class T2TModel(base.Layer):
             logits = {}
             for k, v in six.iteritems(body_output):
                 # TODO(aidangomez): share variables here?
-                with tf.variable_scope(k) as top_vs:
+                with tf.compat.v1.variable_scope(k) as top_vs:
                     self._add_variable_scope('top_%s' % k, top_vs)
                     logits[k] = self._top_single(v, k, features)
             return logits
@@ -2183,14 +2183,14 @@ class T2TModel(base.Layer):
             )  # Treat new_targets as given.
             new_features = copy.copy(features)
             new_features['targets'] = new_targets
-            with tf.variable_scope(tf.compat.v1.get_variable_scope(), reuse = True):
+            with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(), reuse = True):
                 # Compute bottom() for new_targets.
                 #
                 # TODO(duckworthd): Only apply bottom to 'new_targets'.
                 new_transformed_features = self.bottom(new_features)
 
                 # Compute body.
-                with tf.variable_scope('body'):
+                with tf.compat.v1.variable_scope('body'):
                     new_body_outputs, new_losses = self._normalize_body_output(
                         self.body(new_transformed_features)
                     )
@@ -2279,13 +2279,13 @@ def create_dummy_vars():
     var_names = set([v.name for v in tf.global_variables()])
     if 'losses_avg/problem_0/total_loss:0' in var_names:
         return
-    with tf.variable_scope('losses_avg'):
-        with tf.variable_scope('problem_0'):
+    with tf.compat.v1.variable_scope('losses_avg'):
+        with tf.compat.v1.variable_scope('problem_0'):
             for var_name in ['total', 'extra', 'training']:
                 tf.get_variable(
                     '%s_loss' % var_name, initializer = 100.0, trainable = False
                 )
-    with tf.variable_scope('train_stats'):
+    with tf.compat.v1.variable_scope('train_stats'):
         tf.get_variable('problem_0_steps', initializer = 0, trainable = False)
 
 

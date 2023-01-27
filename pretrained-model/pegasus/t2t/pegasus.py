@@ -307,7 +307,7 @@ class Pegasus(t2t_model.T2TModel):
         modality_name = hparams.name.get(
             'targets', modalities.get_name(target_modality)
         )(hparams, target_vocab_size)
-        with tf.variable_scope(modality_name):
+        with tf.compat.v1.variable_scope(modality_name):
             top = hparams.top.get(
                 'targets', modalities.get_top(target_modality)
             )
@@ -405,7 +405,7 @@ class Pegasus(t2t_model.T2TModel):
             return super(Transformer, self)._greedy_infer(
                 features, decode_length
             )
-        with tf.variable_scope(self.name):
+        with tf.compat.v1.variable_scope(self.name):
             if use_tpu:
                 return self._fast_decode_tpu(features, decode_length)
             return self._fast_decode(features, decode_length)
@@ -448,7 +448,7 @@ class Pegasus(t2t_model.T2TModel):
             return self._beam_decode_slow(
                 features, decode_length, beam_size, top_beams, alpha, use_tpu
             )
-        with tf.variable_scope(self.name):
+        with tf.compat.v1.variable_scope(self.name):
             if use_tpu:
                 return self._fast_decode_tpu(
                     features, decode_length, beam_size, top_beams, alpha
@@ -484,7 +484,7 @@ class Pegasus(t2t_model.T2TModel):
         modality_name = hparams.name.get(
             'inputs', modalities.get_name(input_modality)
         )(hparams, input_vocab_size)
-        with tf.variable_scope(modality_name):
+        with tf.compat.v1.variable_scope(modality_name):
             bottom = hparams.bottom.get(
                 'inputs', modalities.get_bottom(input_modality)
             )
@@ -549,7 +549,7 @@ class Pegasus(t2t_model.T2TModel):
                 )
             batch_size = inputs_shape[0]
             inputs = self._prepare_inputs_for_decode(features)
-            with tf.variable_scope('body'):
+            with tf.compat.v1.variable_scope('body'):
                 encoder_output, encoder_decoder_attention_bias = dp(
                     self.encode,
                     inputs,
@@ -623,7 +623,7 @@ class Pegasus(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.variable_scope(modality_name):
+            with tf.compat.v1.variable_scope(modality_name):
                 bottom = hparams.bottom.get(
                     'targets', modalities.get_targets_bottom(target_modality)
                 )
@@ -685,7 +685,7 @@ class Pegasus(t2t_model.T2TModel):
                 [bias_shape[0], bias_shape[1], 1, bias_shape[3]],
             )
 
-            with tf.variable_scope('body'):
+            with tf.compat.v1.variable_scope('body'):
                 body_outputs = dp(
                     self.decode,
                     targets,
@@ -700,7 +700,7 @@ class Pegasus(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.variable_scope(modality_name):
+            with tf.compat.v1.variable_scope(modality_name):
                 top = hparams.top.get(
                     'targets', modalities.get_top(target_modality)
                 )
@@ -855,7 +855,7 @@ class Pegasus(t2t_model.T2TModel):
                 )
             batch_size = inputs_shape[0]
             inputs = self._prepare_inputs_for_decode(features)
-            with tf.variable_scope('body'):
+            with tf.compat.v1.variable_scope('body'):
                 encoder_output, encoder_decoder_attention_bias = dp(
                     self.encode,
                     inputs,
@@ -931,7 +931,7 @@ class Pegasus(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.variable_scope(modality_name):
+            with tf.compat.v1.variable_scope(modality_name):
                 bottom = hparams.bottom.get(
                     'targets', modalities.get_targets_bottom(target_modality)
                 )
@@ -1010,7 +1010,7 @@ class Pegasus(t2t_model.T2TModel):
             targets = preprocess_targets_method(targets, i)
 
             bias = decoder_self_attention_bias[:, :, i : i + 1, : i + 1]
-            with tf.variable_scope('body'):
+            with tf.compat.v1.variable_scope('body'):
                 body_outputs = dp(
                     self.decode,
                     targets,
@@ -1027,7 +1027,7 @@ class Pegasus(t2t_model.T2TModel):
             modality_name = hparams.name.get(
                 'targets', modalities.get_name(target_modality)
             )(hparams, target_vocab_size)
-            with tf.variable_scope(modality_name):
+            with tf.compat.v1.variable_scope(modality_name):
                 top = hparams.top.get(
                     'targets', modalities.get_top(target_modality)
                 )
@@ -1147,7 +1147,7 @@ def _init_transformer_cache(
     if encoder_output is not None:
         for layer in range(num_layers):
             layer_name = 'layer_%d' % layer
-            with tf.variable_scope(
+            with tf.compat.v1.variable_scope(
                 '%sdecoder/%s/encdec_attention/multihead_attention'
                 % (scope_prefix, layer_name)
             ):
@@ -1639,8 +1639,8 @@ def transformer_self_attention_layer(
         max_area_width = 1
         max_area_height = 1
         memory_height = 1
-    with tf.variable_scope(layer_name):
-        with tf.variable_scope('self_attention'):
+    with tf.compat.v1.variable_scope(layer_name):
+        with tf.compat.v1.variable_scope('self_attention'):
             y = common_attention.multihead_attention(
                 common_layers.layer_preprocess(
                     x, hparams, layer_collection = layer_collection
@@ -1686,7 +1686,7 @@ def transformer_self_attention_layer(
         if encoder_output is not None:
             if not isinstance(encoder_output, (list,)):
                 encoder_output = [encoder_output]
-            with tf.variable_scope('encdec_attention'):
+            with tf.compat.v1.variable_scope('encdec_attention'):
                 for enc_output in encoder_output:
                     y = common_attention.multihead_attention(
                         common_layers.layer_preprocess(
@@ -1771,8 +1771,8 @@ def transformer_decoder_layer(
 
     layer = layer_idx
     layer_name = 'layer_%d' % layer
-    with tf.variable_scope(layer_name):
-        with tf.variable_scope('ffn'):
+    with tf.compat.v1.variable_scope(layer_name):
+        with tf.compat.v1.variable_scope('ffn'):
             y = transformer_ffn_layer(
                 common_layers.layer_preprocess(
                     x, hparams, layer_collection = layer_collection
@@ -1863,7 +1863,7 @@ def transformer_decoder(
         hparams = hparams,
     )
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         for layer_idx in range(
             hparams.num_decoder_layers or hparams.num_hidden_layers
         ):

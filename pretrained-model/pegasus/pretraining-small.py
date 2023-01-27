@@ -288,8 +288,8 @@ def get_masked_lm_output(
     """Get loss and log probs for the masked LM."""
     input_tensor = gather_indexes(input_tensor, positions)
 
-    with tf.variable_scope('cls/predictions'):
-        with tf.variable_scope('transform'):
+    with tf.compat.v1.variable_scope('cls/predictions'):
+        with tf.compat.v1.variable_scope('transform'):
             input_tensor = tf.layers.dense(
                 input_tensor, units = hidden_size, activation = tf.nn.relu
             )

@@ -92,7 +92,7 @@ def make_elmo(chars_batched):
     # projection matrix right after
     word_representations_padded = word_representations_padded.op.inputs[0]
 
-    with tf.variable_scope('', reuse=True):
+    with tf.compat.v1.variable_scope('', reuse=True):
         elmo_scalar_mix_matrix = tf.get_variable('scalar_mix_ELMo_W')
 
     tf.global_variables_initializer().run()

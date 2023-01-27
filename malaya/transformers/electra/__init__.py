@@ -79,7 +79,7 @@ class Model:
                 self.logits = self.model.get_pooled_output()
                 output_layer = self.model.get_sequence_output()
 
-                with tf.variable_scope('generator_predictions'):
+                with tf.compat.v1.variable_scope('generator_predictions'):
                     hidden = tf.layers.dense(
                         output_layer,
                         units=modeling.get_shape_list(

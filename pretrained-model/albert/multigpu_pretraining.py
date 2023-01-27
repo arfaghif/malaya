@@ -441,10 +441,10 @@ def get_masked_lm_output(
     """Get loss and log probs for the masked LM."""
     input_tensor = gather_indexes(input_tensor, positions)
 
-    with tf.variable_scope('cls/predictions'):
+    with tf.compat.v1.variable_scope('cls/predictions'):
         # We apply one more non-linear transformation before the output layer.
         # This matrix is not used after pre-training.
-        with tf.variable_scope('transform'):
+        with tf.compat.v1.variable_scope('transform'):
             input_tensor = tf.layers.dense(
                 input_tensor,
                 units = albert_config.embedding_size,
@@ -492,7 +492,7 @@ def get_sentence_order_output(albert_config, input_tensor, labels):
 
     # Simple binary classification. Note that 0 is "next sentence" and 1 is
     # "random sentence". This weight matrix is not used after pre-training.
-    with tf.variable_scope('cls/seq_relationship'):
+    with tf.compat.v1.variable_scope('cls/seq_relationship'):
         output_weights = tf.get_variable(
             'output_weights',
             shape = [2, albert_config.hidden_size],

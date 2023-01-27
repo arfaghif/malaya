@@ -95,7 +95,7 @@ def two_stream_loss(FLAGS, features, labels, mems, is_training):
 
   initializer = xlnet_model.get_initializer()
 
-  with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
+  with tf.compat.v1.variable_scope("model", reuse=tf.AUTO_REUSE):
     # LM loss
     lm_loss = modeling.lm_loss(
         hidden=output,
@@ -153,7 +153,7 @@ def get_classification_loss(
 
   summary = xlnet_model.get_pooled_out(FLAGS.summary_type, FLAGS.use_summ_proj)
 
-  with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
+  with tf.compat.v1.variable_scope("model", reuse=tf.AUTO_REUSE):
 
     if FLAGS.cls_scope is not None and FLAGS.cls_scope:
       cls_scope = "classification_{}".format(FLAGS.cls_scope)
@@ -196,7 +196,7 @@ def get_regression_loss(
 
   summary = xlnet_model.get_pooled_out(FLAGS.summary_type, FLAGS.use_summ_proj)
 
-  with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
+  with tf.compat.v1.variable_scope("model", reuse=tf.AUTO_REUSE):
     per_example_loss, logits = modeling.regression_loss(
         hidden=summary,
         labels=label,
@@ -237,7 +237,7 @@ def get_qa_outputs(FLAGS, features, is_training):
   p_mask = features["p_mask"]
 
   # logit of the start position
-  with tf.variable_scope("start_logits"):
+  with tf.compat.v1.variable_scope("start_logits"):
     start_logits = tf.layers.dense(
         output,
         1,
@@ -247,7 +247,7 @@ def get_qa_outputs(FLAGS, features, is_training):
     start_log_probs = tf.nn.log_softmax(start_logits_masked, -1)
 
   # logit of the end position
-  with tf.variable_scope("end_logits"):
+  with tf.compat.v1.variable_scope("end_logits"):
     if is_training:
       # during training, compute the end logits based on the
       # ground truth of the start position
@@ -320,7 +320,7 @@ def get_qa_outputs(FLAGS, features, is_training):
     return_dict["end_top_index"] = end_top_index
 
   # an additional layer to predict answerability
-  with tf.variable_scope("answer_class"):
+  with tf.compat.v1.variable_scope("answer_class"):
     # get the representation of CLS
     cls_index = tf.one_hot(cls_index, seq_len, axis=-1, dtype=tf.float32)
     cls_feature = tf.einsum("lbh,bl->bh", output, cls_index)
@@ -380,7 +380,7 @@ def get_race_loss(FLAGS, features, is_training):
       input_mask=inp_mask)
   summary = xlnet_model.get_pooled_out(FLAGS.summary_type, FLAGS.use_summ_proj)
 
-  with tf.variable_scope("logits"):
+  with tf.compat.v1.variable_scope("logits"):
     logits = tf.layers.dense(summary, 1,
         kernel_initializer=xlnet_model.get_initializer())
     logits = tf.reshape(logits, [bsz_per_core, 4])

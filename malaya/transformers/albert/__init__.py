@@ -86,8 +86,8 @@ class Model:
                 input_tensor = self.model.get_sequence_output()
                 output_weights = self.model.get_embedding_table()
 
-                with tf.variable_scope('cls/predictions'):
-                    with tf.variable_scope('transform'):
+                with tf.compat.v1.variable_scope('cls/predictions'):
+                    with tf.compat.v1.variable_scope('transform'):
                         input_tensor = tf.layers.dense(
                             input_tensor,
                             units=bert_config.embedding_size,

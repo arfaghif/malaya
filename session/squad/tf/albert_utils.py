@@ -1705,7 +1705,7 @@ def write_predictions_v2(
 #     p_mask = tf.cast(features['p_mask'], dtype = tf.float32)
 
 #     # logit of the start position
-#     with tf.variable_scope('start_logits'):
+#     with tf.compat.v1.variable_scope('start_logits'):
 #         start_logits = tf.layers.dense(
 #             output,
 #             1,
@@ -1718,7 +1718,7 @@ def write_predictions_v2(
 #         start_log_probs = tf.nn.log_softmax(start_logits_masked, -1)
 
 #     # logit of the end position
-#     with tf.variable_scope('end_logits'):
+#     with tf.compat.v1.variable_scope('end_logits'):
 #         if is_training:
 #             # during training, compute the end logits based on the
 #             # ground truth of the start position
@@ -1823,7 +1823,7 @@ def write_predictions_v2(
 #         return_dict['end_top_index'] = end_top_index
 
 #     # an additional layer to predict answerability
-#     with tf.variable_scope('answer_class'):
+#     with tf.compat.v1.variable_scope('answer_class'):
 #         # get the representation of CLS
 #         cls_index = tf.one_hot(
 #             tf.zeros([bsz], dtype = tf.int32),
