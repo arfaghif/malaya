@@ -10,7 +10,6 @@ from malaya.dictionary.bahasa.places import places
 from malaya.dictionary.bahasa.daerah import daerah
 from malaya.dictionary.bahasa.parlimen import parlimen
 from malaya.dictionary.bahasa.adun import adun
-from malaya.dictionary.mandarin.pinyin import pinyin_dict
 from malaya.text.rules import rules_normalizer
 from typing import List
 
@@ -82,7 +81,6 @@ def keyword_wiktionary(
     -------
     result: Dict
     """
-
     global parser
 
     try:
@@ -119,7 +117,6 @@ def keyword_dbp(word: str, parse: bool = False):
     -------
     result: Dict
     """
-
     check_requests()
 
     url = f'https://prpm.dbp.gov.my/Cari1?keyword={word}'
@@ -167,7 +164,6 @@ def corpus_dbp(word):
     -------
     result: pandas.core.frame.DataFrame
     """
-
     import pandas as pd
 
     check_requests()
@@ -191,35 +187,6 @@ def corpus_dbp(word):
     return df
 
 
-def is_english(word):
-    """
-    Check a word is an english word.
-
-    Parameters
-    ----------
-    word: str
-
-    Returns
-    -------
-    result: bool
-    """
-
-    is_in = False
-    if word in ENGLISH_WORDS:
-        is_in = True
-    elif len(word) > 1 and word[-1] in 's' and word[:-1] in ENGLISH_WORDS:
-        is_in = True
-    return is_in
-
-
-def is_malaysia_location(string):
-    string_lower = string.lower()
-    title = string_lower.title()
-    if string_lower in negeri or title in city or title in country or title in daerah or title in parlimen or title in adun:
-        return True
-    return False
-
-
 def is_malay(word, stemmer=None):
     """
     Check a word is a malay word.
@@ -234,38 +201,43 @@ def is_malay(word, stemmer=None):
     -------
     result: bool
     """
-
-    if word.lower() in rules_normalizer and not is_english(word.lower()):
-        return True
+    if word.lower() in rules_normalizer:
+        return False
 
     if stemmer is not None:
         if not hasattr(stemmer, 'stem_word'):
             raise ValueError('stemmer must have `stem_word` method')
 
         word = stemmer.stem_word(word)
-        if word.lower() in rules_normalizer and not is_english(word.lower()):
-            return True
+        if word.lower() in rules_normalizer:
+            return False
 
     return word in MALAY_WORDS or word in CAMBRIDGE_MALAY_WORDS or word in KAMUS_DEWAN_WORDS or word in DBP_WORDS
 
 
-def convert_pinyin(string):
+def is_english(word):
     """
-    Convert mandarin characters to pinyin form. Original vocab from https://github.com/lxyu/pinyin
-    `你好` -> `ni hao`
+    Check a word is an english word.
 
     Parameters
     ----------
-    string: str
+    word: str
 
     Returns
     -------
-    result: str
+    result: bool
     """
+    is_in = False
+    if word in ENGLISH_WORDS:
+        is_in = True
+    elif len(word) > 1 and word[-1] in 's' and word[:-1] in ENGLISH_WORDS:
+        is_in = True
+    return is_in
 
-    r = []
-    for char in string:
-        key = '%X' % ord(char)
-        pinyin = pinyin_dict.get(key, char)
-        r.append(pinyin)
-    return ' '.join(r)
+
+def is_malaysia_location(string):
+    string_lower = string.lower()
+    title = string_lower.title()
+    if string_lower in negeri or title in city or title in country or title in daerah or title in parlimen or title in adun:
+        return True
+    return False

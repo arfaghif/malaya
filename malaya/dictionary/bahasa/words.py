@@ -24416,8 +24416,4 @@ words = {
     'woi',
     'macha',
     'eh',
-    'ni',
-    'tapi',
-    'kau',
-    'tu',
 }
