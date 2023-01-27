@@ -477,19 +477,19 @@ def input_fn_builder(
         batch_size = params['batch_size']
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'input_mask': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'segment_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'masked_lm_positions': tf.FixedLenFeature(
+            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'segment_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'masked_lm_positions': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_ids': tf.FixedLenFeature(
+            'masked_lm_ids': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_weights': tf.FixedLenFeature(
+            'masked_lm_weights': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.float32
             ),
-            'next_sentence_labels': tf.FixedLenFeature([1], tf.int64),
+            'next_sentence_labels': tf.io.FixedLenFeature([1], tf.int64),
         }
 
         # For training, we want a lot of parallel reading and shuffling.

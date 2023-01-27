@@ -156,17 +156,17 @@ def input_fn_builder(
         batch_size = params['batch_size']
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length_encoder], tf.int64),
-            'target_ids': tf.FixedLenFeature(
+            'input_ids': tf.io.FixedLenFeature([max_seq_length_encoder], tf.int64),
+            'target_ids': tf.io.FixedLenFeature(
                 [max_seq_length_decoder], tf.int64
             ),
-            'masked_lm_positions': tf.FixedLenFeature(
+            'masked_lm_positions': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_ids': tf.FixedLenFeature(
+            'masked_lm_ids': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_weights': tf.FixedLenFeature(
+            'masked_lm_weights': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.float32
             ),
         }

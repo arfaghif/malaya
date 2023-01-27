@@ -282,10 +282,10 @@ def input_fn_builder(
         """The actual input function."""
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'input_mask': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'segment_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'y': tf.FixedLenFeature([max_seq_length], tf.int64),
+            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'segment_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'y': tf.io.FixedLenFeature([max_seq_length], tf.int64),
         }
 
         if is_training:

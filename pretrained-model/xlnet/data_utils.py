@@ -660,11 +660,11 @@ def get_dataset(params, num_hosts, num_core_per_host, split, file_names,
         """function used to parse tfrecord."""
 
         record_spec = {
-            "input": tf.FixedLenFeature([seq_len], tf.int64),
-            "target": tf.FixedLenFeature([seq_len], tf.int64),
-            "seg_id": tf.FixedLenFeature([seq_len], tf.int64),
-            "label": tf.FixedLenFeature([1], tf.int64),
-            "is_masked": tf.FixedLenFeature([seq_len], tf.int64),
+            "input": tf.io.FixedLenFeature([seq_len], tf.int64),
+            "target": tf.io.FixedLenFeature([seq_len], tf.int64),
+            "seg_id": tf.io.FixedLenFeature([seq_len], tf.int64),
+            "label": tf.io.FixedLenFeature([1], tf.int64),
+            "is_masked": tf.io.FixedLenFeature([seq_len], tf.int64),
         }
 
         # retrieve serialized example

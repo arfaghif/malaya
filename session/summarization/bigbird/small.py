@@ -217,8 +217,8 @@ def input_fn_builder(
         batch_size = params['batch_size']
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length_encoder], tf.int64),
-            'target_ids': tf.FixedLenFeature(
+            'input_ids': tf.io.FixedLenFeature([max_seq_length_encoder], tf.int64),
+            'target_ids': tf.io.FixedLenFeature(
                 [max_seq_length_decoder], tf.int64
             ),
         }

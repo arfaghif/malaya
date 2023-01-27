@@ -283,9 +283,9 @@ def input_fn_builder(
         """The actual input function."""
 
         name_to_features = {
-            'input_encoder': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'input_decoder': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'y': tf.FixedLenFeature([max_seq_length], tf.int64),
+            'input_encoder': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_decoder': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'y': tf.io.FixedLenFeature([max_seq_length], tf.int64),
         }
 
         if is_training:

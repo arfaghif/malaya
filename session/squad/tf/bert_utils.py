@@ -734,19 +734,19 @@ def input_fn_builder(
     """Creates an `input_fn` closure to be passed to TPUEstimator."""
 
     name_to_features = {
-        'unique_ids': tf.FixedLenFeature([], tf.int64),
-        'input_ids': tf.FixedLenFeature([seq_length], tf.int64),
-        'input_mask': tf.FixedLenFeature([seq_length], tf.int64),
-        'segment_ids': tf.FixedLenFeature([seq_length], tf.int64),
+        'unique_ids': tf.io.FixedLenFeature([], tf.int64),
+        'input_ids': tf.io.FixedLenFeature([seq_length], tf.int64),
+        'input_mask': tf.io.FixedLenFeature([seq_length], tf.int64),
+        'segment_ids': tf.io.FixedLenFeature([seq_length], tf.int64),
     }
     # p_mask is not required for SQuAD v1.1
     if is_v2:
-        name_to_features['p_mask'] = tf.FixedLenFeature([seq_length], tf.int64)
+        name_to_features['p_mask'] = tf.io.FixedLenFeature([seq_length], tf.int64)
 
     if is_training:
-        name_to_features['start_positions'] = tf.FixedLenFeature([], tf.int64)
-        name_to_features['end_positions'] = tf.FixedLenFeature([], tf.int64)
-        name_to_features['is_impossible'] = tf.FixedLenFeature([], tf.int64)
+        name_to_features['start_positions'] = tf.io.FixedLenFeature([], tf.int64)
+        name_to_features['end_positions'] = tf.io.FixedLenFeature([], tf.int64)
+        name_to_features['is_impossible'] = tf.io.FixedLenFeature([], tf.int64)
 
     def _decode_record(record, name_to_features):
         """Decodes a record to a TensorFlow example."""

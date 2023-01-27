@@ -209,7 +209,7 @@ def input_fn_builder(
     def input_fn(params):
         batch_size = params['batch_size']
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length], tf.int64)
+            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64)
         }
         if is_training:
             d = tf.data.TFRecordDataset(input_files)

@@ -546,19 +546,19 @@ def input_fn_builder(
         batch_size = params['batch_size']
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'input_mask': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'segment_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
+            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'segment_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
             # Note: We keep this feature name `next_sentence_labels` to be
             # compatible with the original data created by lanzhzh@. However, in
             # the ALBERT case it does represent sentence_order_labels.
-            'next_sentence_labels': tf.FixedLenFeature([1], tf.int64),
+            'next_sentence_labels': tf.io.FixedLenFeature([1], tf.int64),
         }
 
         if FLAGS.masked_lm_budget:
             name_to_features.update(
                 {
-                    'token_boundary': tf.FixedLenFeature(
+                    'token_boundary': tf.io.FixedLenFeature(
                         [max_seq_length], tf.int64
                     )
                 }
@@ -566,13 +566,13 @@ def input_fn_builder(
         else:
             name_to_features.update(
                 {
-                    'masked_lm_positions': tf.FixedLenFeature(
+                    'masked_lm_positions': tf.io.FixedLenFeature(
                         [max_predictions_per_seq], tf.int64
                     ),
-                    'masked_lm_ids': tf.FixedLenFeature(
+                    'masked_lm_ids': tf.io.FixedLenFeature(
                         [max_predictions_per_seq], tf.int64
                     ),
-                    'masked_lm_weights': tf.FixedLenFeature(
+                    'masked_lm_weights': tf.io.FixedLenFeature(
                         [max_predictions_per_seq], tf.float32
                     ),
                 }
@@ -635,19 +635,19 @@ def input_fn_builder_gpu(
     def input_fn(params):
 
         name_to_features = {
-            'input_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'input_mask': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'segment_ids': tf.FixedLenFeature([max_seq_length], tf.int64),
-            'masked_lm_positions': tf.FixedLenFeature(
+            'input_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'input_mask': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'segment_ids': tf.io.FixedLenFeature([max_seq_length], tf.int64),
+            'masked_lm_positions': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_ids': tf.FixedLenFeature(
+            'masked_lm_ids': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.int64
             ),
-            'masked_lm_weights': tf.FixedLenFeature(
+            'masked_lm_weights': tf.io.FixedLenFeature(
                 [max_predictions_per_seq], tf.float32
             ),
-            'next_sentence_labels': tf.FixedLenFeature([1], tf.int64),
+            'next_sentence_labels': tf.io.FixedLenFeature([1], tf.int64),
         }
 
         # For training, we want a lot of parallel reading and shuffling.
