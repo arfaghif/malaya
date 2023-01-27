@@ -17,7 +17,7 @@ import tensorflow as tf
 import data_utils
 import model_utils
 from gpu_utils import assign_to_gpu, average_grads_and_vars
-import function_builder
+from function_builder import get_loss
 
 
 # GPU config
@@ -134,7 +134,7 @@ FLAGS = flags.FLAGS
 def get_model_fn():
   def model_fn(features, labels, mems, is_training):
     #### Get loss from inputs
-    total_loss, new_mems, monitor_dict = function_builder.get_loss(
+    total_loss, new_mems, monitor_dict = get_loss(
         FLAGS, features, labels, mems, is_training)
 
     #### Check model parameters
