@@ -185,7 +185,7 @@ def input_fn_builder(
 
     def parse(serialized_example):
 
-        features = tf.parse_single_example(
+        features = tf.io.parse_single_example(
             serialized_example, features = data_fields
         )
         for k in features.keys():

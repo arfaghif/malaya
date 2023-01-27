@@ -668,7 +668,7 @@ def get_dataset(params, num_hosts, num_core_per_host, split, file_names,
         }
 
         # retrieve serialized example
-        example = tf.parse_single_example(
+        example = tf.io.parse_single_example(
             serialized=record,
             features=record_spec)
 

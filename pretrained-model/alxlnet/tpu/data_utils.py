@@ -747,7 +747,7 @@ def get_dataset(
         }
 
         # retrieve serialized example
-        example = tf.parse_single_example(
+        example = tf.io.parse_single_example(
             serialized = record, features = record_spec
         )
 
