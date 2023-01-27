@@ -1706,7 +1706,7 @@ def write_predictions_v2(
 
 #     # logit of the start position
 #     with tf.compat.v1.variable_scope('start_logits'):
-#         start_logits = tf.compat.v1.layers.dense(
+#         start_logits = tf.layers.dense(
 #             output,
 #             1,
 #             kernel_initializer = modeling.create_initializer(
@@ -1733,7 +1733,7 @@ def write_predictions_v2(
 #             start_features = tf.compat.v1.tile(
 #                 start_features[None], [max_seq_length, 1, 1]
 #             )
-#             end_logits = tf.compat.v1.layers.dense(
+#             end_logits = tf.layers.dense(
 #                 tf.compat.v1.concat([output, start_features], axis = -1),
 #                 albert_config.hidden_size,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1746,7 +1746,7 @@ def write_predictions_v2(
 #                 end_logits, begin_norm_axis = -1
 #             )
 
-#             end_logits = tf.compat.v1.layers.dense(
+#             end_logits = tf.layers.dense(
 #                 end_logits,
 #                 1,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1775,7 +1775,7 @@ def write_predictions_v2(
 #                 start_features[None], [max_seq_length, 1, 1, 1]
 #             )
 #             end_input = tf.compat.v1.concat([end_input, start_features], axis = -1)
-#             end_logits = tf.compat.v1.layers.dense(
+#             end_logits = tf.layers.dense(
 #                 end_input,
 #                 albert_config.hidden_size,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1787,7 +1787,7 @@ def write_predictions_v2(
 #             end_logits = contrib_layers.layer_norm(
 #                 end_logits, begin_norm_axis = -1
 #             )
-#             end_logits = tf.compat.v1.layers.dense(
+#             end_logits = tf.layers.dense(
 #                 end_logits,
 #                 1,
 #                 kernel_initializer = modeling.create_initializer(
@@ -1842,7 +1842,7 @@ def write_predictions_v2(
 #         # note(zhiliny): no dependency on end_feature so that we can obtain
 #         # one single `cls_logits` for each sample
 #         ans_feature = tf.compat.v1.concat([start_feature, cls_feature], -1)
-#         ans_feature = tf.compat.v1.layers.dense(
+#         ans_feature = tf.layers.dense(
 #             ans_feature,
 #             albert_config.hidden_size,
 #             activation = tf.compat.v1.tanh,
@@ -1851,10 +1851,10 @@ def write_predictions_v2(
 #             ),
 #             name = 'dense_0',
 #         )
-#         ans_feature = tf.compat.v1.layers.dropout(
+#         ans_feature = tf.layers.dropout(
 #             ans_feature, dropout_prob, training = is_training
 #         )
-#         cls_logits = tf.compat.v1.layers.dense(
+#         cls_logits = tf.layers.dense(
 #             ans_feature,
 #             1,
 #             kernel_initializer = modeling.create_initializer(
