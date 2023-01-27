@@ -260,7 +260,7 @@ def get_qa_outputs(FLAGS, features, is_training):
       end_logits = tf.compat.v1.layers.dense(
           tf.compat.v1.concat([output, start_features], axis=-1), xlnet_config.d_model,
           kernel_initializer=initializer, activation=tf.compat.v1.tanh, name="dense_0")
-      end_logits = tf.estimator.layers.layer_norm(
+      end_logits = tf.keras.layers.LayerNormalization(
           end_logits, begin_norm_axis=-1)
 
       end_logits = tf.compat.v1.layers.dense(
@@ -289,7 +289,7 @@ def get_qa_outputs(FLAGS, features, is_training):
           kernel_initializer=initializer,
           activation=tf.compat.v1.tanh,
           name="dense_0")
-      end_logits = tf.estimator.layers.layer_norm(end_logits,
+      end_logits = tf.keras.layers.LayerNormalization(end_logits,
                                                 begin_norm_axis=-1)
       end_logits = tf.compat.v1.layers.dense(
           end_logits,

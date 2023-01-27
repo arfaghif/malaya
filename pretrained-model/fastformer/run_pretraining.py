@@ -294,7 +294,7 @@ def model_fn_builder(model_config, init_checkpoint, learning_rate,
 
 def layer_norm(input_tensor, name=None):
     """Run layer normalization on the last dimension of the tensor."""
-    return tf.estimator.layers.layer_norm(
+    return tf.keras.layers.LayerNormalization(
         inputs=input_tensor, begin_norm_axis=-1, begin_params_axis=-1, scope=name)
 
 
