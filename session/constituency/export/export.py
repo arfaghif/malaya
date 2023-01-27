@@ -245,7 +245,7 @@ def make_flabel_constants():
 
 def make_network():
     # batch x num_words x 50
-    chars = tf.placeholder(shape=(None, None, 50), dtype=tf.int32, name='chars')
+    chars = tf.compat.v1.placeholder(shape=(None, None, 50), dtype=tf.int32, name='chars')
 
     input_dat, nonpad_ids, dim_flat, dim_padded, valid_mask, lengths = make_elmo(chars)
     chars_shape = tf.shape(chars)

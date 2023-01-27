@@ -29,9 +29,9 @@ class LDA2Vec:
                 self.batch_size = batch_size
                 self.freqs = freqs
 
-                self.X = tf.placeholder(tf.int32, shape=[None])
-                self.Y = tf.placeholder(tf.int64, shape=[None])
-                self.DOC = tf.placeholder(tf.int32, shape=[None])
+                self.X = tf.compat.v1.placeholder(tf.int32, shape=[None])
+                self.Y = tf.compat.v1.placeholder(tf.int64, shape=[None])
+                self.DOC = tf.compat.v1.placeholder(tf.int32, shape=[None])
                 self.switch_loss = tf.Variable(0, trainable=False)
                 train_labels = tf.reshape(self.Y, [-1, 1])
                 sampler = tf.nn.fixed_unigram_candidate_sampler(

@@ -301,6 +301,6 @@ class Model(tf.keras.Model):
         return x
 
 
-# x = tf.placeholder(tf.int32, (None, None))
+# x = tf.compat.v1.placeholder(tf.int32, (None, None))
 # model = Model(768, 32000, 12, 768)
 # o = model(x)

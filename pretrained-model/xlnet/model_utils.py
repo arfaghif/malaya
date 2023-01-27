@@ -200,7 +200,7 @@ def clean_ckpt(_):
         tf.get_variable(v, shape=var_values[v].shape, dtype=var_dtypes[v])
         for v in var_values
     ]
-  placeholders = [tf.placeholder(v.dtype, shape=v.shape) for v in tf_vars]
+  placeholders = [tf.compat.v1.placeholder(v.dtype, shape=v.shape) for v in tf_vars]
   assign_ops = [tf.assign(v, p) for (v, p) in zip(tf_vars, placeholders)]
   global_step = tf.Variable(
       0, name="global_step", trainable=False, dtype=tf.int64)
@@ -246,7 +246,7 @@ def avg_checkpoints(model_dir, output_model_dir, last_k):
         tf.get_variable(v, shape=var_values[v].shape, dtype=var_dtypes[v])
         for v in var_values
     ]
-  placeholders = [tf.placeholder(v.dtype, shape=v.shape) for v in tf_vars]
+  placeholders = [tf.compat.v1.placeholder(v.dtype, shape=v.shape) for v in tf_vars]
   assign_ops = [tf.assign(v, p) for (v, p) in zip(tf_vars, placeholders)]
   global_step = tf.Variable(
       0, name="global_step", trainable=False, dtype=tf.int64)

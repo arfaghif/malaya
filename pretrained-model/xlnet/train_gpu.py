@@ -165,7 +165,7 @@ def single_core_graph(is_training, features, mems):
 
 
 def create_mems_tf(bsz_per_core):
-  mems = [tf.placeholder(dtype=tf.float32,
+  mems = [tf.compat.v1.placeholder(dtype=tf.float32,
                          shape=[FLAGS.mem_len, bsz_per_core, FLAGS.d_model])
           for layer in range(FLAGS.n_layer)]
 

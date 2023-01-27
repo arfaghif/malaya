@@ -59,8 +59,8 @@ class Model:
         g_params = graph_params
         tf.reset_default_graph()
         self.sess = tf.InteractiveSession()
-        self.X = tf.placeholder(tf.int64, shape = [None, 4])
-        self.Y = tf.placeholder(tf.int64, shape = [None, 1])
+        self.X = tf.compat.v1.placeholder(tf.int64, shape = [None, 4])
+        self.Y = tf.compat.v1.placeholder(tf.int64, shape = [None, 1])
         w_m2, w_m1, w_p1, w_p2 = tf.unstack(self.X, axis = 1)
         self.embed_weights = tf.Variable(
             tf.random_uniform(
