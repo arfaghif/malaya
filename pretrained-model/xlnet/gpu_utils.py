@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from pickle import NONE
 import tensorflow as tf
 
 def assign_to_gpu(gpu=0, ps_dev="/device:CPU:0"):
@@ -23,6 +24,8 @@ def average_grads_and_vars(tower_grads_and_vars):
         grad = grad_and_vars[0][0]
         for g, _ in grad_and_vars[1:]:
             print("DEBUGGG INI BOSS\nSENGGOL DONG BOOSKU\n HARUS BISA", grad, "PERSIB", len(grad_and_vars), "DINGIN", g)
+            if g == None :
+                continue
             grad += g
         return grad / len(grad_and_vars)
 
