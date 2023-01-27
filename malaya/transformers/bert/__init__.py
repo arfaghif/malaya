@@ -57,7 +57,7 @@ class Model:
         device = get_device(**kwargs)
         _graph = tf.Graph()
         with _graph.as_default():
-            with tf.device(device):
+            with tf.compat.v1.device(device):
                 self.X = tf.placeholder(tf.int32, [None, None])
                 self.segment_ids = tf.placeholder(tf.int32, [None, None])
                 self.top_p = tf.placeholder(tf.float32, None)
