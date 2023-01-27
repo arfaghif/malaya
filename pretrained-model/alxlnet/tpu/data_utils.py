@@ -198,11 +198,11 @@ def create_data(_):
         FLAGS.num_core_per_host = 1  # forced to be one
 
     # Make workdirs
-    if not tf.gfile.Exists(FLAGS.save_dir):
+    if not tf.io.gfile.exists(FLAGS.save_dir):
         tf.io.gfile.mkdir(FLAGS.save_dir)
 
     tfrecord_dir = os.path.join(FLAGS.save_dir, 'tfrecords')
-    if not tf.gfile.Exists(tfrecord_dir):
+    if not tf.io.gfile.exists(tfrecord_dir):
         tf.io.gfile.mkdir(tfrecord_dir)
 
     # Create and dump corpus_info from task 0

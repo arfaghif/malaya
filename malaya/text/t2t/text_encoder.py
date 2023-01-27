@@ -1003,7 +1003,7 @@ class SubwordTextEncoder(TextEncoder):
 
     def _load_from_file(self, vocab_file):
         """Load from a vocab file."""
-        if not tf.gfile.Exists(vocab_file):
+        if not tf.io.gfile.exists(vocab_file):
             raise ValueError('File %s not found' % vocab_file)
         with tf.gfile.Open(vocab_file) as f:
             self._load_from_file_object(f)

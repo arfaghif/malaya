@@ -234,7 +234,7 @@ def clean_ckpt(_):
     )
     saver = tf.train.Saver(tf.all_variables())
 
-    if not tf.gfile.Exists(output_model_dir):
+    if not tf.io.gfile.exists(output_model_dir):
         tf.io.gfile.mkdir(output_model_dir)
 
     # Build a model consisting only of variables, set them to the average values.

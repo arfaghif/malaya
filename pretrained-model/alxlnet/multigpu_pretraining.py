@@ -311,7 +311,7 @@ def main(_):
     FLAGS.n_token = data_utils.VOCAB_SIZE
     tf.compat.v1.logging.info('n_token {}'.format(FLAGS.n_token))
 
-    if not tf.gfile.Exists(FLAGS.model_dir):
+    if not tf.io.gfile.exists(FLAGS.model_dir):
         tf.io.gfile.mkdir(FLAGS.model_dir)
 
     bsz_per_core = per_device_batch_size(
