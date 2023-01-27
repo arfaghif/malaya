@@ -146,7 +146,7 @@ bert_config = {
 }
 
 
-class MaskedLMLayer(@@#layers.Layer):
+class MaskedLMLayer(tf.compat.v1.layers.Layer):
     """Get loss and log probs for the masked LM."""
 
     def __init__(
@@ -172,7 +172,7 @@ class MaskedLMLayer(@@#layers.Layer):
 
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
-        self.output_bias = @@#get_variable(
+        self.output_bias = tf.compat.v1.get_variable(
             name + '/output_bias',
             shape = [vocab_size],
             initializer = tf.compat.v1.zeros_initializer(),
@@ -201,7 +201,7 @@ class MaskedLMLayer(@@#layers.Layer):
 
         # We apply one more non-linear transformation before the output layer.
         # This matrix is not used after pre-training.
-        with @@#variable_scope('transform') as sc:
+        with tf.compat.v1.variable_scope('transform') as sc:
             input_tensor = self.extra_layer(input_tensor, scope = sc)
             input_tensor = self.norm_layer(input_tensor, scope = sc)
 
@@ -232,7 +232,7 @@ class MaskedLMLayer(@@#layers.Layer):
         return loss, log_probs
 
 
-class NSPLayer(@@#layers.Layer):
+class NSPLayer(tf.compat.v1.layers.Layer):
     """Get loss and log probs for the next sentence prediction."""
 
     def __init__(
@@ -243,14 +243,14 @@ class NSPLayer(@@#layers.Layer):
 
         # Simple binary classification. Note that 0 is "next sentence" and 1 is
         # "random sentence". This weight matrix is not used after pre-training.
-        with @@#variable_scope(name):
-            self.output_weights = @@#get_variable(
+        with tf.compat.v1.variable_scope(name):
+            self.output_weights = tf.compat.v1.get_variable(
                 'output_weights',
                 shape = [2, hidden_size],
                 initializer = initializer,
             )
             self._trainable_weights.append(self.output_weights)
-            self.output_bias = @@#get_variable(
+            self.output_bias = tf.compat.v1.get_variable(
                 'output_bias', shape = [2], initializer = tf.compat.v1.zeros_initializer()
             )
             self._trainable_weights.append(self.output_bias)
@@ -289,9 +289,9 @@ def model_fn_builder(
     ):  # pylint: disable=unused-argument
         """The `model_fn` for TPUEstimator."""
 
-        @@#logging.info('*** Features ***')
+        tf.compat.v1.logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
@@ -354,12 +354,12 @@ def model_fn_builder(
             else:
                 tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-        @@#logging.info('**** Trainable Variables ****')
+        tf.compat.v1.logging.info('**** Trainable Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
@@ -551,7 +551,7 @@ def _decode_record(record, name_to_features):
 
 
 def main(_):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError(
@@ -564,9 +564,9 @@ def main(_):
     for input_pattern in FLAGS.input_file.split(','):
         input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    @@#logging.info('*** Input Files ***')
+    tf.compat.v1.logging.info('*** Input Files ***')
     for input_file in input_files:
-        @@#logging.info('  %s' % input_file)
+        tf.compat.v1.logging.info('  %s' % input_file)
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
@@ -607,8 +607,8 @@ def main(_):
     )
 
     if FLAGS.do_train:
-        @@#logging.info('***** Running training *****')
-        @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
+        tf.compat.v1.logging.info('***** Running training *****')
+        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
         train_input_fn = input_fn_builder(
             input_files = input_files,
             max_seq_length = FLAGS.max_seq_length,
@@ -620,8 +620,8 @@ def main(_):
         )
 
     if FLAGS.do_eval:
-        @@#logging.info('***** Running evaluation *****')
-        @@#logging.info('  Batch size = %d', FLAGS.eval_batch_size)
+        tf.compat.v1.logging.info('***** Running evaluation *****')
+        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.eval_batch_size)
 
         eval_input_fn = input_fn_builder(
             input_files = input_files,
@@ -636,13 +636,13 @@ def main(_):
 
         output_eval_file = os.path.join(FLAGS.output_dir, 'eval_results.txt')
         with tf.compat.v1.gfile.GFile(output_eval_file, 'w') as writer:
-            @@#logging.info('***** Eval results *****')
+            tf.compat.v1.logging.info('***** Eval results *****')
             for key in sorted(result.keys()):
-                @@#logging.info('  %s = %s', key, str(result[key]))
+                tf.compat.v1.logging.info('  %s = %s', key, str(result[key]))
                 writer.write('%s = %s\n' % (key, str(result[key])))
 
 
 if __name__ == '__main__':
     flags.mark_flag_as_required('input_file')
     flags.mark_flag_as_required('output_dir')
-    @@#app.run()
+    tf.compat.v1.app.run()

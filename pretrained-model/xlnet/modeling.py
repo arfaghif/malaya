@@ -25,7 +25,7 @@ def gelu(x):
 def embedding_lookup(x, n_token, d_embed, initializer, use_tpu=True,
                      scope='embedding', reuse=None, dtype=tf.compat.v1.float32):
     """TPU and GPU embedding_lookup function."""
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         lookup_table = tf.compat.v1.get_variable('lookup_table', [n_token, d_embed],
                                        dtype=dtype, initializer=initializer)
         if use_tpu:
@@ -61,7 +61,7 @@ def positionwise_ffn(inp, d_model, d_inner, dropout, kernel_initializer,
         raise ValueError('Unsupported activation type {}'.format(activation_type))
 
     output = inp
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         output = tf.compat.v1.layers.dense(output, d_inner, activation=activation,
                                  kernel_initializer=kernel_initializer,
                                  name='layer_1')
@@ -257,7 +257,7 @@ def multihead_attn(q, k, v, attn_mask, d_model, n_head, d_head, dropout,
     """Standard multi-head attention with absolute positional embedding."""
 
     scale = 1 / (d_head ** 0.5)
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         # attention heads
         q_head = head_projection(
             q, d_model, n_head, d_head, kernel_initializer, 'q')
@@ -284,7 +284,7 @@ def rel_multihead_attn(h, r, r_w_bias, r_r_bias, seg_mat, r_s_bias, seg_embed,
     """Multi-head attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         if mems is not None and mems.shape.ndims > 1:
             cat = tf.compat.v1.concat([mems, h], 0)
         else:
@@ -321,7 +321,7 @@ def two_stream_rel_attn(h, g, r, mems, r_w_bias, r_r_bias, seg_mat, r_s_bias,
     """Two-stream attention with relative positional encoding."""
 
     scale = 1 / (d_head ** 0.5)
-    with @@#variable_scope(scope, reuse=False):
+    with tf.compat.v1.variable_scope(scope, reuse=False):
 
         # content based attention score
         if mems is not None and mems.shape.ndims > 1:
@@ -355,7 +355,7 @@ def two_stream_rel_attn(h, g, r, mems, r_w_bias, r_r_bias, seg_mat, r_s_bias,
         output_h = post_attention(h, attn_vec_h, d_model, n_head, d_head, dropout,
                                   is_training, kernel_initializer)
 
-    with @@#variable_scope(scope, reuse=True):
+    with tf.compat.v1.variable_scope(scope, reuse=True):
         # g-stream
         # query-stream query head
         q_head_g = head_projection(
@@ -448,12 +448,12 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
       initializer: A tf initializer.
       scope: scope name for the computation graph.
     """
-    @@#logging.info('memory input {}'.format(mems))
+    tf.compat.v1.logging.info('memory input {}'.format(mems))
     tf_float = tf.compat.v1.bfloat16 if use_bfloat16 else tf.compat.v1.float32
-    @@#logging.info('Use float type {}'.format(tf_float))
+    tf.compat.v1.logging.info('Use float type {}'.format(tf_float))
 
     new_mems = []
-    with @@#variable_scope(scope):
+    with tf.compat.v1.variable_scope(scope):
         if untie_r:
             r_w_bias = tf.compat.v1.get_variable('r_w_bias', [n_layer, n_head, d_head],
                                        dtype=tf_float, initializer=initializer)
@@ -523,7 +523,7 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
             scope='word_embedding')
 
         if inp_q is not None:
-            with @@#variable_scope('mask_emb'):
+            with tf.compat.v1.variable_scope('mask_emb'):
                 mask_emb = tf.compat.v1.get_variable('mask_emb', [1, 1, d_model], dtype=tf_float)
                 if target_mapping is not None:
                     word_emb_q = tf.compat.v1.tile(mask_emb, [tf.compat.v1.shape(target_mapping)[0], bsz, 1])
@@ -581,7 +581,7 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
                 r_s_bias_i = r_s_bias if not untie_r else r_s_bias[i]
                 seg_embed_i = seg_embed[i]
 
-            with @@#variable_scope('layer_{}'.format(i)):
+            with tf.compat.v1.variable_scope('layer_{}'.format(i)):
                 if inp_q is not None:
                     output_h, output_g = two_stream_rel_attn(
                         h=output_h,
@@ -658,7 +658,7 @@ def lm_loss(hidden, target, n_token, d_model, initializer, lookup_table=None,
             tie_weight=False, bi_data=True, use_tpu=False):
     """doc."""
 
-    with @@#variable_scope('lm_loss'):
+    with tf.compat.v1.variable_scope('lm_loss'):
         if tie_weight:
             assert lookup_table is not None, \
                 'lookup_table cannot be None for tie_weight'
@@ -693,7 +693,7 @@ def summarize_sequence(summary_type, hidden, d_model, n_head, d_head, dropout,
         Otherwise, one should specify a different `scope` for each task.
     """
 
-    with @@#variable_scope(scope, 'sequnece_summary', reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, 'sequnece_summary', reuse=reuse):
         if summary_type == 'last':
             summary = hidden[-1]
         elif summary_type == 'first':
@@ -745,7 +745,7 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
         the classification weights.
     """
 
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         logits = tf.compat.v1.layers.dense(
             hidden,
             n_class,
@@ -763,7 +763,7 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
 
 def regression_loss(hidden, labels, initializer, scope, reuse=None,
                     return_logits=False):
-    with @@#variable_scope(scope, reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, reuse=reuse):
         logits = tf.compat.v1.layers.dense(
             hidden,
             1,

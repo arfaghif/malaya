@@ -19,7 +19,7 @@ from . import utils
 import tensorflow as tf
 
 
-class PrenormEncoderLayer(@@#layers.Layer):
+class PrenormEncoderLayer(tf.compat.v1.layers.Layer):
     """Encoder layer of a transformer in Pegasus style.
 
   The layer_norm is taken before self-attention.
@@ -163,8 +163,8 @@ class PrenormEncoderLayer(@@#layers.Layer):
       NotImplementedError: For unknown attention type.
     """
 
-        with @@#variable_scope('attention'):
-            with @@#variable_scope('self') as sc:
+        with tf.compat.v1.variable_scope('attention'):
+            with tf.compat.v1.variable_scope('self') as sc:
                 normalized_layer_input = self.first_layer_norm(layer_input)
                 attention_output = self.attn_layer(
                     normalized_layer_input,
@@ -181,7 +181,7 @@ class PrenormEncoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('output'):
+            with tf.compat.v1.variable_scope('output'):
                 attention_output = self.projection_layer(attention_output)
                 attention_output = utils.dropout(
                     attention_output, self.hidden_dropout_prob, training
@@ -189,14 +189,14 @@ class PrenormEncoderLayer(@@#layers.Layer):
                 attention_output = attention_output + layer_input
 
         # The activation is only applied to the "intermediate" hidden layer.
-        with @@#variable_scope('intermediate'):
+        with tf.compat.v1.variable_scope('intermediate'):
             normalized_attention_output = self.second_layer_norm(
                 attention_output
             )
             intermediate_output = self.expand_layer(normalized_attention_output)
 
         # Down-project back to `hidden_size` then add the residual.
-        with @@#variable_scope('output'):
+        with tf.compat.v1.variable_scope('output'):
             layer_output = self.contract_layer(intermediate_output)
             layer_output = utils.dropout(
                 layer_output, self.hidden_dropout_prob, training
@@ -205,7 +205,7 @@ class PrenormEncoderLayer(@@#layers.Layer):
         return layer_output
 
 
-class PostnormEncoderLayer(@@#layers.Layer):
+class PostnormEncoderLayer(tf.compat.v1.layers.Layer):
     """Encoder layer of a transformer in BERT style.
 
   The layer_norm is taken after self-attention.
@@ -349,8 +349,8 @@ class PostnormEncoderLayer(@@#layers.Layer):
       NotImplementedError: For unknown attention type.
     """
 
-        with @@#variable_scope('attention'):
-            with @@#variable_scope('self') as sc:
+        with tf.compat.v1.variable_scope('attention'):
+            with tf.compat.v1.variable_scope('self') as sc:
                 attention_output = self.attn_layer(
                     layer_input,
                     layer_input,
@@ -366,7 +366,7 @@ class PostnormEncoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('output'):
+            with tf.compat.v1.variable_scope('output'):
                 attention_output = self.projection_layer(attention_output)
                 attention_output = utils.dropout(
                     attention_output, self.hidden_dropout_prob, training
@@ -376,11 +376,11 @@ class PostnormEncoderLayer(@@#layers.Layer):
                 )
 
         # The activation is only applied to the "intermediate" hidden layer.
-        with @@#variable_scope('intermediate'):
+        with tf.compat.v1.variable_scope('intermediate'):
             intermediate_output = self.expand_layer(attention_output)
 
         # Down-project back to `hidden_size` then add the residual.
-        with @@#variable_scope('output'):
+        with tf.compat.v1.variable_scope('output'):
             layer_output = self.contract_layer(intermediate_output)
             layer_output = utils.dropout(
                 layer_output, self.hidden_dropout_prob, training
@@ -391,7 +391,7 @@ class PostnormEncoderLayer(@@#layers.Layer):
         return layer_output
 
 
-class EncoderStack(@@#layers.Layer):
+class EncoderStack(tf.compat.v1.layers.Layer):
     """Transformer encoder stack."""
 
     def __init__(self, params):

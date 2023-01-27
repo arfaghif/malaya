@@ -188,7 +188,7 @@ def model_fn(features, labels, mode, params):
 
     Y = features['label'][:, 0]
 
-    with @@#variable_scope('bert', reuse = False):
+    with tf.compat.v1.variable_scope('bert', reuse = False):
         model = modeling.BertModel(
             config = bert_config,
             is_training = True,
@@ -199,7 +199,7 @@ def model_fn(features, labels, mode, params):
 
         summary = model.get_pooled_output()
 
-    with @@#variable_scope('bert', reuse = True):
+    with tf.compat.v1.variable_scope('bert', reuse = True):
         model = modeling.BertModel(
             config = bert_config,
             is_training = True,
@@ -266,7 +266,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
     dist_strategy = None
 
     gpu_options = tf.compat.v1.GPUOptions(

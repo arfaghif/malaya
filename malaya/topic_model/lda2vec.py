@@ -264,7 +264,7 @@ def fit(
         logger.warning(
             'Train LDA2Vec will disable eager execution.'
         )
-        @@#disable_eager_execution()
+        tf.compat.v1.disable_eager_execution()
 
     warnings.warn('`malaya.topic_modeling.lda2vec.fit` is deprecated.', DeprecationWarning)
 

@@ -84,7 +84,7 @@ class TransformerEncoderDecoderModel(base.BaseModel):
         states_BxIxD = self._dropout_fn(
             timing.add_time_signal(states_BxIxD), training
         )
-        with @@#variable_scope('encoder', reuse = tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('encoder', reuse = tf.AUTO_REUSE):
             states_BxIxD = transformer_block.stack(
                 self._encoder_layers,
                 training,
@@ -123,7 +123,7 @@ class TransformerEncoderDecoderModel(base.BaseModel):
         states_BxTxD = tf.pad(states_BxTxD, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
         states_BxTxD = timing.add_time_signal(states_BxTxD)
         states_BxTxD = self._dropout_fn(states_BxTxD, training)
-        with @@#variable_scope(self._decoder_scope_name, reuse = tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope(self._decoder_scope_name, reuse = tf.AUTO_REUSE):
             states_BxTxD = transformer_block.stack(
                 self._decoder_layers,
                 training,
@@ -171,7 +171,7 @@ class TransformerEncoderDecoderModel(base.BaseModel):
             dec_Bx1xD = self._embedding_layer(dec_Bx1, True)
             dec_Bx1xD *= tf.cast(tf.greater(i, 0), self._dtype)
             dec_Bx1xD = timing.add_time_signal(dec_Bx1xD, start_index = i)
-            with @@#variable_scope(
+            with tf.compat.v1.variable_scope(
                 self._decoder_scope_name, reuse = tf.AUTO_REUSE
             ):
                 dec_Bx1xD = transformer_block.stack(

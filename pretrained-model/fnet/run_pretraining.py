@@ -29,8 +29,8 @@ def get_masked_lm_output(
 ):
     input_tensor = gather_indexes(input_tensor, positions)
 
-    with @@#variable_scope('cls/predictions'):
-        with @@#variable_scope('transform'):
+    with tf.compat.v1.variable_scope('cls/predictions'):
+        with tf.compat.v1.variable_scope('transform'):
             input_tensor = tf.compat.v1.layers.dense(
                 input_tensor,
                 units = bert_config.hidden_size,
@@ -64,7 +64,7 @@ def get_masked_lm_output(
 
 
 def get_next_sentence_output(bert_config, input_tensor, labels):
-    with @@#variable_scope('cls/seq_relationship'):
+    with tf.compat.v1.variable_scope('cls/seq_relationship'):
         output_weights = tf.compat.v1.get_variable(
             'output_weights',
             shape = [2, bert_config.hidden_size],
@@ -244,7 +244,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
     dist_strategy = None
 
     gpu_options = tf.compat.v1.GPUOptions(

@@ -20,7 +20,7 @@ sp = spm.SentencePieceProcessor()
 sp.Load(vocab)
 
 logger = logging.getLogger()
-@@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
 
 class Encoder:

@@ -190,7 +190,7 @@ class FullTokenizer(object):
         self.sp_model = None
         if spm_model_file:
             self.sp_model = spm.SentencePieceProcessor()
-            @@#logging.info('loading sentence piece model')
+            tf.compat.v1.logging.info('loading sentence piece model')
             # Handle cases where SP can't load the file, but gfile can.
             sp_model_ = tf.compat.v1.gfile.GFile(spm_model_file, 'rb').read()
             self.sp_model.LoadFromSerializedProto(sp_model_)
@@ -225,7 +225,7 @@ class FullTokenizer(object):
 
     def convert_tokens_to_ids(self, tokens):
         if self.sp_model:
-            @@#logging.info('using sentence piece tokenzier.')
+            tf.compat.v1.logging.info('using sentence piece tokenzier.')
             return [
                 self.sp_model.PieceToId(printable_text(token))
                 for token in tokens
@@ -235,7 +235,7 @@ class FullTokenizer(object):
 
     def convert_ids_to_tokens(self, ids):
         if self.sp_model:
-            @@#logging.info('using sentence piece tokenzier.')
+            tf.compat.v1.logging.info('using sentence piece tokenzier.')
             return [self.sp_model.IdToPiece(id_) for id_ in ids]
         else:
             return convert_by_vocab(self.inv_vocab, ids)

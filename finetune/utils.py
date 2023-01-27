@@ -33,12 +33,12 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
         initialized_variable_names[name] = 1
         initialized_variable_names[name + ':0'] = 1
 
-    @@#logging.info('**** Trainable Variables ****')
+    tf.compat.v1.logging.info('**** Trainable Variables ****')
     for var in tvars:
         init_string = ''
         if var.name in initialized_variable_names:
             init_string = ', *INIT_FROM_CKPT*'
-        @@#logging.info(
+        tf.compat.v1.logging.info(
             '  name = %s, shape = %s%s', var.name, var.shape, init_string
         )
 
@@ -59,7 +59,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if num_gpus > 1 and not use_tpu:
         dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(

@@ -99,7 +99,7 @@ def two_stream_loss(FLAGS, features, labels, mems, is_training):
 
     initializer = xlnet_model.get_initializer()
 
-    with @@#variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
+    with tf.compat.v1.variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
         # LM loss
         accuracy, lm_loss = custom_modeling.lm_accuracy(
             hidden = output,
@@ -167,7 +167,7 @@ def get_classification_loss(FLAGS, features, n_class, is_training):
         FLAGS.summary_type, FLAGS.use_summ_proj
     )
 
-    with @@#variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
+    with tf.compat.v1.variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
 
         if FLAGS.cls_scope is not None and FLAGS.cls_scope:
             cls_scope = 'classification_{}'.format(FLAGS.cls_scope)
@@ -213,7 +213,7 @@ def get_regression_loss(FLAGS, features, is_training):
         FLAGS.summary_type, FLAGS.use_summ_proj
     )
 
-    with @@#variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
+    with tf.compat.v1.variable_scope('model', reuse = tf.compat.v1.AUTO_REUSE):
         per_example_loss, logits = modeling.regression_loss(
             hidden = summary,
             labels = label,
@@ -256,7 +256,7 @@ def get_qa_outputs(FLAGS, features, is_training):
     p_mask = features['p_mask']
 
     # logit of the start position
-    with @@#variable_scope('start_logits'):
+    with tf.compat.v1.variable_scope('start_logits'):
         start_logits = tf.compat.v1.layers.dense(
             output, 1, kernel_initializer = initializer
         )
@@ -265,7 +265,7 @@ def get_qa_outputs(FLAGS, features, is_training):
         start_log_probs = tf.compat.v1.nn.log_softmax(start_logits_masked, -1)
 
     # logit of the end position
-    with @@#variable_scope('end_logits'):
+    with tf.compat.v1.variable_scope('end_logits'):
         if is_training:
             # during training, compute the end logits based on the
             # ground truth of the start position
@@ -355,7 +355,7 @@ def get_qa_outputs(FLAGS, features, is_training):
         return_dict['end_top_index'] = end_top_index
 
     # an additional layer to predict answerability
-    with @@#variable_scope('answer_class'):
+    with tf.compat.v1.variable_scope('answer_class'):
         # get the representation of CLS
         cls_index = tf.compat.v1.one_hot(
             cls_index, seq_len, axis = -1, dtype = tf.compat.v1.float32
@@ -425,7 +425,7 @@ def get_race_loss(FLAGS, features, is_training):
         FLAGS.summary_type, FLAGS.use_summ_proj
     )
 
-    with @@#variable_scope('logits'):
+    with tf.compat.v1.variable_scope('logits'):
         logits = tf.compat.v1.layers.dense(
             summary, 1, kernel_initializer = xlnet_model.get_initializer()
         )

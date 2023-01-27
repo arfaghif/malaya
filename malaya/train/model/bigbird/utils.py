@@ -115,7 +115,7 @@ def assert_rank(tensor, expected_rank, name = None):
 
     actual_rank = tensor.shape.ndims
     if actual_rank not in expected_rank_dict:
-        scope_name = @@#get_variable_scope().name
+        scope_name = tf.compat.v1.get_variable_scope().name
         raise ValueError(
             'For the tensor `{}` in scope `{}`, the actual rank '
             '`{}` (shape = {}) is not equal to the expected rank `{}`'.format(
@@ -133,10 +133,10 @@ def assert_rank(tensor, expected_rank, name = None):
 
 def create_initializer(initializer_range = 0.02):
     """Creates a `truncated_normal_initializer` with the given range."""
-    return @@#truncated_normal_initializer(stddev = initializer_range)
+    return tf.compat.v1.truncated_normal_initializer(stddev = initializer_range)
 
 
-class Dense3dLayer(@@#layers.Layer):
+class Dense3dLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 3D kernel."""
 
     def __init__(
@@ -182,7 +182,7 @@ class Dense3dLayer(@@#layers.Layer):
     """
         last_dim = get_shape_list(input_tensor)[-1]
         if self.w is None:
-            self.w = @@#get_variable(
+            self.w = tf.compat.v1.get_variable(
                 name = 'kernel',
                 shape = [
                     last_dim,
@@ -202,7 +202,7 @@ class Dense3dLayer(@@#layers.Layer):
 
         if self.use_bias:
             if self.b is None:
-                self.b = @@#get_variable(
+                self.b = tf.compat.v1.get_variable(
                     name = 'bias',
                     shape = [self.num_attention_heads * self.size_per_head],
                     initializer = tf.zeros_initializer,
@@ -224,7 +224,7 @@ class Dense3dLayer(@@#layers.Layer):
             return ret
 
 
-class Dense3dProjLayer(@@#layers.Layer):
+class Dense3dProjLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 3D kernel for projection."""
 
     def __init__(
@@ -268,7 +268,7 @@ class Dense3dProjLayer(@@#layers.Layer):
     """
         hidden_size = self.num_attention_heads * self.size_per_head
         if self.w is None:
-            self.w = @@#get_variable(
+            self.w = tf.compat.v1.get_variable(
                 name = 'kernel',
                 shape = [hidden_size, hidden_size],
                 initializer = self.initializer,
@@ -282,7 +282,7 @@ class Dense3dProjLayer(@@#layers.Layer):
 
         if self.use_bias:
             if self.b is None:
-                self.b = @@#get_variable(
+                self.b = tf.compat.v1.get_variable(
                     name = 'bias',
                     shape = [hidden_size],
                     initializer = tf.zeros_initializer,
@@ -296,7 +296,7 @@ class Dense3dProjLayer(@@#layers.Layer):
             return ret
 
 
-class Dense2dLayer(@@#layers.Layer):
+class Dense2dLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 2D kernel."""
 
     def __init__(
@@ -331,7 +331,7 @@ class Dense2dLayer(@@#layers.Layer):
     """
         if self.w is None:
             last_dim = get_shape_list(input_tensor)[-1]
-            self.w = @@#get_variable(
+            self.w = tf.compat.v1.get_variable(
                 name = 'kernel',
                 shape = [last_dim, self.output_size],
                 initializer = self.initializer,
@@ -342,7 +342,7 @@ class Dense2dLayer(@@#layers.Layer):
 
         if self.use_bias:
             if self.b is None:
-                self.b = @@#get_variable(
+                self.b = tf.compat.v1.get_variable(
                     name = 'bias',
                     shape = [self.output_size],
                     initializer = tf.zeros_initializer,
@@ -432,7 +432,7 @@ def dropout(input_tensor, dropout_prob, training = True):
     return output
 
 
-class NormLayer(@@#layers.Layer):
+class NormLayer(tf.compat.v1.layers.Layer):
     """Replacement for contrib_layers.layer_norm."""
 
     def __init__(self, name = 'LayerNorm'):
@@ -450,7 +450,7 @@ class NormLayer(@@#layers.Layer):
 
         # Allocate parameters for the beta and gamma of the normalization.
         if self.beta is None:
-            self.beta = @@#get_variable(
+            self.beta = tf.compat.v1.get_variable(
                 'beta',
                 shape = params_shape,
                 dtype = dtype,
@@ -459,7 +459,7 @@ class NormLayer(@@#layers.Layer):
             )
             self._trainable_weights.append(self.beta)
         if self.gamma is None:
-            self.gamma = @@#get_variable(
+            self.gamma = tf.compat.v1.get_variable(
                 'gamma',
                 shape = params_shape,
                 dtype = dtype,
@@ -489,7 +489,7 @@ class NormLayer(@@#layers.Layer):
 ############################# EMBEDDING LAYER ##################################
 
 
-class EmbeddingLayer(@@#layers.Layer):
+class EmbeddingLayer(tf.compat.v1.layers.Layer):
     """An embedding layer."""
 
     def __init__(
@@ -513,8 +513,8 @@ class EmbeddingLayer(@@#layers.Layer):
         self.max_position_embeddings = max_position_embeddings
         self.dropout_prob = dropout_prob
 
-        with @@#variable_scope(name):
-            self.word_embeddings = @@#get_variable(
+        with tf.compat.v1.variable_scope(name):
+            self.word_embeddings = tf.compat.v1.get_variable(
                 'word_embeddings',
                 [vocab_size, emb_dim],
                 dtype = tf.float32,
@@ -523,7 +523,7 @@ class EmbeddingLayer(@@#layers.Layer):
             self._trainable_weights.append(self.word_embeddings)
 
             if use_token_type:
-                self.token_type_table = @@#get_variable(
+                self.token_type_table = tf.compat.v1.get_variable(
                     'token_type_embeddings',
                     [num_token_types, emb_dim],
                     dtype = tf.float32,
@@ -534,7 +534,7 @@ class EmbeddingLayer(@@#layers.Layer):
                 self.token_type_table = None
 
             if use_position_embeddings:
-                self.position_embeddings = @@#get_variable(
+                self.position_embeddings = tf.compat.v1.get_variable(
                     'position_embeddings',
                     [max_position_embeddings, emb_dim],
                     dtype = tf.float32,
@@ -575,7 +575,7 @@ class EmbeddingLayer(@@#layers.Layer):
             output += token_type_embeddings
 
         if self.position_embeddings is not None:
-            # assert_op = @@#assert_less_equal(
+            # assert_op = tf.compat.v1.assert_less_equal(
             #     start_pos + seq_length, self.max_position_embeddings)
             # with tf.control_dependencies([assert_op]):
             # So `position_embeddings` is effectively an embedding table for
@@ -601,7 +601,7 @@ class EmbeddingLayer(@@#layers.Layer):
     Returns:
       float32 tensor with shape [..., vocab_size].
     """
-        with @@#name_scope('presoftmax_linear'):
+        with tf.compat.v1.name_scope('presoftmax_linear'):
             logits = tf.tensordot(x, self.word_embeddings, [[-1], [1]])
         return logits
 
@@ -628,7 +628,7 @@ def get_estimator(config, model_fn, keep_checkpoint_max = 10):
     effective_train_batch_size = config['train_batch_size']  # For human
     effective_eval_batch_size = config['eval_batch_size']  # For human
     if config['use_tpu']:
-        sliced_eval_mode = @@#estimator.tpu.InputPipelineConfig.SLICED
+        sliced_eval_mode = tf.compat.v1.estimator.tpu.InputPipelineConfig.SLICED
         distribute_strategy = None
         config_train_batch_size *= config['num_tpu_cores']
         config_eval_batch_size *= config['num_tpu_cores']
@@ -636,21 +636,21 @@ def get_estimator(config, model_fn, keep_checkpoint_max = 10):
         effective_eval_batch_size = config_eval_batch_size
     else:
         sliced_eval_mode = (
-            @@#estimator.tpu.InputPipelineConfig.PER_HOST_V1
+            tf.compat.v1.estimator.tpu.InputPipelineConfig.PER_HOST_V1
         )
         distribute_strategy = tf.distribute.MirroredStrategy(devices = None)
         effective_train_batch_size *= distribute_strategy.num_replicas_in_sync
         # effective_eval_batch_size *= distribute_strategy.num_replicas_in_sync
 
-    is_per_host = @@#estimator.tpu.InputPipelineConfig.PER_HOST_V2
-    run_config = @@#estimator.tpu.RunConfig(
+    is_per_host = tf.compat.v1.estimator.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.compat.v1.estimator.tpu.RunConfig(
         cluster = tpu_cluster_resolver,
         master = config['master'],
         model_dir = config['output_dir'],
         save_checkpoints_steps = config['save_checkpoints_steps'],
         keep_checkpoint_max = keep_checkpoint_max,
         train_distribute = distribute_strategy,
-        tpu_config = @@#estimator.tpu.TPUConfig(
+        tpu_config = tf.compat.v1.estimator.tpu.TPUConfig(
             tpu_job_name = config['tpu_job_name'],
             iterations_per_loop = config['iterations_per_loop'],
             num_shards = config['num_tpu_cores'],
@@ -660,7 +660,7 @@ def get_estimator(config, model_fn, keep_checkpoint_max = 10):
     )
 
     if config['init_checkpoint']:
-        ckpt_var_list = @@#train.list_variables(
+        ckpt_var_list = tf.compat.v1.train.list_variables(
             config['init_checkpoint']
         )
         ckpt_var_list = {
@@ -679,7 +679,7 @@ def get_estimator(config, model_fn, keep_checkpoint_max = 10):
     config['ckpt_var_list'] = ckpt_var_list
 
     # If no TPU, this will fall back to normal Estimator on CPU or GPU.
-    estimator = @@#estimator.tpu.TPUEstimator(
+    estimator = tf.compat.v1.estimator.tpu.TPUEstimator(
         use_tpu = config['use_tpu'],
         model_fn = model_fn,
         config = run_config,
@@ -747,9 +747,9 @@ def add_scalars_to_summary(summary_dir, scalar_tensors_dict):
                 tf.summary.scalar(
                     name,
                     tf.reduce_mean(scalar),
-                    @@#train.get_or_create_global_step(),
+                    tf.compat.v1.train.get_or_create_global_step(),
                 )
-            return @@#summary.all_v2_summary_ops()
+            return tf.compat.v1.summary.all_v2_summary_ops()
 
     return host_call_fn, scalar_tensors_dict
 

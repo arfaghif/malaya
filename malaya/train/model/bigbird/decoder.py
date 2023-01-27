@@ -20,7 +20,7 @@ from . import utils
 import tensorflow as tf
 
 
-class PrenormDecoderLayer(@@#layers.Layer):
+class PrenormDecoderLayer(tf.compat.v1.layers.Layer):
     """Decoder layer of a transformer in Pegasus style.
 
   The layer_norm is taken before self-attention.
@@ -166,8 +166,8 @@ class PrenormDecoderLayer(@@#layers.Layer):
       ValueError: Any of the arguments or tensor shapes are invalid.
       NotImplementedError: For unknown attention type.
     """
-        with @@#variable_scope('attention'):
-            with @@#variable_scope('self') as sc:
+        with tf.compat.v1.variable_scope('attention'):
+            with tf.compat.v1.variable_scope('self') as sc:
                 normalized_layer_input = self.first_layer_norm(layer_input)
                 self_attention_output = self.self_attn_layer(
                     normalized_layer_input,
@@ -181,7 +181,7 @@ class PrenormDecoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('output'):
+            with tf.compat.v1.variable_scope('output'):
                 self_attention_output = self.self_proj_layer(
                     self_attention_output
                 )
@@ -190,7 +190,7 @@ class PrenormDecoderLayer(@@#layers.Layer):
                 )
                 self_attention_output = self_attention_output + layer_input
 
-            with @@#variable_scope('encdec') as sc:
+            with tf.compat.v1.variable_scope('encdec') as sc:
                 normalized_self_attention_output = self.second_layer_norm(
                     self_attention_output
                 )
@@ -204,7 +204,7 @@ class PrenormDecoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('encdec_output'):
+            with tf.compat.v1.variable_scope('encdec_output'):
                 attention_output = self.cross_proj_layer(attention_output)
                 attention_output = utils.dropout(
                     attention_output, self.hidden_dropout_prob, training
@@ -212,14 +212,14 @@ class PrenormDecoderLayer(@@#layers.Layer):
                 attention_output = attention_output + self_attention_output
 
         # The activation is only applied to the "intermediate" hidden layer.
-        with @@#variable_scope('intermediate'):
+        with tf.compat.v1.variable_scope('intermediate'):
             normalized_attention_output = self.third_layer_norm(
                 attention_output
             )
             intermediate_output = self.expand_layer(normalized_attention_output)
 
         # Down-project back to `hidden_size` then add the residual.
-        with @@#variable_scope('output'):
+        with tf.compat.v1.variable_scope('output'):
             layer_output = self.contract_layer(intermediate_output)
             layer_output = utils.dropout(
                 layer_output, self.hidden_dropout_prob, training
@@ -228,7 +228,7 @@ class PrenormDecoderLayer(@@#layers.Layer):
         return layer_output
 
 
-class PostnormDecoderLayer(@@#layers.Layer):
+class PostnormDecoderLayer(tf.compat.v1.layers.Layer):
     """Decoder layer of a transformer in BERT style.
 
   The layer_norm is taken before self-attention.
@@ -374,8 +374,8 @@ class PostnormDecoderLayer(@@#layers.Layer):
       ValueError: Any of the arguments or tensor shapes are invalid.
       NotImplementedError: For unknown attention type.
     """
-        with @@#variable_scope('attention'):
-            with @@#variable_scope('self') as sc:
+        with tf.compat.v1.variable_scope('attention'):
+            with tf.compat.v1.variable_scope('self') as sc:
                 self_attention_output = self.self_attn_layer(
                     layer_input,
                     layer_input,
@@ -388,7 +388,7 @@ class PostnormDecoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('output'):
+            with tf.compat.v1.variable_scope('output'):
                 self_attention_output = self.self_proj_layer(
                     self_attention_output
                 )
@@ -399,7 +399,7 @@ class PostnormDecoderLayer(@@#layers.Layer):
                     self_attention_output + layer_input
                 )
 
-            with @@#variable_scope('encdec') as sc:
+            with tf.compat.v1.variable_scope('encdec') as sc:
                 attention_output = self.cross_attn_layer(
                     self_attention_output,
                     encoder_outputs,
@@ -410,7 +410,7 @@ class PostnormDecoderLayer(@@#layers.Layer):
 
             # Run a linear projection of `hidden_size` then add a residual
             # with `layer_input`.
-            with @@#variable_scope('encdec_output'):
+            with tf.compat.v1.variable_scope('encdec_output'):
                 attention_output = self.cross_proj_layer(attention_output)
                 attention_output = utils.dropout(
                     attention_output, self.hidden_dropout_prob, training
@@ -420,11 +420,11 @@ class PostnormDecoderLayer(@@#layers.Layer):
                 )
 
         # The activation is only applied to the "intermediate" hidden layer.
-        with @@#variable_scope('intermediate'):
+        with tf.compat.v1.variable_scope('intermediate'):
             intermediate_output = self.expand_layer(attention_output)
 
         # Down-project back to `hidden_size` then add the residual.
-        with @@#variable_scope('output'):
+        with tf.compat.v1.variable_scope('output'):
             layer_output = self.contract_layer(intermediate_output)
             layer_output = utils.dropout(
                 layer_output, self.hidden_dropout_prob, training
@@ -435,14 +435,14 @@ class PostnormDecoderLayer(@@#layers.Layer):
         return layer_output
 
 
-class DecoderStack(@@#layers.Layer):
+class DecoderStack(tf.compat.v1.layers.Layer):
     """Transformer decoder stack."""
 
     def __init__(self, params):
         if params['couple_encoder_decoder']:
             name = 'encoder'
-            with @@#variable_scope(
-                name, reuse = @@#AUTO_REUSE
+            with tf.compat.v1.variable_scope(
+                name, reuse = tf.compat.v1.AUTO_REUSE
             ) as scope:
                 super(DecoderStack, self).__init__(name = name, _scope = scope)
         else:

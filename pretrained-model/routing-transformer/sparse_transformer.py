@@ -250,7 +250,7 @@ class SparseTransformer(t2t_model.T2TModel):
 
     def sample(self, features, decode_step, cache, decoding_stats):
         """Sample step for infer."""
-        with @@#variable_scope(
+        with tf.compat.v1.variable_scope(
             'sparse_transformer/body', reuse = tf.AUTO_REUSE
         ):
             logits = self.body(features, decode_step, cache, decoding_stats)
@@ -264,7 +264,7 @@ class SparseTransformer(t2t_model.T2TModel):
             #     == 0
             # )
             if self.hparams.sampling_keep_top_k:
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'Top-k sampling top_k = {}'.format(
                         self.hparams.sampling_keep_top_k
                     )
@@ -289,7 +289,7 @@ class SparseTransformer(t2t_model.T2TModel):
     def nucleus_sampling(self, logits):
         """Nucleus sampling."""
         p = self.hparams.nucleus_sampling
-        @@#logging.info('Nucleus sampling top_p = {}'.format(p))
+        tf.compat.v1.logging.info('Nucleus sampling top_p = {}'.format(p))
         sort_indices = tf.argsort(logits, axis = -1, direction = 'DESCENDING')
         probs = tf.gather(tf.nn.softmax(logits), sort_indices, batch_dims = 1)
         cumprobs = tf.cumsum(probs, axis = -1, exclusive = True)
@@ -309,7 +309,7 @@ class SparseTransformer(t2t_model.T2TModel):
         return logits
 
     def infer(self, features, **kwargs):
-        with @@#variable_scope('sparse_transformer', reuse = tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('sparse_transformer', reuse = tf.AUTO_REUSE):
             features = self.bottom(features)
         decode_length = self.hparams.max_target_length
         cache = {}
@@ -335,7 +335,7 @@ class SparseTransformer(t2t_model.T2TModel):
                     self.hparams.hidden_size,
                 ]
             )
-        with @@#variable_scope(
+        with tf.compat.v1.variable_scope(
             'sparse_transformer/body', reuse = tf.AUTO_REUSE
         ):
             self.body(

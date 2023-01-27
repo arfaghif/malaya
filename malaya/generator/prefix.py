@@ -68,7 +68,7 @@ def babble_tf(
         logger.warning(
             'malaya.generator.babble will disable eager execution.'
         )
-        @@#disable_eager_execution()
+        tf.compat.v1.disable_eager_execution()
 
     return sequential_generation(
         string,

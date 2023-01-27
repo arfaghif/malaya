@@ -213,7 +213,7 @@ t5.data.MixtureRegistry.add(
 
 
 def main(_):
-    @@#logging.set_verbosity(tf.compat.v1.logging.DEBUG)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.DEBUG)
 
     model_parallelism, train_batch_size, keep_checkpoint_max = {
         'small': (1, 256, 16),
@@ -248,4 +248,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    @@#app.run()
+    tf.compat.v1.app.run()

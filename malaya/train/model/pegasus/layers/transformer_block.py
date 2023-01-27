@@ -69,7 +69,7 @@ class TransformerBlock(object):
         decode_i = None,
     ):
         s_BxIxD = inputs_BxIxD
-        with @@#variable_scope('attention/self'):
+        with tf.compat.v1.variable_scope('attention/self'):
             y_BxIxD = contrib_layers.layer_norm(s_BxIxD, begin_norm_axis = 2)
             y_BxIxD = self._self_attn_layer(
                 y_BxIxD,
@@ -80,7 +80,7 @@ class TransformerBlock(object):
             )
             s_BxIxD += self._dropout_fn(y_BxIxD, training)
         if memory_BxMxD is not None:
-            with @@#variable_scope('memory_attention'):
+            with tf.compat.v1.variable_scope('memory_attention'):
                 y_BxIxD = contrib_layers.layer_norm(
                     s_BxIxD, begin_norm_axis = 2
                 )
@@ -88,7 +88,7 @@ class TransformerBlock(object):
                     y_BxIxD, memory_BxMxD, bias_BxIxM, training
                 )
                 s_BxIxD += self._dropout_fn(y_BxIxD, training)
-        with @@#variable_scope('ffn'):
+        with tf.compat.v1.variable_scope('ffn'):
             y_BxIxD = contrib_layers.layer_norm(s_BxIxD, begin_norm_axis = 2)
             y_BxIxD = self._dropout_fn(self._relu_layer(y_BxIxD), training)
             s_BxIxD += self._dropout_fn(self._output_layer(y_BxIxD), training)
@@ -110,7 +110,7 @@ def stack(
         raise ValueError('memory and memory_bias need to be provided together.')
     s_BxIxD = inputs_BxIxD
     for i, layer in enumerate(layers):
-        with @@#variable_scope('layer_%d' % i):
+        with tf.compat.v1.variable_scope('layer_%d' % i):
             s_BxIxD = layer(
                 training,
                 s_BxIxD,

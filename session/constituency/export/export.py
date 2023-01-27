@@ -92,7 +92,7 @@ def make_elmo(chars_batched):
     # projection matrix right after
     word_representations_padded = word_representations_padded.op.inputs[0]
 
-    with @@#variable_scope('', reuse=True):
+    with tf.compat.v1.variable_scope('', reuse=True):
         elmo_scalar_mix_matrix = tf.compat.v1.get_variable('scalar_mix_ELMo_W')
 
     tf.compat.v1.global_variables_initializer().run()
@@ -245,7 +245,7 @@ def make_flabel_constants():
 
 def make_network():
     # batch x num_words x 50
-    chars = @@#placeholder(shape=(None, None, 50), dtype=tf.compat.v1.int32, name='chars')
+    chars = tf.compat.v1.placeholder(shape=(None, None, 50), dtype=tf.compat.v1.int32, name='chars')
 
     input_dat, nonpad_ids, dim_flat, dim_padded, valid_mask, lengths = make_elmo(chars)
     chars_shape = tf.compat.v1.shape(chars)

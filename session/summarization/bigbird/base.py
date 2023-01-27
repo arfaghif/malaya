@@ -267,9 +267,9 @@ def model_fn_builder(
     init_checkpoint, learning_rate, num_train_steps, num_warmup_steps, use_tpu
 ):
     def model_fn(features, labels, mode, params):
-        @@#logging.info('*** Features ***')
+        tf.compat.v1.logging.info('*** Features ***')
         for name in sorted(features.keys()):
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 '  name = %s, shape = %s' % (name, features[name].shape)
             )
 
@@ -311,13 +311,13 @@ def model_fn_builder(
             else:
                 tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-        @@#logging.info('**** Trainable Variables ****')
+        tf.compat.v1.logging.info('**** Trainable Variables ****')
         print(initialized_variable_names)
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
 
@@ -384,7 +384,7 @@ def model_fn_builder(
 
 
 def main(_):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if not FLAGS.do_train and not FLAGS.do_eval:
         raise ValueError(
@@ -397,9 +397,9 @@ def main(_):
     for input_pattern in FLAGS.input_file.split(','):
         input_files.extend(tf.compat.v1.gfile.Glob(input_pattern))
 
-    @@#logging.info('*** Input Files ***')
+    tf.compat.v1.logging.info('*** Input Files ***')
     for input_file in input_files:
-        @@#logging.info('  %s' % input_file)
+        tf.compat.v1.logging.info('  %s' % input_file)
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
@@ -437,8 +437,8 @@ def main(_):
     )
 
     if FLAGS.do_train:
-        @@#logging.info('***** Running training *****')
-        @@#logging.info('  Batch size = %d', FLAGS.train_batch_size)
+        tf.compat.v1.logging.info('***** Running training *****')
+        tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
         train_input_fn = input_fn_builder(
             input_files=input_files,
             max_seq_length_encoder=FLAGS.max_seq_length_encoder,
@@ -453,4 +453,4 @@ def main(_):
 if __name__ == '__main__':
     flags.mark_flag_as_required('input_file')
     flags.mark_flag_as_required('output_dir')
-    @@#app.run()
+    tf.compat.v1.app.run()

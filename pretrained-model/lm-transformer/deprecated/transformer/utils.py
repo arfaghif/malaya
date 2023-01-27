@@ -157,7 +157,7 @@ def get_eval_metrics(logits, labels, params):
 
 def padded_accuracy(logits, labels):
     """Percentage of times that predictions matches labels on non-0s."""
-    with @@#variable_scope('padded_accuracy', values = [logits, labels]):
+    with tf.compat.v1.variable_scope('padded_accuracy', values = [logits, labels]):
         logits, labels = _pad_tensors_to_same_length(logits, labels)
         weights = tf.to_float(tf.not_equal(labels, 0))
         outputs = tf.to_int32(tf.argmax(logits, axis = -1))
@@ -167,7 +167,7 @@ def padded_accuracy(logits, labels):
 
 def padded_accuracy_topk(logits, labels, k):
     """Percentage of times that top-k predictions matches labels on non-0s."""
-    with @@#variable_scope('padded_accuracy_topk', values = [logits, labels]):
+    with tf.compat.v1.variable_scope('padded_accuracy_topk', values = [logits, labels]):
         logits, labels = _pad_tensors_to_same_length(logits, labels)
         weights = tf.to_float(tf.not_equal(labels, 0))
         effective_k = tf.minimum(k, tf.shape(logits)[-1])
@@ -187,7 +187,7 @@ def padded_accuracy_top5(logits, labels):
 
 def padded_sequence_accuracy(logits, labels):
     """Percentage of times that predictions matches labels everywhere (non-0)."""
-    with @@#variable_scope(
+    with tf.compat.v1.variable_scope(
         'padded_sequence_accuracy', values = [logits, labels]
     ):
         logits, labels = _pad_tensors_to_same_length(logits, labels)

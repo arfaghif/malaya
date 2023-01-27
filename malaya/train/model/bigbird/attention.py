@@ -997,7 +997,7 @@ def bigbird_block_sparse_attention(
     return context_layer
 
 
-class MultiHeadedAttentionLayer(@@#layers.Layer):
+class MultiHeadedAttentionLayer(tf.compat.v1.layers.Layer):
     """A multi-headed attention layer.
 
   It implements following types of multi-headed attention:

@@ -310,8 +310,8 @@ def make_flabel_constants():
 
 def make_network():
     # batch x num_subwords
-    input_ids = @@#placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='input_ids')
-    word_end_mask = @@#placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='word_end_mask')
+    input_ids = tf.compat.v1.placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='input_ids')
+    word_end_mask = tf.compat.v1.placeholder(shape=(None, None), dtype=tf.compat.v1.int32, name='word_end_mask')
     input_dat, nonpad_ids, dim_flat, dim_padded, valid_mask, lengths = make_bert(input_ids, word_end_mask)
     input_pos_flat = tf.compat.v1.tile(position_table[:dim_padded[1]], [dim_padded[0], 1])
     input_pos = tf.compat.v1.gather(input_pos_flat, nonpad_ids)

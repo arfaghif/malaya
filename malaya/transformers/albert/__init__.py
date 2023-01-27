@@ -64,15 +64,15 @@ class Model:
         _graph = tf.Graph()
 
         with _graph.as_default():
-            with @@#device(device):
-                self.X = @@#placeholder(tf.int32, [None, None])
-                self.segment_ids = @@#placeholder(tf.int32, [None, None])
-                self.top_p = @@#placeholder(tf.float32, None)
-                self.top_k = @@#placeholder(tf.int32, None)
-                self.k = @@#placeholder(tf.int32, None)
-                self.temperature = @@#placeholder(tf.float32, None)
-                self.indices = @@#placeholder(tf.int32, [None, None])
-                self.MASK = @@#placeholder(tf.int32, [None, None])
+            with tf.compat.v1.device(device):
+                self.X = tf.compat.v1.placeholder(tf.int32, [None, None])
+                self.segment_ids = tf.compat.v1.placeholder(tf.int32, [None, None])
+                self.top_p = tf.compat.v1.placeholder(tf.float32, None)
+                self.top_k = tf.compat.v1.placeholder(tf.int32, None)
+                self.k = tf.compat.v1.placeholder(tf.int32, None)
+                self.temperature = tf.compat.v1.placeholder(tf.float32, None)
+                self.indices = tf.compat.v1.placeholder(tf.int32, [None, None])
+                self.MASK = tf.compat.v1.placeholder(tf.int32, [None, None])
                 self._tokenizer = tokenizer
 
                 self.model = modeling.AlbertModel(
@@ -86,8 +86,8 @@ class Model:
                 input_tensor = self.model.get_sequence_output()
                 output_weights = self.model.get_embedding_table()
 
-                with @@#variable_scope('cls/predictions'):
-                    with @@#variable_scope('transform'):
+                with tf.compat.v1.variable_scope('cls/predictions'):
+                    with tf.compat.v1.variable_scope('transform'):
                         input_tensor = tf.layers.dense(
                             input_tensor,
                             units=bert_config.embedding_size,

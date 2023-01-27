@@ -356,7 +356,7 @@ class T2TModel(base.Layer):
         del kwargs
         features = inputs
         set_custom_getter_compose(self._custom_getter)
-        @@#get_variable_scope().set_initializer(
+        tf.compat.v1.get_variable_scope().set_initializer(
             optimize.get_variable_initializer(self.hparams)
         )
         with self._eager_var_store.as_default():
@@ -478,8 +478,8 @@ class T2TModel(base.Layer):
         return sharded_logits, losses
 
     def model_fn(self, features):
-        with @@#variable_scope(
-            @@#get_variable_scope(), use_resource = True
+        with tf.compat.v1.variable_scope(
+            tf.compat.v1.get_variable_scope(), use_resource = True
         ) as vs:
             self._add_variable_scope('model_fn', vs)
             transformed_features = self.bottom(features)
@@ -562,7 +562,7 @@ class T2TModel(base.Layer):
                     feature_name, modalities.get_targets_bottom(modality)
                 )
                 # TODO(aidangomez): share variables?
-                with @@#variable_scope(variable_scope_name) as vs:
+                with tf.compat.v1.variable_scope(variable_scope_name) as vs:
                     self._add_variable_scope(variable_scope_name, vs)
                     log_info(
                         "Transforming feature '%s' with %s.targets_bottom",
@@ -577,7 +577,7 @@ class T2TModel(base.Layer):
                     feature_name, modalities.get_bottom(modality)
                 )
                 do_reuse = modality_name in all_previous_modalities
-                with @@#variable_scope(modality_name, reuse = do_reuse) as vs:
+                with tf.compat.v1.variable_scope(modality_name, reuse = do_reuse) as vs:
                     self._add_variable_scope(modality_name, vs)
                     log_info(
                         "Transforming feature '%s' with %s.bottom",
@@ -631,7 +631,7 @@ class T2TModel(base.Layer):
         name = self._hparams.name.get(
             feature_name, modalities.get_name(modality)
         )(self._hparams, vocab_size)
-        with @@#variable_scope(name, reuse = tf.AUTO_REUSE) as tm_vs:
+        with tf.compat.v1.variable_scope(name, reuse = tf.AUTO_REUSE) as tm_vs:
             self._add_variable_scope(tm_vs.name, tm_vs)
             log_info('Transforming body output with %s.top', name)
             top = self._hparams.top.get(
@@ -709,7 +709,7 @@ class T2TModel(base.Layer):
             logits = {}
             for k, v in six.iteritems(body_output):
                 # TODO(aidangomez): share variables here?
-                with @@#variable_scope(k) as top_vs:
+                with tf.compat.v1.variable_scope(k) as top_vs:
                     self._add_variable_scope('top_%s' % k, top_vs)
                     logits[k] = self._top_single(v, k, features)
             return logits
@@ -1674,7 +1674,7 @@ class T2TModel(base.Layer):
         data_parallelism = None
         if not use_tpu and config:
             data_parallelism = config.data_parallelism
-        reuse = @@#get_variable_scope().reuse
+        reuse = tf.compat.v1.get_variable_scope().reuse
         model = cls(
             hparams,
             mode,
@@ -1717,7 +1717,7 @@ class T2TModel(base.Layer):
         if isinstance(logits, dict) and 'self_generated_targets' in logits:
             # Overwrite 'features["targets"]' and 'labels'
             # by logits["self_generated_targets"].
-            @@#logging.info('Replacing targets with model-provided targets.')
+            tf.compat.v1.logging.info('Replacing targets with model-provided targets.')
             features['targets'] = labels = logits.pop('self_generated_targets')
             assert list(logits.keys()) == ['logits'], (
                 # See "Returns" in the "top" method docstring for the expected
@@ -2110,7 +2110,7 @@ class T2TModel(base.Layer):
         # Only do scheduled sampling when training.
         is_training = hparams.mode == tf.estimator.ModeKeys.TRAIN
         if not is_training:
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 'Running in %s mode. Not using scheduled sampling.',
                 hparams.mode,
             )
@@ -2183,14 +2183,14 @@ class T2TModel(base.Layer):
             )  # Treat new_targets as given.
             new_features = copy.copy(features)
             new_features['targets'] = new_targets
-            with @@#variable_scope(@@#get_variable_scope(), reuse = True):
+            with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(), reuse = True):
                 # Compute bottom() for new_targets.
                 #
                 # TODO(duckworthd): Only apply bottom to 'new_targets'.
                 new_transformed_features = self.bottom(new_features)
 
                 # Compute body.
-                with @@#variable_scope('body'):
+                with tf.compat.v1.variable_scope('body'):
                     new_body_outputs, new_losses = self._normalize_body_output(
                         self.body(new_transformed_features)
                     )
@@ -2210,8 +2210,8 @@ class T2TModel(base.Layer):
 
             return new_targets, new_logits, new_losses
 
-        @@#logging.info('Using scheduled sampling.')
-        @@#logging.info(
+        tf.compat.v1.logging.info('Using scheduled sampling.')
+        tf.compat.v1.logging.info(
             'Warming scheduled sampling up with schedule: %s',
             hparams.scheduled_sampling_warmup_schedule,
         )
@@ -2220,7 +2220,7 @@ class T2TModel(base.Layer):
         ), 'hparams.scheduled_sampling_prob must be 0 or 1.'
 
         if hparams.scheduled_sampling_method == 'sequential':
-            @@#logging.info('Using SEQUENTIAL scheduled sampling.')
+            tf.compat.v1.logging.info('Using SEQUENTIAL scheduled sampling.')
             assert hparams.scheduled_sampling_num_passes == 1, (
                 'hparams.scheduled_sampling_num_passes must equal 1 if '
                 'doing sequential scheduled sampling.'
@@ -2229,7 +2229,7 @@ class T2TModel(base.Layer):
                 self, features
             )
         elif hparams.scheduled_sampling_method == 'parallel':
-            @@#logging.info('Using PARALLEL scheduled sampling.')
+            tf.compat.v1.logging.info('Using PARALLEL scheduled sampling.')
             # TODO(duckworthd): Move this block to scheduled_sampling.py.
 
             # Gradually increase over a warmup period. Lower numbers mean more gold
@@ -2279,13 +2279,13 @@ def create_dummy_vars():
     var_names = set([v.name for v in tf.global_variables()])
     if 'losses_avg/problem_0/total_loss:0' in var_names:
         return
-    with @@#variable_scope('losses_avg'):
-        with @@#variable_scope('problem_0'):
+    with tf.compat.v1.variable_scope('losses_avg'):
+        with tf.compat.v1.variable_scope('problem_0'):
             for var_name in ['total', 'extra', 'training']:
                 tf.get_variable(
                     '%s_loss' % var_name, initializer = 100.0, trainable = False
                 )
-    with @@#variable_scope('train_stats'):
+    with tf.compat.v1.variable_scope('train_stats'):
         tf.get_variable('problem_0_steps', initializer = 0, trainable = False)
 
 
@@ -2603,8 +2603,8 @@ def _compose_custom_getters(getter_a, getter_b):
     """Compose two custom getters.
 
   Example use:
-  @@#get_variable_scope().set_custom_getter(
-    compose_custom_getters(@@#get_variable_scope().custom_getter, new_getter))
+  tf.compat.v1.get_variable_scope().set_custom_getter(
+    compose_custom_getters(tf.compat.v1.get_variable_scope().custom_getter, new_getter))
 
   This composes getters in the same way as creating a new variable scope with
   the new_getter, but it does not actually create a new variable scope.
@@ -2635,9 +2635,9 @@ def set_custom_getter_compose(custom_getter):
   Args:
     custom_getter: a custom getter.
   """
-    @@#get_variable_scope().set_custom_getter(
+    tf.compat.v1.get_variable_scope().set_custom_getter(
         _compose_custom_getters(
-            @@#get_variable_scope().custom_getter, custom_getter
+            tf.compat.v1.get_variable_scope().custom_getter, custom_getter
         )
     )
 
@@ -2665,16 +2665,16 @@ def initialize_from_ckpt(ckpt_dir, hparams):
     if already_has_ckpt:
         return
 
-    @@#logging.info('Checkpoint dir: %s', ckpt_dir)
+    tf.compat.v1.logging.info('Checkpoint dir: %s', ckpt_dir)
     reader = contrib.framework().load_checkpoint(ckpt_dir)
     variable_map = {}
     for var in contrib.framework().get_trainable_variables():
         var_name = var.name.split(':')[0]
         if reader.has_tensor(var_name):
-            @@#logging.info('Loading variable from checkpoint: %s', var_name)
+            tf.compat.v1.logging.info('Loading variable from checkpoint: %s', var_name)
             variable_map[var_name] = var
         else:
-            @@#logging.info(
+            tf.compat.v1.logging.info(
                 'Cannot find variable in checkpoint, skipping: %s', var_name
             )
     tf.train.init_from_checkpoint(ckpt_dir, variable_map)

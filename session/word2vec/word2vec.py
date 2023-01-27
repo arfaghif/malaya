@@ -61,8 +61,8 @@ class Model:
         g_params = graph_params
         tf.compat.v1.reset_default_graph()
         self.sess = tf.compat.v1.InteractiveSession()
-        self.X = @@#placeholder(tf.compat.v1.int64, shape = [None, 4])
-        self.Y = @@#placeholder(tf.compat.v1.int64, shape = [None, 1])
+        self.X = tf.compat.v1.placeholder(tf.compat.v1.int64, shape = [None, 4])
+        self.Y = tf.compat.v1.placeholder(tf.compat.v1.int64, shape = [None, 1])
         w_m2, w_m1, w_p1, w_p2 = tf.compat.v1.unstack(self.X, axis = 1)
         self.embed_weights = tf.compat.v1.Variable(
             tf.compat.v1.random_uniform(

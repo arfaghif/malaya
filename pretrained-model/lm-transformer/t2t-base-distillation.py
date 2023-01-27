@@ -32,7 +32,7 @@ import collections
 import re
 
 logger = logging.getLogger()
-@@#logging.set_verbosity(tf.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
 
 vocab = 'sp10m.cased.t5.model'
 sp = spm.SentencePieceProcessor()
@@ -124,7 +124,7 @@ class StudentModel:
         self, X, Y, HPARAMS = 'transformer_base', DATA_DIR = 't2t/data'
     ):
 
-        with @@#variable_scope('student') as vs:
+        with tf.compat.v1.variable_scope('student') as vs:
 
             self.X = X
             self.Y = Y
@@ -266,12 +266,12 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
         initialized_variable_names[name] = 1
         initialized_variable_names[name + ':0'] = 1
 
-    @@#logging.info('**** Trainable Variables ****')
+    tf.compat.v1.logging.info('**** Trainable Variables ****')
     for var in tvars:
         init_string = ''
         if var.name in initialized_variable_names:
             init_string = ', *INIT_FROM_CKPT*'
-        @@#logging.info(
+        tf.compat.v1.logging.info(
             '  name = %s, shape = %s%s', var.name, var.shape, init_string
         )
 
@@ -411,7 +411,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if num_gpus > 1 and not use_tpu:
         dist_strategy = tf.contrib.distribute.MirroredStrategy(

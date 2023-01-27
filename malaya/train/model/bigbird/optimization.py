@@ -27,12 +27,12 @@ def get_linear_warmup_linear_decay_lr(
     init_lr, num_train_steps, num_warmup_steps
 ):
     """Calculate learning rate with linear warmup and linear decay."""
-    global_step = @@#train.get_or_create_global_step()
+    global_step = tf.compat.v1.train.get_or_create_global_step()
 
     learning_rate = tf.constant(value = init_lr, shape = [], dtype = tf.float32)
 
     # Implements linear decay of the learning rate.
-    learning_rate = @@#train.polynomial_decay(
+    learning_rate = tf.compat.v1.train.polynomial_decay(
         learning_rate,
         global_step,
         num_train_steps,
@@ -64,7 +64,7 @@ def get_linear_warmup_linear_decay_lr(
 def get_linear_warmup_rsqrt_decay_lr(init_lr, hidden_size, num_warmup_steps):
     """Calculate learning rate with linear warmup and rsqrt decay."""
     num_warmup_steps = tf.cast(num_warmup_steps, tf.float32)
-    global_step = @@#train.get_or_create_global_step()
+    global_step = tf.compat.v1.train.get_or_create_global_step()
     global_step = tf.cast(global_step, tf.float32)
 
     learning_rate = tf.constant(value = init_lr, shape = [], dtype = tf.float32)
@@ -106,7 +106,7 @@ def get_optimizer(params, learning_rate):
             params['optimizer'] = 'Adam'
 
     if params['optimizer'] == 'Adam':
-        optimizer = @@#train.AdamOptimizer(
+        optimizer = tf.compat.v1.train.AdamOptimizer(
             learning_rate,
             beta1 = params['optimizer_beta1'],
             beta2 = params['optimizer_beta2'],
@@ -124,19 +124,19 @@ def get_optimizer(params, learning_rate):
         )
 
     if params['optimizer'] == 'SGD':
-        optimizer = @@#train.GradientDescentOptimizer(learning_rate)
+        optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
 
     if optimizer is None:
         raise ValueError('Unknown optimizer: {}.'.format(params['optimizer']))
 
     if params['use_tpu']:
         # Average the gradients across TPU cores.
-        optimizer = @@#tpu.CrossShardOptimizer(optimizer)
+        optimizer = tf.compat.v1.tpu.CrossShardOptimizer(optimizer)
 
     return optimizer
 
 
-class AdamWeightDecayOptimizer(@@#train.Optimizer):
+class AdamWeightDecayOptimizer(tf.compat.v1.train.Optimizer):
     """A basic Adam optimizer that includes "correct" L2 weight decay."""
 
     def __init__(
@@ -206,7 +206,7 @@ class AdamWeightDecayOptimizer(@@#train.Optimizer):
         """See `tf.train.Optimizer._apply_sparse()`."""
 
         def scatter_update_fn(x, i, v):
-            return @@#scatter_update(
+            return tf.compat.v1.scatter_update(
                 x, i, v, use_locking = self._use_locking
             )
 

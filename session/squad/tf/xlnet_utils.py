@@ -617,19 +617,19 @@ def convert_examples_to_features(
                 end_position = cls_index
 
             if example_index < 20:
-                @@#logging.info('*** Example ***')
-                @@#logging.info('unique_id: %s' % (unique_id))
-                @@#logging.info('example_index: %s' % (example_index))
-                @@#logging.info('doc_span_index: %s' % (doc_span_index))
-                @@#logging.info(
+                tf.compat.v1.logging.info('*** Example ***')
+                tf.compat.v1.logging.info('unique_id: %s' % (unique_id))
+                tf.compat.v1.logging.info('example_index: %s' % (example_index))
+                tf.compat.v1.logging.info('doc_span_index: %s' % (doc_span_index))
+                tf.compat.v1.logging.info(
                     'tok_start_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_start_to_orig_index])
                 )
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'tok_end_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_end_to_orig_index])
                 )
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'token_is_max_context: %s'
                     % ' '.join(
                         [
@@ -638,18 +638,18 @@ def convert_examples_to_features(
                         ]
                     )
                 )
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'input_ids: %s' % ' '.join([str(x) for x in input_ids])
                 )
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'input_mask: %s' % ' '.join([str(x) for x in input_mask])
                 )
-                @@#logging.info(
+                tf.compat.v1.logging.info(
                     'segment_ids: %s' % ' '.join([str(x) for x in segment_ids])
                 )
 
                 if is_training and span_is_impossible:
-                    @@#logging.info('impossible example span')
+                    tf.compat.v1.logging.info('impossible example span')
 
                 if is_training and not span_is_impossible:
                     pieces = [
@@ -657,9 +657,9 @@ def convert_examples_to_features(
                         for token in tokens[start_position : (end_position + 1)]
                     ]
                     answer_text = sp_model.DecodePieces(pieces)
-                    @@#logging.info('start_position: %d' % (start_position))
-                    @@#logging.info('end_position: %d' % (end_position))
-                    @@#logging.info(
+                    tf.compat.v1.logging.info('start_position: %d' % (start_position))
+                    tf.compat.v1.logging.info('end_position: %d' % (end_position))
+                    tf.compat.v1.logging.info(
                         'answer: %s' % (printable_text(answer_text))
                     )
 
@@ -698,7 +698,7 @@ def convert_examples_to_features(
             else:
                 cnt_pos += 1
 
-    @@#logging.info(
+    tf.compat.v1.logging.info(
         'Total number of instances: {} = pos {} neg {}'.format(
             cnt_pos + cnt_neg, cnt_pos, cnt_neg
         )
@@ -840,8 +840,8 @@ def write_predictions(
     orig_data,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    @@#logging.info('Writing predictions to: %s' % (output_prediction_file))
-    # @@#logging.info("Writing nbest to: %s" % (output_nbest_file))
+    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
+    # tf.compat.v1.logging.info("Writing nbest to: %s" % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:

@@ -264,7 +264,7 @@ def model_fn(features, labels, mode, params):
 
     Y = features['label'][:, 0]
 
-    with @@#variable_scope('xlnet', reuse = False):
+    with tf.compat.v1.variable_scope('xlnet', reuse = False):
         xlnet_model = xlnet.XLNetModel(
             xlnet_config = xlnet_config,
             run_config = xlnet_parameters,
@@ -275,7 +275,7 @@ def model_fn(features, labels, mode, params):
 
         summary = xlnet_model.get_pooled_out('last', True)
 
-    with @@#variable_scope('xlnet', reuse = True):
+    with tf.compat.v1.variable_scope('xlnet', reuse = True):
         xlnet_model = xlnet.XLNetModel(
             xlnet_config = xlnet_config,
             run_config = xlnet_parameters,
@@ -342,7 +342,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    @@#logging.set_verbosity(@@#logging.info)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
     dist_strategy = None
 
     gpu_options = tf.compat.v1.GPUOptions(

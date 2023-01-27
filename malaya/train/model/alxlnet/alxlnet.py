@@ -250,7 +250,7 @@ class XLNetModel(object):
         )
         tfm_args.update(input_args)
 
-        with @@#variable_scope('model', reuse=tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('model', reuse=tf.AUTO_REUSE):
             (
                 self.output,
                 self.new_mems,
@@ -277,7 +277,7 @@ class XLNetModel(object):
         xlnet_config = self.xlnet_config
         run_config = self.run_config
 
-        with @@#variable_scope('model', reuse=tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('model', reuse=tf.AUTO_REUSE):
             summary = modeling.summarize_sequence(
                 summary_type=summary_type,
                 hidden=self.output,

@@ -172,7 +172,7 @@ class WordPieceTokenizer(object):
     def load_vocab(self, vocab_file):
         vocab = collections.OrderedDict()
         index = 0
-        with @@#gfile.GFile(vocab_file, 'r') as reader:
+        with tf.compat.v1.gfile.GFile(vocab_file, 'r') as reader:
             while True:
                 token = convert_to_unicode(reader.readline())
                 if not token:

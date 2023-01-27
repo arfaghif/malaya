@@ -290,7 +290,7 @@ class Model(tf.keras.Model):
             x = attn(x, training=training)
             x = x * input_mask
 
-        with @@#variable_scope('pooler'):
+        with tf.compat.v1.variable_scope('pooler'):
             first_token_tensor = tf.squeeze(x[:, 0:1, :], axis=1)
             self.pooled_output = tf.layers.dense(
                 first_token_tensor,
@@ -301,6 +301,6 @@ class Model(tf.keras.Model):
         return x
 
 
-# x = @@#placeholder(tf.int32, (None, None))
+# x = tf.compat.v1.placeholder(tf.int32, (None, None))
 # model = Model(768, 32000, 12, 768)
 # o = model(x)
