@@ -1895,7 +1895,7 @@ def attention_nd(
         output = tf.layers.dense(output, output_shape[-1], use_bias = False)
         output = tf.reshape(output, output_shape)
 
-        scope_name = tf.get_variable_scope().name
+        scope_name = tf.compat.v1.get_variable_scope().name
         # restructure the output from blocks ordering to the original ordering
         if decode_step is None:
             # In fast decoding, output only contains one element, this is not needed.

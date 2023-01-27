@@ -220,7 +220,7 @@ def clean_ckpt(_):
         var_dtypes[name] = tensor.dtype
         var_values[name] = tensor
 
-    with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+    with tf.variable_scope(tf.compat.v1.get_variable_scope(), reuse = tf.AUTO_REUSE):
         tf_vars = [
             tf.get_variable(
                 v, shape = var_values[v].shape, dtype = var_dtypes[v]
@@ -273,7 +273,7 @@ def avg_checkpoints(model_dir, output_model_dir, last_k):
     for name in var_values:  # Average.
         var_values[name] /= len(checkpoints)
 
-    with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+    with tf.variable_scope(tf.compat.v1.get_variable_scope(), reuse = tf.AUTO_REUSE):
         tf_vars = [
             tf.get_variable(
                 v, shape = var_values[v].shape, dtype = var_dtypes[v]

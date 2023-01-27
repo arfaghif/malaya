@@ -356,7 +356,7 @@ class T2TModel(base.Layer):
         del kwargs
         features = inputs
         set_custom_getter_compose(self._custom_getter)
-        tf.get_variable_scope().set_initializer(
+        tf.compat.v1.get_variable_scope().set_initializer(
             optimize.get_variable_initializer(self.hparams)
         )
         with self._eager_var_store.as_default():
@@ -479,7 +479,7 @@ class T2TModel(base.Layer):
 
     def model_fn(self, features):
         with tf.variable_scope(
-            tf.get_variable_scope(), use_resource = True
+            tf.compat.v1.get_variable_scope(), use_resource = True
         ) as vs:
             self._add_variable_scope('model_fn', vs)
             transformed_features = self.bottom(features)
@@ -1674,7 +1674,7 @@ class T2TModel(base.Layer):
         data_parallelism = None
         if not use_tpu and config:
             data_parallelism = config.data_parallelism
-        reuse = tf.get_variable_scope().reuse
+        reuse = tf.compat.v1.get_variable_scope().reuse
         model = cls(
             hparams,
             mode,
@@ -2183,7 +2183,7 @@ class T2TModel(base.Layer):
             )  # Treat new_targets as given.
             new_features = copy.copy(features)
             new_features['targets'] = new_targets
-            with tf.variable_scope(tf.get_variable_scope(), reuse = True):
+            with tf.variable_scope(tf.compat.v1.get_variable_scope(), reuse = True):
                 # Compute bottom() for new_targets.
                 #
                 # TODO(duckworthd): Only apply bottom to 'new_targets'.
@@ -2603,8 +2603,8 @@ def _compose_custom_getters(getter_a, getter_b):
     """Compose two custom getters.
 
   Example use:
-  tf.get_variable_scope().set_custom_getter(
-    compose_custom_getters(tf.get_variable_scope().custom_getter, new_getter))
+  tf.compat.v1.get_variable_scope().set_custom_getter(
+    compose_custom_getters(tf.compat.v1.get_variable_scope().custom_getter, new_getter))
 
   This composes getters in the same way as creating a new variable scope with
   the new_getter, but it does not actually create a new variable scope.
@@ -2635,9 +2635,9 @@ def set_custom_getter_compose(custom_getter):
   Args:
     custom_getter: a custom getter.
   """
-    tf.get_variable_scope().set_custom_getter(
+    tf.compat.v1.get_variable_scope().set_custom_getter(
         _compose_custom_getters(
-            tf.get_variable_scope().custom_getter, custom_getter
+            tf.compat.v1.get_variable_scope().custom_getter, custom_getter
         )
     )
 
