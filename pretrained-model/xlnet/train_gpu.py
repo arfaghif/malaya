@@ -227,7 +227,7 @@ def train(ps_device):
 
   for i in range(FLAGS.num_core_per_host):
     reuse = True if i > 0 else None
-    tf.compat.v1.device(assign_to_gpu(i, ps_device)), \
+    with tf.device(assign_to_gpu(i, ps_device)), \
         tf.variable_scope(tf.get_variable_scope(), reuse=reuse):
 
       # The mems for each tower is a dictionary
