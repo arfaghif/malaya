@@ -84,7 +84,7 @@ def huggingface(
 
     tokenizer = BertTokenizer.from_pretrained(model)
     device = frozen_graph.get_device(**kwargs)
-    with tf.device(device):
+    tf.compat.v1.device(device):
         model = TFBertModel.from_pretrained(model)
 
     return HuggingFace(model=model, tokenizer=tokenizer)

@@ -24,7 +24,7 @@ class LDA2Vec:
         _graph = tf.Graph()
 
         with _graph.as_default():
-            with tf.device(device):
+            tf.compat.v1.device(device):
                 moving_avgs = tf.train.ExponentialMovingAverage(0.9)
                 self.batch_size = batch_size
                 self.freqs = freqs

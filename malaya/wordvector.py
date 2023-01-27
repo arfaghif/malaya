@@ -102,7 +102,7 @@ class WordVector:
         device = get_device(**kwargs)
         _graph = tf.Graph()
         with _graph.as_default():
-            with tf.device(device):
+            tf.compat.v1.device(device):
                 self._embedding = tf.compat.v1.placeholder(
                     tf.float32, self._embed_matrix.shape
                 )
