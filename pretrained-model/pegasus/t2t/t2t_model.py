@@ -1717,7 +1717,7 @@ class T2TModel(base.Layer):
         if isinstance(logits, dict) and 'self_generated_targets' in logits:
             # Overwrite 'features["targets"]' and 'labels'
             # by logits["self_generated_targets"].
-            tf.logging.info('Replacing targets with model-provided targets.')
+            tf.compat.v1.logging.info('Replacing targets with model-provided targets.')
             features['targets'] = labels = logits.pop('self_generated_targets')
             assert list(logits.keys()) == ['logits'], (
                 # See "Returns" in the "top" method docstring for the expected
@@ -2110,7 +2110,7 @@ class T2TModel(base.Layer):
         # Only do scheduled sampling when training.
         is_training = hparams.mode == tf.estimator.ModeKeys.TRAIN
         if not is_training:
-            tf.logging.info(
+            tf.compat.v1.logging.info(
                 'Running in %s mode. Not using scheduled sampling.',
                 hparams.mode,
             )
@@ -2210,8 +2210,8 @@ class T2TModel(base.Layer):
 
             return new_targets, new_logits, new_losses
 
-        tf.logging.info('Using scheduled sampling.')
-        tf.logging.info(
+        tf.compat.v1.logging.info('Using scheduled sampling.')
+        tf.compat.v1.logging.info(
             'Warming scheduled sampling up with schedule: %s',
             hparams.scheduled_sampling_warmup_schedule,
         )
@@ -2220,7 +2220,7 @@ class T2TModel(base.Layer):
         ), 'hparams.scheduled_sampling_prob must be 0 or 1.'
 
         if hparams.scheduled_sampling_method == 'sequential':
-            tf.logging.info('Using SEQUENTIAL scheduled sampling.')
+            tf.compat.v1.logging.info('Using SEQUENTIAL scheduled sampling.')
             assert hparams.scheduled_sampling_num_passes == 1, (
                 'hparams.scheduled_sampling_num_passes must equal 1 if '
                 'doing sequential scheduled sampling.'
@@ -2229,7 +2229,7 @@ class T2TModel(base.Layer):
                 self, features
             )
         elif hparams.scheduled_sampling_method == 'parallel':
-            tf.logging.info('Using PARALLEL scheduled sampling.')
+            tf.compat.v1.logging.info('Using PARALLEL scheduled sampling.')
             # TODO(duckworthd): Move this block to scheduled_sampling.py.
 
             # Gradually increase over a warmup period. Lower numbers mean more gold
@@ -2665,16 +2665,16 @@ def initialize_from_ckpt(ckpt_dir, hparams):
     if already_has_ckpt:
         return
 
-    tf.logging.info('Checkpoint dir: %s', ckpt_dir)
+    tf.compat.v1.logging.info('Checkpoint dir: %s', ckpt_dir)
     reader = contrib.framework().load_checkpoint(ckpt_dir)
     variable_map = {}
     for var in contrib.framework().get_trainable_variables():
         var_name = var.name.split(':')[0]
         if reader.has_tensor(var_name):
-            tf.logging.info('Loading variable from checkpoint: %s', var_name)
+            tf.compat.v1.logging.info('Loading variable from checkpoint: %s', var_name)
             variable_map[var_name] = var
         else:
-            tf.logging.info(
+            tf.compat.v1.logging.info(
                 'Cannot find variable in checkpoint, skipping: %s', var_name
             )
     tf.train.init_from_checkpoint(ckpt_dir, variable_map)

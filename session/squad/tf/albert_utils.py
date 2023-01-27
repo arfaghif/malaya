@@ -239,7 +239,7 @@ def convert_examples_to_features(
         example = examples[n]
 
         if example_index % 100 == 0:
-            tf.logging.info(
+            tf.compat.v1.logging.info(
                 'Converting {}/{} pos {} neg {}'.format(
                     example_index, len(examples), cnt_pos, cnt_neg
                 )
@@ -354,7 +354,7 @@ def convert_examples_to_features(
             all(v is None for v in orig_to_chartok_index)
             or f[n - 1, m - 1] < 0.8 * n
         ):
-            tf.logging.info('MISMATCH DETECTED!')
+            tf.compat.v1.logging.info('MISMATCH DETECTED!')
             continue
 
         tok_start_to_orig_index = []
@@ -509,19 +509,19 @@ def convert_examples_to_features(
                 end_position = 0
 
             if example_index < 20:
-                tf.logging.info('*** Example ***')
-                tf.logging.info('unique_id: %s' % (unique_id))
-                tf.logging.info('example_index: %s' % (example_index))
-                tf.logging.info('doc_span_index: %s' % (doc_span_index))
-                tf.logging.info(
+                tf.compat.v1.logging.info('*** Example ***')
+                tf.compat.v1.logging.info('unique_id: %s' % (unique_id))
+                tf.compat.v1.logging.info('example_index: %s' % (example_index))
+                tf.compat.v1.logging.info('doc_span_index: %s' % (doc_span_index))
+                tf.compat.v1.logging.info(
                     'tok_start_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_start_to_orig_index])
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'tok_end_to_orig_index: %s'
                     % ' '.join([str(x) for x in cur_tok_end_to_orig_index])
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'token_is_max_context: %s'
                     % ' '.join(
                         [
@@ -530,24 +530,24 @@ def convert_examples_to_features(
                         ]
                     )
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'input_pieces: %s'
                     % ' '.join(
                         [tokenizer.sp_model.IdToPiece(x) for x in tokens]
                     )
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'input_ids: %s' % ' '.join([str(x) for x in input_ids])
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'input_mask: %s' % ' '.join([str(x) for x in input_mask])
                 )
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'segment_ids: %s' % ' '.join([str(x) for x in segment_ids])
                 )
 
                 if is_training and span_is_impossible:
-                    tf.logging.info('impossible example span')
+                    tf.compat.v1.logging.info('impossible example span')
 
                 if is_training and not span_is_impossible:
                     pieces = [
@@ -555,9 +555,9 @@ def convert_examples_to_features(
                         for token in tokens[start_position : (end_position + 1)]
                     ]
                     answer_text = tokenizer.sp_model.DecodePieces(pieces)
-                    tf.logging.info('start_position: %d' % (start_position))
-                    tf.logging.info('end_position: %d' % (end_position))
-                    tf.logging.info(
+                    tf.compat.v1.logging.info('start_position: %d' % (start_position))
+                    tf.compat.v1.logging.info('end_position: %d' % (end_position))
+                    tf.compat.v1.logging.info(
                         'answer: %s'
                         % (tokenization.printable_text(answer_text))
                     )
@@ -597,7 +597,7 @@ def convert_examples_to_features(
             else:
                 cnt_pos += 1
 
-    tf.logging.info(
+    tf.compat.v1.logging.info(
         'Total number of instances: {} = pos {} neg {}'.format(
             cnt_pos + cnt_neg, cnt_pos, cnt_neg
         )
@@ -862,9 +862,9 @@ def input_fn_builder(
 #     ):  # pylint: disable=unused-argument
 #         """The `model_fn` for TPUEstimator."""
 
-#         tf.logging.info('*** Features ***')
+#         tf.compat.v1.logging.info('*** Features ***')
 #         for name in sorted(features.keys()):
-#             tf.logging.info(
+#             tf.compat.v1.logging.info(
 #                 '  name = %s, shape = %s' % (name, features[name].shape)
 #             )
 
@@ -916,12 +916,12 @@ def input_fn_builder(
 #             else:
 #                 tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-#         tf.logging.info('**** Trainable Variables ****')
+#         tf.compat.v1.logging.info('**** Trainable Variables ****')
 #         for var in tvars:
 #             init_string = ''
 #             if var.name in initialized_variable_names:
 #                 init_string = ', *INIT_FROM_CKPT*'
-#             tf.logging.info(
+#             tf.compat.v1.logging.info(
 #                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
 #             )
 
@@ -1067,8 +1067,8 @@ def write_predictions_v1(
     output_nbest_file,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    tf.logging.info('Writing predictions to: %s' % (output_prediction_file))
-    tf.logging.info('Writing nbest to: %s' % (output_nbest_file))
+    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
+    tf.compat.v1.logging.info('Writing nbest to: %s' % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -1539,8 +1539,8 @@ def write_predictions_v2(
     null_score_diff_threshold,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
-    tf.logging.info('Writing predictions to: %s' % (output_prediction_file))
-    tf.logging.info('Writing nbest to: %s' % (output_nbest_file))
+    tf.compat.v1.logging.info('Writing predictions to: %s' % (output_prediction_file))
+    tf.compat.v1.logging.info('Writing nbest to: %s' % (output_nbest_file))
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -1891,9 +1891,9 @@ def write_predictions_v2(
 #     ):  # pylint: disable=unused-argument
 #         """The `model_fn` for TPUEstimator."""
 
-#         tf.logging.info('*** Features ***')
+#         tf.compat.v1.logging.info('*** Features ***')
 #         for name in sorted(features.keys()):
-#             tf.logging.info(
+#             tf.compat.v1.logging.info(
 #                 '  name = %s, shape = %s' % (name, features[name].shape)
 #             )
 
@@ -1942,12 +1942,12 @@ def write_predictions_v2(
 #             else:
 #                 tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-#         tf.logging.info('**** Trainable Variables ****')
+#         tf.compat.v1.logging.info('**** Trainable Variables ****')
 #         for var in tvars:
 #             init_string = ''
 #             if var.name in initialized_variable_names:
 #                 init_string = ', *INIT_FROM_CKPT*'
-#             tf.logging.info(
+#             tf.compat.v1.logging.info(
 #                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
 #             )
 

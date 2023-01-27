@@ -17,7 +17,7 @@ import sentencepiece as spm
 encoder = text_encoder.SubwordTextEncoder('ms-en.subwords')
 
 logger = logging.getLogger()
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
 
 
 class Encoder:

@@ -306,7 +306,7 @@ def write_instance_to_example_file(instances, output_file):
         )
         writer.write(tf_example.SerializeToString())
 
-    tf.logging.info('Wrote %d total instances', inst_index)
+    tf.compat.v1.logging.info('Wrote %d total instances', inst_index)
 
 
 def process_documents(

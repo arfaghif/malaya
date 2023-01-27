@@ -75,8 +75,8 @@ os.system('rm -rf t2t-true-case/data')
 DATA_DIR = os.path.expanduser('t2t-true-case/data')
 TMP_DIR = os.path.expanduser('t2t-true-case/tmp')
 
-tf.gfile.MakeDirs(DATA_DIR)
-tf.gfile.MakeDirs(TMP_DIR)
+tf.io.gfile.mkdir(DATA_DIR)
+tf.io.gfile.mkdir(TMP_DIR)
 
 from tensor2tensor.utils import registry
 from tensor2tensor import problems

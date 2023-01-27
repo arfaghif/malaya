@@ -3395,7 +3395,7 @@ def online_kmeans(
         extra_loss = 0
         # Update the EMA variables.
         if ema and mode == tf.estimator.ModeKeys.TRAIN and not is_recomputing:
-            tf.logging.info('Using EMA with beta = {}'.format(beta))
+            tf.compat.v1.logging.info('Using EMA with beta = {}'.format(beta))
             # [bs, n, s, k], [n, k]
             count = tf.reduce_sum(
                 tf.reshape(

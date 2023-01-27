@@ -312,7 +312,7 @@ def relative_positional_encoding(
             fwd_pos_seq = tf.clip_by_value(fwd_pos_seq, -clamp_len, clamp_len)
             bwd_pos_seq = tf.clip_by_value(bwd_pos_seq, -clamp_len, clamp_len)
 
-        tf.logging.info('bsz here', bsz)
+        tf.compat.v1.logging.info('bsz here', bsz)
         if bsz is not None:
             # With bi_data, the batch size should be divisible by 2.
             # assert bsz % 2 == 0
@@ -694,9 +694,9 @@ def transformer_xl(
     initializer: A tf initializer.
     scope: scope name for the computation graph.
   """
-    tf.logging.info('memory input {}'.format(mems))
+    tf.compat.v1.logging.info('memory input {}'.format(mems))
     tf_float = tf.bfloat16 if use_bfloat16 else tf.float32
-    tf.logging.info('Use float type {}'.format(tf_float))
+    tf.compat.v1.logging.info('Use float type {}'.format(tf_float))
 
     new_mems = []
     with tf.variable_scope(scope):

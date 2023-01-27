@@ -66,7 +66,7 @@ def native_to_unicode(s):
         return to_unicode(s)
     except UnicodeDecodeError:
         res = to_unicode(s, ignore_errors=True)
-        tf.logging.info('Ignoring Unicode error, outputting: %s' % res)
+        tf.compat.v1.logging.info('Ignoring Unicode error, outputting: %s' % res)
         return res
 
 
@@ -753,7 +753,7 @@ class SubwordTextEncoder(TextEncoder):
         def bisect(min_val, max_val):
             """Bisection to find the right size."""
             present_count = (max_val + min_val) // 2
-            tf.logging.info('Trying min_count %d' % present_count)
+            tf.compat.v1.logging.info('Trying min_count %d' % present_count)
             subtokenizer = cls()
             subtokenizer.build_from_token_counts(
                 token_counts,
@@ -846,7 +846,7 @@ class SubwordTextEncoder(TextEncoder):
         if min_count < 1:
             min_count = 1
         for i in range(num_iterations):
-            tf.logging.info('Iteration {0}'.format(i))
+            tf.compat.v1.logging.info('Iteration {0}'.format(i))
 
             # Collect all substrings of the encoded token that break along current
             # subtoken boundaries.
@@ -871,7 +871,7 @@ class SubwordTextEncoder(TextEncoder):
                     start += len(subtoken)
                 iter_time_secs = time.time() - iter_start_time
                 if iter_time_secs > 0.1:
-                    tf.logging.info(
+                    tf.compat.v1.logging.info(
                         u'Processing token [{0}] took {1} seconds, consider '
                         'setting Text2TextProblem.max_subtoken_length to a '
                         'smaller value.'.format(token, iter_time_secs)
@@ -923,7 +923,7 @@ class SubwordTextEncoder(TextEncoder):
                 )
 
             self._init_subtokens_from_list(new_subtoken_strings)
-            tf.logging.info('vocab_size = %d' % self.vocab_size)
+            tf.compat.v1.logging.info('vocab_size = %d' % self.vocab_size)
 
     @property
     def all_subtoken_strings(self):

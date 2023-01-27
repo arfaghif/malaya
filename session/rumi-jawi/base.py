@@ -17,7 +17,7 @@ import youtokentome as yttm
 bpe = yttm.BPE(model='rumi-jawi.yttm')
 
 logger = logging.getLogger()
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
 
 
 class Encoder:

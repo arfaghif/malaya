@@ -264,7 +264,7 @@ class SparseTransformer(t2t_model.T2TModel):
             #     == 0
             # )
             if self.hparams.sampling_keep_top_k:
-                tf.logging.info(
+                tf.compat.v1.logging.info(
                     'Top-k sampling top_k = {}'.format(
                         self.hparams.sampling_keep_top_k
                     )
@@ -289,7 +289,7 @@ class SparseTransformer(t2t_model.T2TModel):
     def nucleus_sampling(self, logits):
         """Nucleus sampling."""
         p = self.hparams.nucleus_sampling
-        tf.logging.info('Nucleus sampling top_p = {}'.format(p))
+        tf.compat.v1.logging.info('Nucleus sampling top_p = {}'.format(p))
         sort_indices = tf.argsort(logits, axis = -1, direction = 'DESCENDING')
         probs = tf.gather(tf.nn.softmax(logits), sort_indices, batch_dims = 1)
         cumprobs = tf.cumsum(probs, axis = -1, exclusive = True)

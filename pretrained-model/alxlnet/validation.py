@@ -233,7 +233,7 @@ def get_model_fn():
 
         #### Check model parameters
         num_params = sum([np.prod(v.shape) for v in tf.trainable_variables()])
-        tf.logging.info('#params: {}'.format(num_params))
+        tf.compat.v1.logging.info('#params: {}'.format(num_params))
 
         #### Configuring the optimizer
         train_op, learning_rate, gnorm = model_utils.get_train_op(
@@ -312,23 +312,23 @@ def get_cache_fn(mem_len, batch_size):
 
 
 def main(_):
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     # Get corpus info
     FLAGS.n_token = data_utils.VOCAB_SIZE
-    tf.logging.info('n_token {}'.format(FLAGS.n_token))
+    tf.compat.v1.logging.info('n_token {}'.format(FLAGS.n_token))
 
     if not tf.gfile.Exists(FLAGS.model_dir):
-        tf.gfile.MakeDirs(FLAGS.model_dir)
+        tf.io.gfile.mkdir(FLAGS.model_dir)
 
     bsz_per_core = FLAGS.train_batch_size
 
     train_input_fn, train_record_info_dict = get_input_fn('train', bsz_per_core)
-    tf.logging.info(
+    tf.compat.v1.logging.info(
         'num of batches {}'.format(train_record_info_dict['num_batch'])
     )
     train_cache_fn = get_cache_fn(FLAGS.mem_len, bsz_per_core)
-    tf.logging.info(train_cache_fn)
+    tf.compat.v1.logging.info(train_cache_fn)
 
     log_every_n_steps = 10
     run_config = RunConfig(
@@ -338,17 +338,17 @@ def main(_):
         save_summary_steps = None,
     )
     model_fn = get_model_fn()
-    tf.logging.info('Use normal Estimator')
+    tf.compat.v1.logging.info('Use normal Estimator')
     estimator = Estimator(
         model_fn = model_fn,
         params = {'batch_size': bsz_per_core, 'cache': None},
         config = run_config,
     )
 
-    tf.logging.info('***** Running evaluation *****')
-    tf.logging.info('  Batch size = %d', FLAGS.train_batch_size)
+    tf.compat.v1.logging.info('***** Running evaluation *****')
+    tf.compat.v1.logging.info('  Batch size = %d', FLAGS.train_batch_size)
     estimator.evaluate(input_fn = train_input_fn, steps = 100)
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    tf.compat.v1.app.run()

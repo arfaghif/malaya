@@ -264,7 +264,7 @@ def run_training(
     train_hooks = None,
     eval_fn = None,
 ):
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
     dist_strategy = None
 
     gpu_options = tf.GPUOptions(

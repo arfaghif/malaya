@@ -11,7 +11,7 @@ import os
 import logging
 
 logger = logging.getLogger()
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
 
 import sentencepiece as spm
 

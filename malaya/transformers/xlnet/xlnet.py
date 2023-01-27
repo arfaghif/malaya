@@ -80,7 +80,7 @@ class XLNetConfig(object):
 
         json_dir = os.path.dirname(json_path)
         if not tf.gfile.Exists(json_dir):
-            tf.gfile.MakeDirs(json_dir)
+            tf.io.gfile.mkdir(json_dir)
         with tf.gfile.Open(json_path, 'w') as f:
             json.dump(json_data, f, indent=4, sort_keys=True)
 

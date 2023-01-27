@@ -17,7 +17,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 
 logger = logging.getLogger()
-tf.logging.set_verbosity(tf.logging.DEBUG)
+tf.compat.v1.logging.set_verbosity(tf.logging.DEBUG)
 
 
 vocab = '../sp10m.cased.ms-en.model'

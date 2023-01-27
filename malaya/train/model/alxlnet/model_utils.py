@@ -31,15 +31,15 @@ def configure_tpu(FLAGS):
 
     if FLAGS.use_tpu:
         strategy = None
-        tf.logging.info('Use TPU without distribute strategy.')
+        tf.compat.v1.logging.info('Use TPU without distribute strategy.')
     elif FLAGS.num_core_per_host == 1:
         strategy = None
-        tf.logging.info('Single device mode.')
+        tf.compat.v1.logging.info('Single device mode.')
     else:
         strategy = tf.contrib.distribute.MirroredStrategy(
             num_gpus = FLAGS.num_core_per_host
         )
-        tf.logging.info(
+        tf.compat.v1.logging.info(
             'Use MirroredStrategy with %d devices.',
             strategy.num_replicas_in_sync,
         )
@@ -73,7 +73,7 @@ def init_from_checkpoint(FLAGS, global_vars = False):
         else:
             init_checkpoint = FLAGS.init_checkpoint
 
-        tf.logging.info('Initialize from the ckpt {}'.format(init_checkpoint))
+        tf.compat.v1.logging.info('Initialize from the ckpt {}'.format(init_checkpoint))
 
         (
             assignment_map,
@@ -90,12 +90,12 @@ def init_from_checkpoint(FLAGS, global_vars = False):
             tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
         # Log customized initialization
-        tf.logging.info('**** Global Variables ****')
+        tf.compat.v1.logging.info('**** Global Variables ****')
         for var in tvars:
             init_string = ''
             if var.name in initialized_variable_names:
                 init_string = ', *INIT_FROM_CKPT*'
-            tf.logging.info(
+            tf.compat.v1.logging.info(
                 '  name = %s, shape = %s%s', var.name, var.shape, init_string
             )
     return scaffold_fn
@@ -179,7 +179,7 @@ def get_train_op(FLAGS, total_loss, grads_and_vars = None):
                 if 'model/transformer/layer_{}/'.format(l) in variables[i].name:
                     abs_rate = FLAGS.lr_layer_decay_rate ** (n_layer - 1 - l)
                     clipped[i] *= abs_rate
-                    tf.logging.info(
+                    tf.compat.v1.logging.info(
                         'Apply mult {:.4f} to layer-{} grad of {}'.format(
                             abs_rate, l, variables[i].name
                         )
@@ -209,11 +209,11 @@ def clean_ckpt(_):
     for (name, shape) in var_list:
         if not name.startswith('global_step') and 'adam' not in name.lower():
             var_values[name] = None
-            tf.logging.info('Include {}'.format(name))
+            tf.compat.v1.logging.info('Include {}'.format(name))
         else:
-            tf.logging.info('Exclude {}'.format(name))
+            tf.compat.v1.logging.info('Exclude {}'.format(name))
 
-    tf.logging.info('Loading from {}'.format(input_ckpt))
+    tf.compat.v1.logging.info('Loading from {}'.format(input_ckpt))
     reader = tf.contrib.framework.load_checkpoint(input_ckpt)
     for name in var_values:
         tensor = reader.get_tensor(name)
@@ -235,7 +235,7 @@ def clean_ckpt(_):
     saver = tf.train.Saver(tf.all_variables())
 
     if not tf.gfile.Exists(output_model_dir):
-        tf.gfile.MakeDirs(output_model_dir)
+        tf.io.gfile.mkdir(output_model_dir)
 
     # Build a model consisting only of variables, set them to the average values.
     with tf.Session() as sess:
@@ -269,7 +269,7 @@ def avg_checkpoints(model_dir, output_model_dir, last_k):
             tensor = reader.get_tensor(name)
             var_dtypes[name] = tensor.dtype
             var_values[name] += tensor
-        tf.logging.info('Read from checkpoint %s', checkpoint)
+        tf.compat.v1.logging.info('Read from checkpoint %s', checkpoint)
     for name in var_values:  # Average.
         var_values[name] /= len(checkpoints)
 
@@ -320,7 +320,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
     assignment_map = collections.OrderedDict()
     for x in init_vars:
         (name, var) = (x[0], x[1])
-        # tf.logging.info('original name: %s', name)
+        # tf.compat.v1.logging.info('original name: %s', name)
         if name not in name_to_variable:
             continue
         # assignment_map[name] = name
@@ -421,7 +421,7 @@ class AdamWeightDecayOptimizer(tf.train.Optimizer):
         if self.exclude_from_weight_decay:
             for r in self.exclude_from_weight_decay:
                 if re.search(r, param_name) is not None:
-                    tf.logging.info('Adam WD excludes {}'.format(param_name))
+                    tf.compat.v1.logging.info('Adam WD excludes {}'.format(param_name))
                     return False
         return True
 
@@ -441,4 +441,4 @@ if __name__ == '__main__':
 
     FLAGS = flags.FLAGS
 
-    tf.app.run(clean_ckpt)
+    tf.compat.v1.app.run(clean_ckpt)
