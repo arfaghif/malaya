@@ -22,7 +22,7 @@ def average_grads_and_vars(tower_grads_and_vars):
 
         grad = grad_and_vars[0][0]
         for g, _ in grad_and_vars[1:]:
-            print("DEBUGGG INI BOSS\nSENGGOL DONG BOOSKU\n HARUS BISA", grad, "PERSIB", len(grad_and_vars))
+            print("DEBUGGG INI BOSS\nSENGGOL DONG BOOSKU\n HARUS BISA", grad, "PERSIB", len(grad_and_vars), "DINGIN", g)
             grad += g
         return grad / len(grad_and_vars)
 
