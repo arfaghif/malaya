@@ -72,8 +72,9 @@ def positionwise_ffn(inp, d_model, d_inner, dropout, kernel_initializer,
                                  name='layer_2')
         output = tf.compat.v1.layers.dropout(output, dropout, training=is_training,
                                    name='drop_2')
-        output = tf.keras.layers.LayerNormalization(output + inp, begin_norm_axis=-1,
-                                              scope='LayerNorm')
+        layer_norma = tf.keras.layers.LayerNormalization(axis = -1)
+        output = layer_norma(output + inp)
+        
     return output
 
 
