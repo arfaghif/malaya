@@ -277,7 +277,7 @@ class TPUEstimatorSpec(model_fn_lib._TPUEstimatorSpec):  # pylint: disable=prote
   sending tensors from TPU to CPU. To reduce the overhead, try reducing the
   size of the tensors. The `tensors` are concatenated along their major (batch)
   dimension, and so must be >= rank 1. The `host_call` is useful for writing
-  summaries with `tf.compat.v1.contrib.summary.create_file_writer`.
+  summaries with `tf.contrib.summary.create_file_writer`.
   """
 
   def __new__(cls,
@@ -2033,7 +2033,7 @@ class TPUEstimator(estimator_lib.Estimator):
      # Generate predictions, called 'output', from features['image']
 
     if mode == tf.compat.v1.estimator.ModeKeys.PREDICT:
-      return tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
+      return tf.contrib.tpu.TPUEstimatorSpec(
           mode=mode,
           predictions={
               'predictions': output,

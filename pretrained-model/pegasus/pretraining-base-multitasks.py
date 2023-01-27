@@ -175,7 +175,7 @@ def input_fn_builder(
             d = d.shuffle(buffer_size = len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.compat.v1.contrib.data.parallel_interleave(
+                tf.contrib.data.parallel_interleave(
                     tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -189,7 +189,7 @@ def input_fn_builder(
         d = d.map(parse, num_parallel_calls = 32)
         print('parse', d)
         d = d.apply(
-            tf.compat.v1.contrib.data.map_and_batch(
+            tf.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, data_fields),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,

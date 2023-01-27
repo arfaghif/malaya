@@ -162,7 +162,7 @@ def model_fn_builder(
                 loss, learning_rate, num_train_steps, num_warmup_steps, True
             )
 
-            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
                 train_op=train_op,
@@ -187,7 +187,7 @@ def model_fn_builder(
                 }
 
             eval_metrics = (metric_fn, [loss, input_ids, output])
-            output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
+            output_spec = tf.contrib.tpu.TPUEstimatorSpec(
                 mode=mode,
                 loss=loss,
                 eval_metrics=eval_metrics,
@@ -218,7 +218,7 @@ def input_fn_builder(
             d = d.shuffle(buffer_size=len(input_files))
             cycle_length = min(num_cpu_threads, len(input_files))
             d = d.apply(
-                tf.compat.v1.contrib.data.parallel_interleave(
+                tf.contrib.data.parallel_interleave(
                     tf.compat.v1.data.TFRecordDataset,
                     sloppy=is_training,
                     cycle_length=cycle_length,
@@ -230,7 +230,7 @@ def input_fn_builder(
             d = d.repeat(0)
 
         d = d.apply(
-            tf.compat.v1.contrib.data.map_and_batch(
+            tf.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size=batch_size,
                 num_parallel_batches=num_cpu_threads,
@@ -269,16 +269,16 @@ def main(_):
     for input_file in input_files:
         tf.compat.v1.logging.info('  %s' % input_file)
 
-    tpu_cluster_resolver = tf.compat.v1.contrib.cluster_resolver.TPUClusterResolver(
+    tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
         FLAGS.tpu_name, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project
     )
-    is_per_host = tf.compat.v1.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-    run_config = tf.compat.v1.contrib.tpu.RunConfig(
+    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    run_config = tf.contrib.tpu.RunConfig(
         cluster=tpu_cluster_resolver,
         master=FLAGS.master,
         model_dir=FLAGS.output_dir,
         save_checkpoints_steps=FLAGS.save_checkpoints_steps,
-        tpu_config=tf.compat.v1.contrib.tpu.TPUConfig(
+        tpu_config=tf.contrib.tpu.TPUConfig(
             iterations_per_loop=FLAGS.iterations_per_loop,
             num_shards=FLAGS.num_tpu_cores,
             per_host_input_for_training=is_per_host,
@@ -292,7 +292,7 @@ def main(_):
         num_warmup_steps=FLAGS.num_warmup_steps,
         config=FLAGS.config,
     )
-    estimator = tf.compat.v1.contrib.tpu.TPUEstimator(
+    estimator = tf.contrib.tpu.TPUEstimator(
         use_tpu=FLAGS.use_tpu,
         model_fn=model_fn,
         config=run_config,

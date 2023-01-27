@@ -301,7 +301,7 @@ def model_fn_builder(
                     scaffold = scaffold_fn,
                 )
             else:
-                output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
+                output_spec = tf.contrib.tpu.TPUEstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     train_op = train_op,
@@ -382,7 +382,7 @@ def model_fn_builder(
                     scaffold = scaffold_fn,
                 )
             else:
-                output_spec = tf.compat.v1.contrib.tpu.TPUEstimatorSpec(
+                output_spec = tf.contrib.tpu.TPUEstimatorSpec(
                     mode = mode,
                     loss = total_loss,
                     eval_metrics = eval_metrics,
@@ -542,7 +542,7 @@ def input_fn_builder(
             # `sloppy` mode means that the interleaving is not exact. This adds
             # even more randomness to the training pipeline.
             d = d.apply(
-                tf.compat.v1.contrib.data.parallel_interleave(
+                tf.contrib.data.parallel_interleave(
                     tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -560,7 +560,7 @@ def input_fn_builder(
         # and we *don't* want to drop the remainder, otherwise we wont cover
         # every sample.
         d = d.apply(
-            tf.compat.v1.contrib.data.map_and_batch(
+            tf.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -613,7 +613,7 @@ def input_fn_builder_gpu(
             # `sloppy` mode means that the interleaving is not exact. This adds
             # even more randomness to the training pipeline.
             d = d.apply(
-                tf.compat.v1.contrib.data.parallel_interleave(
+                tf.contrib.data.parallel_interleave(
                     tf.compat.v1.data.TFRecordDataset,
                     sloppy = is_training,
                     cycle_length = cycle_length,
@@ -631,7 +631,7 @@ def input_fn_builder_gpu(
         # and we *don't* want to drop the remainder, otherwise we wont cover
         # every sample.
         d = d.apply(
-            tf.compat.v1.contrib.data.map_and_batch(
+            tf.contrib.data.map_and_batch(
                 lambda record: _decode_record(record, name_to_features),
                 batch_size = batch_size,
                 num_parallel_batches = num_cpu_threads,
@@ -680,16 +680,16 @@ def main(_):
 
     tpu_cluster_resolver = None
     if FLAGS.use_tpu and FLAGS.tpu_name:
-        tpu_cluster_resolver = tf.compat.v1.contrib.cluster_resolver.TPUClusterResolver(
+        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
             FLAGS.tpu_name, zone = FLAGS.tpu_zone, project = FLAGS.gcp_project
         )
 
-    is_per_host = tf.compat.v1.contrib.tpu.InputPipelineConfig.PER_HOST_V2
+    is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
 
     if FLAGS.use_gpu and int(FLAGS.num_gpu_cores) >= 2:
         tf.compat.v1.logging.info('Use normal RunConfig')
         tf.compat.v1.logging.info(FLAGS.num_gpu_cores)
-        dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
+        dist_strategy = tf.contrib.distribute.MirroredStrategy(
             num_gpus = FLAGS.num_gpu_cores,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(
@@ -707,12 +707,12 @@ def main(_):
             save_summary_steps = None,
         )
     else:
-        run_config = tf.compat.v1.contrib.tpu.RunConfig(
+        run_config = tf.contrib.tpu.RunConfig(
             cluster = tpu_cluster_resolver,
             master = FLAGS.master,
             model_dir = FLAGS.output_dir,
             save_checkpoints_steps = FLAGS.save_checkpoints_steps,
-            tpu_config = tf.compat.v1.contrib.tpu.TPUConfig(
+            tpu_config = tf.contrib.tpu.TPUConfig(
                 iterations_per_loop = FLAGS.iterations_per_loop,
                 num_shards = FLAGS.num_tpu_cores,
                 per_host_input_for_training = is_per_host,
@@ -739,7 +739,7 @@ def main(_):
         )
 
     else:
-        estimator = tf.compat.v1.contrib.tpu.TPUEstimator(
+        estimator = tf.contrib.tpu.TPUEstimator(
             use_tpu = FLAGS.use_tpu,
             model_fn = model_fn,
             config = run_config,

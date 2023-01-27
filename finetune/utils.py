@@ -62,7 +62,7 @@ def run_training(
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
 
     if num_gpus > 1 and not use_tpu:
-        dist_strategy = tf.compat.v1.contrib.distribute.MirroredStrategy(
+        dist_strategy = tf.contrib.distribute.MirroredStrategy(
             num_gpus = num_gpus,
             auto_shard_dataset = True,
             cross_device_ops = AllReduceCrossDeviceOps(
