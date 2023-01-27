@@ -46,8 +46,8 @@ class TransformerBlock(object):
             hidden_size, num_heads, dropout
         )
         self._attn_layer = attention.Attention(hidden_size, num_heads, dropout)
-        self._relu_layer = tf.layers.Dense(filter_size, activation = tf.nn.relu)
-        self._output_layer = tf.layers.Dense(hidden_size)
+        self._relu_layer = tf.compat.v1.layers.Dense(filter_size, activation = tf.nn.relu)
+        self._output_layer = tf.compat.v1.layers.Dense(hidden_size)
         self._dropout_fn = (
             lambda x, training: tf.compat.v2.nn.dropout(
                 x, dropout, noise_shape = [tf.shape(x)[0], 1, tf.shape(x)[2]]

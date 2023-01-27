@@ -391,7 +391,7 @@ def geglu(
     # layer_name is appended with "conv1" or "conv2" in this method only for
     # historical reasons. These are in fact dense layers.
     layer_name = '%s_{}' % name if name else '{}'
-    h = tf.layers.dense(
+    h = tf.compat.v1.layers.dense(
         inputs,
         filter_size,
         use_bias = False,
@@ -399,7 +399,7 @@ def geglu(
         name = layer_name.format('weight1'),
     )
     h = gelu(h)
-    v = tf.layers.dense(
+    v = tf.compat.v1.layers.dense(
         inputs,
         filter_size,
         use_bias = False,
@@ -411,7 +411,7 @@ def geglu(
         h = dropout_with_broadcast_dims(
             h, 1.0 - dropout, broadcast_dims = dropout_broadcast_dims
         )
-    o = tf.layers.dense(
+    o = tf.compat.v1.layers.dense(
         h,
         output_size,
         activation = output_activation,
@@ -434,7 +434,7 @@ def dense_relu_dense(
     # layer_name is appended with "conv1" or "conv2" in this method only for
     # historical reasons. These are in fact dense layers.
     layer_name = '%s_{}' % name if name else '{}'
-    h = tf.layers.dense(
+    h = tf.compat.v1.layers.dense(
         inputs,
         filter_size,
         use_bias = True,
@@ -446,7 +446,7 @@ def dense_relu_dense(
         h = dropout_with_broadcast_dims(
             h, 1.0 - dropout, broadcast_dims = dropout_broadcast_dims
         )
-    o = tf.layers.dense(
+    o = tf.compat.v1.layers.dense(
         h,
         output_size,
         activation = output_activation,
@@ -909,7 +909,7 @@ def multihead_attention_nd(
         )
 
         x = combine_heads_nd(x)
-        x = tf.layers.dense(
+        x = tf.compat.v1.layers.dense(
             x, output_depth, use_bias = False, name = 'output_transform'
         )
         return x
@@ -1110,11 +1110,11 @@ def compute_attention_component(
         var = tf.reshape(var, [input_depth, total_depth])
         return tf.tensordot(antecedent, var, axes = 1)
     if filter_width == 1:
-        return tf.layers.dense(
+        return tf.compat.v1.layers.dense(
             antecedent, total_depth, use_bias = False, name = name
         )
     else:
-        return tf.layers.conv1d(
+        return tf.compat.v1.layers.conv1d(
             antecedent,
             total_depth,
             filter_width,
@@ -1892,7 +1892,7 @@ def attention_nd(
             output, [output_shape[0], num_heads, -1, output_shape[-1]]
         )
         combine_heads_nd(output)
-        output = tf.layers.dense(output, output_shape[-1], use_bias = False)
+        output = tf.compat.v1.layers.dense(output, output_shape[-1], use_bias = False)
         output = tf.reshape(output, output_shape)
 
         scope_name = tf.compat.v1.get_variable_scope().name

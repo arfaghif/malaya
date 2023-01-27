@@ -272,7 +272,7 @@ class Transformer(object):
         return {'outputs': top_decoded_ids, 'scores': top_scores}
 
 
-class LayerNormalization(tf.layers.Layer):
+class LayerNormalization(tf.compat.v1.layers.Layer):
     """Applies layer normalization."""
 
     def __init__(self, hidden_size):
@@ -325,7 +325,7 @@ class PrePostProcessingWrapper(object):
         return x + y
 
 
-class EncoderStack(tf.layers.Layer):
+class EncoderStack(tf.compat.v1.layers.Layer):
     """Transformer encoder stack.
 
   The encoder stack is made up of N identical layers. Each layer is composed
@@ -398,7 +398,7 @@ class EncoderStack(tf.layers.Layer):
         return self.output_normalization(encoder_inputs)
 
 
-class DecoderStack(tf.layers.Layer):
+class DecoderStack(tf.compat.v1.layers.Layer):
     """Transformer decoder stack.
 
   Like the encoder stack, the decoder stack is made up of N identical layers.

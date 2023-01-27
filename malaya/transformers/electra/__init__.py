@@ -80,7 +80,7 @@ class Model:
                 output_layer = self.model.get_sequence_output()
 
                 with tf.compat.v1.variable_scope('generator_predictions'):
-                    hidden = tf.layers.dense(
+                    hidden = tf.compat.v1.layers.dense(
                         output_layer,
                         units=modeling.get_shape_list(
                             self.model.get_embedding_table()

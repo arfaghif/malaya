@@ -108,7 +108,7 @@ class SparseTransformer(t2t_model.T2TModel):
         )
         if self.hparams.dropout:
             targets = tf.nn.dropout(targets, 1 - self.hparams.dropout)
-        targets = tf.layers.dense(
+        targets = tf.compat.v1.layers.dense(
             targets, self.hidden_size, activation = None, name = 'emb_dense'
         )
         if self.hparams.add_timing_signal:
@@ -131,13 +131,13 @@ class SparseTransformer(t2t_model.T2TModel):
         """Maps decoder output to final logits."""
         # map decoder output to output vocab size
         if self.hparams.embedding_dims != self.hparams.hidden_size:
-            decoder_output = tf.layers.dense(
+            decoder_output = tf.compat.v1.layers.dense(
                 decoder_output,
                 self.hparams.embedding_dims,
                 activation = None,
                 name = 'final_dense_1',
             )
-        output = tf.layers.dense(
+        output = tf.compat.v1.layers.dense(
             decoder_output,
             self.vocab_size,
             activation = None,

@@ -19,7 +19,7 @@ from . import utils
 import tensorflow as tf
 
 
-class PrenormEncoderLayer(tf.layers.Layer):
+class PrenormEncoderLayer(tf.compat.v1.layers.Layer):
     """Encoder layer of a transformer in Pegasus style.
 
   The layer_norm is taken before self-attention.
@@ -205,7 +205,7 @@ class PrenormEncoderLayer(tf.layers.Layer):
         return layer_output
 
 
-class PostnormEncoderLayer(tf.layers.Layer):
+class PostnormEncoderLayer(tf.compat.v1.layers.Layer):
     """Encoder layer of a transformer in BERT style.
 
   The layer_norm is taken after self-attention.
@@ -391,7 +391,7 @@ class PostnormEncoderLayer(tf.layers.Layer):
         return layer_output
 
 
-class EncoderStack(tf.layers.Layer):
+class EncoderStack(tf.compat.v1.layers.Layer):
     """Transformer encoder stack."""
 
     def __init__(self, params):

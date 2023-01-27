@@ -21,7 +21,7 @@ from __future__ import print_function
 import tensorflow as tf
 
 
-class FeedFowardNetwork(tf.layers.Layer):
+class FeedFowardNetwork(tf.compat.v1.layers.Layer):
     """Fully connected feedforward network."""
 
     def __init__(
@@ -34,13 +34,13 @@ class FeedFowardNetwork(tf.layers.Layer):
         self.train = train
         self.allow_pad = allow_pad
 
-        self.filter_dense_layer = tf.layers.Dense(
+        self.filter_dense_layer = tf.compat.v1.layers.Dense(
             filter_size,
             use_bias = True,
             activation = tf.nn.relu,
             name = 'filter_layer',
         )
-        self.output_dense_layer = tf.layers.Dense(
+        self.output_dense_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = True, name = 'output_layer'
         )
 

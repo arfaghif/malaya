@@ -31,7 +31,7 @@ def get_masked_lm_output(
 
     with tf.compat.v1.variable_scope('cls/predictions'):
         with tf.compat.v1.variable_scope('transform'):
-            input_tensor = tf.layers.dense(
+            input_tensor = tf.compat.v1.layers.dense(
                 input_tensor,
                 units = bert_config.hidden_size,
                 activation = modeling.gelu,

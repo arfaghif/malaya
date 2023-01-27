@@ -21,7 +21,7 @@ from __future__ import print_function
 import tensorflow as tf
 
 
-class Attention(tf.layers.Layer):
+class Attention(tf.compat.v1.layers.Layer):
     """Multi-headed attention layer."""
 
     def __init__(self, hidden_size, num_heads, attention_dropout, train):
@@ -38,17 +38,17 @@ class Attention(tf.layers.Layer):
         self.train = train
 
         # Layers for linearly projecting the queries, keys, and values.
-        self.q_dense_layer = tf.layers.Dense(
+        self.q_dense_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'q'
         )
-        self.k_dense_layer = tf.layers.Dense(
+        self.k_dense_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'k'
         )
-        self.v_dense_layer = tf.layers.Dense(
+        self.v_dense_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'v'
         )
 
-        self.output_dense_layer = tf.layers.Dense(
+        self.output_dense_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'output_transform'
         )
 

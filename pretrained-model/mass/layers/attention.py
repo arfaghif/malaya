@@ -43,16 +43,16 @@ class Attention(object):
                 'Number of attention heads must divide hidden size'
             )
 
-        self._q_layer = tf.layers.Dense(
+        self._q_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'q_proj'
         )
-        self._k_layer = tf.layers.Dense(
+        self._k_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'k_proj'
         )
-        self._v_layer = tf.layers.Dense(
+        self._v_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'v_proj'
         )
-        self._output_layer = tf.layers.Dense(
+        self._output_layer = tf.compat.v1.layers.Dense(
             hidden_size, use_bias = False, name = 'output_proj'
         )
         self._num_heads = num_heads

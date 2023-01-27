@@ -292,7 +292,7 @@ class Model(tf.keras.Model):
 
         with tf.compat.v1.variable_scope('pooler'):
             first_token_tensor = tf.squeeze(x[:, 0:1, :], axis=1)
-            self.pooled_output = tf.layers.dense(
+            self.pooled_output = tf.compat.v1.layers.dense(
                 first_token_tensor,
                 self.hidden_size,
                 activation=tf.tanh,

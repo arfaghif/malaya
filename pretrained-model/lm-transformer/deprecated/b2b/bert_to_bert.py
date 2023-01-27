@@ -67,7 +67,7 @@ class Model:
 
             with tf.compat.v1.variable_scope('cls/predictions', reuse = reuse):
                 with tf.compat.v1.variable_scope('transform'):
-                    input_tensor = tf.layers.dense(
+                    input_tensor = tf.compat.v1.layers.dense(
                         output_layer,
                         units = config.hidden_size,
                         activation = modeling.get_activation(

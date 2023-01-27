@@ -62,15 +62,15 @@ def positionwise_ffn(inp, d_model, d_inner, dropout, kernel_initializer,
 
     output = inp
     with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        output = tf.layers.dense(output, d_inner, activation=activation,
+        output = tf.compat.v1.layers.dense(output, d_inner, activation=activation,
                                  kernel_initializer=kernel_initializer,
                                  name='layer_1')
-        output = tf.layers.dropout(output, dropout, training=is_training,
+        output = tf.compat.v1.layers.dropout(output, dropout, training=is_training,
                                    name='drop_1')
-        output = tf.layers.dense(output, d_model,
+        output = tf.compat.v1.layers.dense(output, d_model,
                                  kernel_initializer=kernel_initializer,
                                  name='layer_2')
-        output = tf.layers.dropout(output, dropout, training=is_training,
+        output = tf.compat.v1.layers.dropout(output, dropout, training=is_training,
                                    name='drop_2')
         output = tf.compat.v1.estimator.layers.layer_norm(output + inp, begin_norm_axis=-1,
                                               scope='LayerNorm')
@@ -95,7 +95,7 @@ def post_attention(h, attn_vec, d_model, n_head, d_head, dropout, is_training,
                              dtype=h.dtype, initializer=kernel_initializer)
     attn_out = tf.compat.v1.einsum('ibnd,hnd->ibh', attn_vec, proj_o)
 
-    attn_out = tf.layers.dropout(attn_out, dropout, training=is_training)
+    attn_out = tf.compat.v1.layers.dropout(attn_out, dropout, training=is_training)
     if residual:
         output = tf.compat.v1.estimator.layers.layer_norm(attn_out + h, begin_norm_axis=-1,
                                               scope='LayerNorm')
@@ -117,7 +117,7 @@ def abs_attn_core(q_head, k_head, v_head, attn_mask, dropatt, is_training,
 
     # attention probability
     attn_prob = tf.compat.v1.nn.softmax(attn_score, 1)
-    attn_prob = tf.layers.dropout(attn_prob, dropatt, training=is_training)
+    attn_prob = tf.compat.v1.layers.dropout(attn_prob, dropatt, training=is_training)
 
     # attention output
     attn_vec = tf.compat.v1.einsum('ijbn,jbnd->ibnd', attn_prob, v_head)
@@ -152,7 +152,7 @@ def rel_attn_core(q_head, k_head_h, v_head_h, k_head_r, seg_embed, seg_mat,
 
     # attention probability
     attn_prob = tf.compat.v1.nn.softmax(attn_score, 1)
-    attn_prob = tf.layers.dropout(attn_prob, dropatt, training=is_training)
+    attn_prob = tf.compat.v1.layers.dropout(attn_prob, dropatt, training=is_training)
 
     # attention output
     attn_vec = tf.compat.v1.einsum('ijbn,jbnd->ibnd', attn_prob, v_head_h)
@@ -530,9 +530,9 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
                 else:
                     inp_q_ext = inp_q[:, :, None]
                     word_emb_q = inp_q_ext * mask_emb + (1 - inp_q_ext) * word_emb_k
-        output_h = tf.layers.dropout(word_emb_k, dropout, training=is_training)
+        output_h = tf.compat.v1.layers.dropout(word_emb_k, dropout, training=is_training)
         if inp_q is not None:
-            output_g = tf.layers.dropout(word_emb_q, dropout, training=is_training)
+            output_g = tf.compat.v1.layers.dropout(word_emb_q, dropout, training=is_training)
 
         # Segment embedding
         if seg_id is not None:
@@ -563,7 +563,7 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
         pos_emb = relative_positional_encoding(
             qlen, klen, d_model, clamp_len, attn_type, bi_data,
             bsz=bsz, dtype=tf_float)
-        pos_emb = tf.layers.dropout(pos_emb, dropout, training=is_training)
+        pos_emb = tf.compat.v1.layers.dropout(pos_emb, dropout, training=is_training)
 
         # Attention layers
         if mems is None:
@@ -647,9 +647,9 @@ def transformer_xl(inp_k, n_token, n_layer, d_model, n_head,
                     reuse=reuse)
 
         if inp_q is not None:
-            output = tf.layers.dropout(output_g, dropout, training=is_training)
+            output = tf.compat.v1.layers.dropout(output_g, dropout, training=is_training)
         else:
-            output = tf.layers.dropout(output_h, dropout, training=is_training)
+            output = tf.compat.v1.layers.dropout(output_h, dropout, training=is_training)
 
         return output, new_mems, lookup_table
 
@@ -720,7 +720,7 @@ def summarize_sequence(summary_type, hidden, d_model, n_head, d_head, dropout,
 
         # use another projection as in BERT
         if use_proj:
-            summary = tf.layers.dense(
+            summary = tf.compat.v1.layers.dense(
                 summary,
                 d_model,
                 activation=tf.compat.v1.tanh,
@@ -728,7 +728,7 @@ def summarize_sequence(summary_type, hidden, d_model, n_head, d_head, dropout,
                 name='summary')
 
         # dropout
-        summary = tf.layers.dropout(
+        summary = tf.compat.v1.layers.dropout(
             summary, dropout, training=is_training,
             name='dropout')
 
@@ -746,7 +746,7 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
     """
 
     with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        logits = tf.layers.dense(
+        logits = tf.compat.v1.layers.dense(
             hidden,
             n_class,
             kernel_initializer=initializer,
@@ -764,7 +764,7 @@ def classification_loss(hidden, labels, n_class, initializer, scope, reuse=None,
 def regression_loss(hidden, labels, initializer, scope, reuse=None,
                     return_logits=False):
     with tf.compat.v1.variable_scope(scope, reuse=reuse):
-        logits = tf.layers.dense(
+        logits = tf.compat.v1.layers.dense(
             hidden,
             1,
             kernel_initializer=initializer,

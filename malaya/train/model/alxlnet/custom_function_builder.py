@@ -257,7 +257,7 @@ def get_qa_outputs(FLAGS, features, is_training):
 
     # logit of the start position
     with tf.compat.v1.variable_scope('start_logits'):
-        start_logits = tf.layers.dense(
+        start_logits = tf.compat.v1.layers.dense(
             output, 1, kernel_initializer=initializer
         )
         start_logits = tf.transpose(tf.squeeze(start_logits, -1), [1, 0])
@@ -276,7 +276,7 @@ def get_qa_outputs(FLAGS, features, is_training):
             )
             start_features = tf.einsum('lbh,bl->bh', output, start_index)
             start_features = tf.tile(start_features[None], [seq_len, 1, 1])
-            end_logits = tf.layers.dense(
+            end_logits = tf.compat.v1.layers.dense(
                 tf.concat([output, start_features], axis=-1),
                 xlnet_config.d_model,
                 kernel_initializer=initializer,
@@ -287,7 +287,7 @@ def get_qa_outputs(FLAGS, features, is_training):
                 end_logits, begin_norm_axis=-1
             )
 
-            end_logits = tf.layers.dense(
+            end_logits = tf.compat.v1.layers.dense(
                 end_logits,
                 1,
                 kernel_initializer=initializer,
@@ -311,7 +311,7 @@ def get_qa_outputs(FLAGS, features, is_training):
             )
             start_features = tf.tile(start_features[None], [seq_len, 1, 1, 1])
             end_input = tf.concat([end_input, start_features], axis=-1)
-            end_logits = tf.layers.dense(
+            end_logits = tf.compat.v1.layers.dense(
                 end_input,
                 xlnet_config.d_model,
                 kernel_initializer=initializer,
@@ -321,7 +321,7 @@ def get_qa_outputs(FLAGS, features, is_training):
             end_logits = tf.compat.v1.estimator.layers.layer_norm(
                 end_logits, begin_norm_axis=-1
             )
-            end_logits = tf.layers.dense(
+            end_logits = tf.compat.v1.layers.dense(
                 end_logits,
                 1,
                 kernel_initializer=initializer,
@@ -371,17 +371,17 @@ def get_qa_outputs(FLAGS, features, is_training):
         # note(zhiliny): no dependency on end_feature so that we can obtain
         # one single `cls_logits` for each sample
         ans_feature = tf.concat([start_feature, cls_feature], -1)
-        ans_feature = tf.layers.dense(
+        ans_feature = tf.compat.v1.layers.dense(
             ans_feature,
             xlnet_config.d_model,
             activation=tf.tanh,
             kernel_initializer=initializer,
             name='dense_0',
         )
-        ans_feature = tf.layers.dropout(
+        ans_feature = tf.compat.v1.layers.dropout(
             ans_feature, FLAGS.dropout, training=is_training
         )
-        cls_logits = tf.layers.dense(
+        cls_logits = tf.compat.v1.layers.dense(
             ans_feature,
             1,
             kernel_initializer=initializer,
@@ -426,7 +426,7 @@ def get_race_loss(FLAGS, features, is_training):
     )
 
     with tf.compat.v1.variable_scope('logits'):
-        logits = tf.layers.dense(
+        logits = tf.compat.v1.layers.dense(
             summary, 1, kernel_initializer=xlnet_model.get_initializer()
         )
         logits = tf.reshape(logits, [bsz_per_core, 4])

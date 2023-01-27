@@ -22,7 +22,7 @@ from . import utils
 import tensorflow as tf
 
 
-class BertModel(tf.layers.Layer):
+class BertModel(tf.compat.v1.layers.Layer):
     """BERT model ("Bidirectional Encoder Representations from Transformers").
 
   Example usage:
@@ -73,7 +73,7 @@ class BertModel(tf.layers.Layer):
                 dropout_prob = self.params['hidden_dropout_prob'],
             )
             self.encoder = encoder.EncoderStack(self.params)
-            self.pooler = tf.layers.Dense(
+            self.pooler = tf.compat.v1.layers.Dense(
                 units = self.params['hidden_size'],
                 activation = tf.tanh,
                 kernel_initializer = utils.create_initializer(
@@ -141,7 +141,7 @@ class BertModel(tf.layers.Layer):
         return sequence_output, pooled_output
 
 
-class TransformerModel(tf.layers.Layer):
+class TransformerModel(tf.compat.v1.layers.Layer):
     """Encoder-Decoder transformer model.
 
   Example usage:

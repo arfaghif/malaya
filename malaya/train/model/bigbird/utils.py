@@ -136,7 +136,7 @@ def create_initializer(initializer_range = 0.02):
     return tf.compat.v1.truncated_normal_initializer(stddev = initializer_range)
 
 
-class Dense3dLayer(tf.layers.Layer):
+class Dense3dLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 3D kernel."""
 
     def __init__(
@@ -224,7 +224,7 @@ class Dense3dLayer(tf.layers.Layer):
             return ret
 
 
-class Dense3dProjLayer(tf.layers.Layer):
+class Dense3dProjLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 3D kernel for projection."""
 
     def __init__(
@@ -296,7 +296,7 @@ class Dense3dProjLayer(tf.layers.Layer):
             return ret
 
 
-class Dense2dLayer(tf.layers.Layer):
+class Dense2dLayer(tf.compat.v1.layers.Layer):
     """A dense layer with 2D kernel."""
 
     def __init__(
@@ -432,7 +432,7 @@ def dropout(input_tensor, dropout_prob, training = True):
     return output
 
 
-class NormLayer(tf.layers.Layer):
+class NormLayer(tf.compat.v1.layers.Layer):
     """Replacement for contrib_layers.layer_norm."""
 
     def __init__(self, name = 'LayerNorm'):
@@ -489,7 +489,7 @@ class NormLayer(tf.layers.Layer):
 ############################# EMBEDDING LAYER ##################################
 
 
-class EmbeddingLayer(tf.layers.Layer):
+class EmbeddingLayer(tf.compat.v1.layers.Layer):
     """An embedding layer."""
 
     def __init__(

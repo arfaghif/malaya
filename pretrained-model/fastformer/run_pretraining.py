@@ -389,7 +389,7 @@ def get_masked_lm_output(model_config, input_tensor, output_weights, positions,
         # We apply one more non-linear transformation before the output layer.
         # This matrix is not used after pre-training.
         with tf.compat.v1.variable_scope("transform"):
-            input_tensor = tf.layers.dense(
+            input_tensor = tf.compat.v1.layers.dense(
                 input_tensor,
                 units=model_config['dim'],
                 activation=gelu,

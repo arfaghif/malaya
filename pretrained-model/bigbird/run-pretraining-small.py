@@ -146,7 +146,7 @@ bert_config = {
 }
 
 
-class MaskedLMLayer(tf.layers.Layer):
+class MaskedLMLayer(tf.compat.v1.layers.Layer):
     """Get loss and log probs for the masked LM."""
 
     def __init__(
@@ -232,7 +232,7 @@ class MaskedLMLayer(tf.layers.Layer):
         return loss, log_probs
 
 
-class NSPLayer(tf.layers.Layer):
+class NSPLayer(tf.compat.v1.layers.Layer):
     """Get loss and log probs for the next sentence prediction."""
 
     def __init__(
