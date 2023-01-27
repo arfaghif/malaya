@@ -211,7 +211,7 @@ def train(ps_device):
   }
   train_set = train_input_fn(params)
 
-  example = train_set.make_one_shot_iterator().get_next()
+  example = tf.compat.v1.data.make_one_shot_iterator(train_set).get_next()
 
   if FLAGS.num_core_per_host > 1:
     examples = [{} for _ in range(FLAGS.num_core_per_host)]
