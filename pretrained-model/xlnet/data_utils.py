@@ -433,7 +433,7 @@ def create_tfrecords(save_dir, basename, data, bsz_per_host, seq_len,
         fixed_num_predict=FLAGS.num_predict
     )
     save_path = os.path.join(save_dir, file_name)
-    record_writer = tf.python_io.TFRecordWriter(save_path)
+    record_writer = tf.io.TFRecordWriter(save_path)
     tf.compat.v1.logging.info("Start writing %s.", save_path)
 
     num_batch = 0
