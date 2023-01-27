@@ -87,7 +87,7 @@ def _create_data(idx, input_paths):
         input_data, sent_ids = [], []
         sent_id, line_cnt = True, 0
         tf.compat.v1.logging.info("Processing %s", input_path)
-        for line in tf.gfile.Open(input_path):
+        for line in tf.io.gfile.GFile(input_path):
             if line_cnt % 100000 == 0:
                 tf.compat.v1.logging.info("Loading line %d", line_cnt)
             line_cnt += 1
@@ -178,12 +178,12 @@ def create_data(_):
         FLAGS.num_core_per_host = 1  # forced to be one
 
     # Make workdirs
-    if not tf.gfile.Exists(FLAGS.save_dir):
-        tf.gfile.MakeDirs(FLAGS.save_dir)
+    if not tf.io.gfile.exists(FLAGS.save_dir):
+        tf.io.gfile.mkdir(FLAGS.save_dir)
 
     tfrecord_dir = os.path.join(FLAGS.save_dir, "tfrecords")
-    if not tf.gfile.Exists(tfrecord_dir):
-        tf.gfile.MakeDirs(tfrecord_dir)
+    if not tf.io.gfile.exists(tfrecord_dir):
+        tf.io.gfile.mkdir(tfrecord_dir)
 
     # Create and dump corpus_info from task 0
     if FLAGS.task == 0:
@@ -203,11 +203,11 @@ def create_data(_):
             "input_glob": FLAGS.input_glob,
         }
         corpus_info_path = os.path.join(FLAGS.save_dir, "corpus_info.json")
-        with tf.gfile.Open(corpus_info_path, "w") as fp:
+        with tf.io.gfile.GFile(corpus_info_path, "w") as fp:
             json.dump(corpus_info, fp)
 
     # Interleavely split the work into FLAGS.num_task splits
-    file_paths = sorted(tf.gfile.Glob(FLAGS.input_glob))
+    file_paths = sorted(tf.io.gfile.glob(FLAGS.input_glob))
     tf.compat.v1.logging.info("Use glob: %s", FLAGS.input_glob)
     tf.compat.v1.logging.info("Find %d files: %s", len(file_paths), file_paths)
 
@@ -235,7 +235,7 @@ def create_data(_):
         fixed_num_predict=FLAGS.num_predict)
     record_info_path = os.path.join(tfrecord_dir, record_name)
 
-    with tf.gfile.Open(record_info_path, "w") as fp:
+    with tf.io.gfile.GFile(record_info_path, "w") as fp:
         json.dump(record_info, fp)
 
 
@@ -800,7 +800,7 @@ def get_input_fn(
         record_glob = os.path.join(record_dir, record_glob_base)
         tf.compat.v1.logging.info("[%d] Record glob: %s", idx, record_glob)
 
-        record_paths = sorted(tf.gfile.Glob(record_glob))
+        record_paths = sorted(tf.io.gfile.glob(record_glob))
         tf.compat.v1.logging.info("[%d] Num of record info path: %d",
                         idx, len(record_paths))
 
@@ -815,7 +815,7 @@ def get_input_fn(
                     tf.compat.v1.logging.info("Skip pass %d: %s", pass_id, record_info_name)
                     continue
 
-            with tf.gfile.Open(record_info_path, "r") as fp:
+            with tf.io.gfile.GFile(record_info_path, "r") as fp:
                 info = json.load(fp)
                 if num_passes is not None:
                     eff_num_passes = min(num_passes, len(info["filenames"]))
