@@ -663,7 +663,7 @@ def _local_perm(inputs, targets, is_masked, perm_size, seq_len):
     # Generate permutation indices
     index = tf.range(seq_len, dtype = tf.int64)
     index = tf.transpose(tf.reshape(index, [-1, perm_size]))
-    index = tf.random_shuffle(index)
+    index = tf.random.shuffle(index)
     index = tf.reshape(tf.transpose(index), [-1])
 
     # `perm_mask` and `target_mask`
