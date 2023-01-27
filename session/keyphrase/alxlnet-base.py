@@ -287,7 +287,7 @@ def model_fn(features, labels, mode, params):
 
     vectors_concat = [summary, summary_b, tf.compat.v1.abs(summary - summary_b)]
     vectors_concat = tf.compat.v1.concat(vectors_concat, axis = 1)
-    logits = tf.layers.dense(vectors_concat, 2)
+    logits = tf.compat.v1.layers.dense(vectors_concat, 2)
 
     loss = tf.compat.v1.reduce_mean(
         tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(
